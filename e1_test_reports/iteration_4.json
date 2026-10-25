@@ -1,0 +1,36 @@
+{
+  "iteration": 4,
+  "phase": "4",
+  "passed": 5,
+  "failed": 5,
+  "retest_needed": true,
+  "bugs": [
+    {
+      "severity": "critical",
+      "title": "The widget chat view crashes the whole /widget-demo page (blank screen)",
+      "evidence": "This happens whenever ChatView mounts: after a valid pre-chat submit, with the logged-in toggle on, or with the 'Active chat' / 'AI → human handoff' state jumps. Console shows the React warning 'useEffect must not return anything besides a function' and then 'pageerror: destroy is not a function' (x2). The failure screenshot is fully blank. Probable cause: components/widget/ChatView.tsx:56 `useEffect(() => endRef.current?.scrollIntoView({ block: 'end' }), ...)` returns the value of scrollIntoView. Newer Chromium returns a Promise from it, so React treats that as the cleanup function. Fix: wrap the effect body in braces. This blocks JRN-61/62 (opening the chat, 'Hi Dev!'), all of JRN-63/64, ending a chat into CSAT in JRN-65/66, the active_chat and handoff jumps in JRN-67, and the composer on mobile in JRN-70. There is no backend, so there is no API to cross-check: the app is frontend-only with mocks.",
+      "checks": ["widget-header-prechat-loggedin", "widget-chat-order-handoff", "widget-state-jumps-shadow", "widget-mobile-sheet"]
+    },
+    {
+      "severity": "medium",
+      "title": "JRN-8 regression: the CSAT send delay persists across reload",
+      "evidence": "I set the delay to 5, saved, and reloaded. The send-delay-input still showed value '5' (expected '2'). The cause is api/csat.ts:14, which writes the whole db.csatSurvey (sendDelay included) to sessionStorage. The spec deviation only covers persisting questions. The core pages (/inbox/GB-1076, /guidance, /settings/integrations) render with 0 page errors.",
+      "checks": ["regression-send-delay-core-pages"]
+    }
+  ],
+  "action_items": [
+    {"type": "no_backend", "severity": "info", "detail": "The app is frontend-only (no /api). The backend lane doesn't apply, so no pytest files were written."}
+  ],
+  "checks": [
+    {"criterion": "JRN-59, JRN-60 Storefront variants, launcher badge, greeting bubble", "name": "widget-storefront-greeting", "lane": "browser", "status": "passed", "evidence": "Images use object-fit: cover. Product, Collection and Cart pages each render. The launcher doesn't overlap the demo controls, and the unread badge is visible. The greeting bubble appears within 12s. Dismiss hides it without opening the panel; clicking the bubble opens the panel."},
+    {"criterion": "JRN-61, JRN-62 Panel header, pre-chat validation, logged-in skip", "name": "widget-header-prechat-loggedin", "lane": "browser", "status": "failed", "evidence": "The header (logo, title, subtitle, AI disclosure, minimize) and the empty/'bad' email errors all pass. After a valid email submit, widget-composer-input is not found, the page goes blank and logs 'destroy is not a function'."},
+    {"criterion": "JRN-63, JRN-64 Conversation, typing indicator, chips, order card, handoff", "name": "widget-chat-order-handoff", "lane": "browser", "status": "failed", "evidence": "With the logged-in toggle on, opening the launcher crashes the page before the chat renders: widget-send is not found and the page logs 'destroy is not a function'."},
+    {"criterion": "JRN-65, JRN-66 Offline form, inline CSAT, transcript", "name": "widget-offline-csat-transcript", "lane": "browser", "status": "passed", "evidence": "Offline message shown. An empty submit shows the email error. A valid submit shows the 'we'll reply by email within 1 business day' message. CSAT was reached by state jump and submits. Transcript with no email known asks for one first, then shows 'Transcript sent to tscheck@example.com'. The 'End chat -> CSAT' path couldn't be exercised because of the chat crash."},
+    {"criterion": "JRN-67, JRN-68 State jumps + Shadow DOM isolation", "name": "widget-state-jumps-shadow", "lane": "browser", "status": "failed", "evidence": "The launcher's root node is a ShadowRoot. With hostile CSS on, store font becomes Comic Sans while the widget's font and colors are unchanged. 6 of 8 jumps render; active_chat and handoff fail (page crash)."},
+    {"criterion": "JRN-69, JRN-70 Widget keyboard a11y", "name": "widget-keyboard-a11y", "lane": "browser", "status": "passed", "evidence": "Pressing Enter on the launcher opens a labeled role=dialog with focus inside. 12 Tabs stay inside the panel. Esc closes it and returns focus to the launcher. aria-live=polite region present."},
+    {"criterion": "JRN-69, JRN-70 Mobile sheet 390x844", "name": "widget-mobile-sheet", "lane": "browser", "status": "failed", "evidence": "The panel is full-screen, body/html overflow is hidden and scrollWidth is 390. After the pre-chat submit the composer is not found because the chat view crashes."},
+    {"criterion": "JRN-71, JRN-72, JRN-73 Hosted survey (mobile)", "name": "survey-hosted-mobile", "lane": "browser", "status": "passed", "evidence": "Ticket line shows 'Sizing help: Hampton Fedora'. Progress reads 'Step n of total'. 'Please choose a rating.' appears when unanswered. Tap targets are >=44px. Submit shows 'Thank you for your feedback'. ?score=5 preselects 5. /survey/nope and /survey/done show the expected messages."},
+    {"criterion": "JRN-71, JRN-72, JRN-73 Survey picks up a question added in the dashboard", "name": "survey-picks-up-new-question", "lane": "browser", "status": "passed", "evidence": "Added a labeled text question in the CSAT drawer (3 -> 4 questions) and saved. /survey/tok_GB1066 in the same tab shows 'Step 1 of 4'."},
+    {"criterion": "Regression: JRN-8 + core app still works", "name": "regression-send-delay-core-pages", "lane": "browser", "status": "failed", "evidence": "After reload the send delay is '5', expected '2'. The session survived the reload. The core pages render with 0 non-websocket page errors."}
+  ]
+}

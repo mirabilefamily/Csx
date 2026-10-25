@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only E2E of Phase 5 Settings redesign (REQ-342..357, JRN-90). Verified new Settings shell + all four tabs (Integrations/AI/Chat Widget/Users), Agent no-access screen, responsive at 1440/1024/768, and the key regressions from JRN-52..56 / JRN-74..86. No regressions found; all critical testids and copy are intact.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_scenarios": [
+    "JRN-90 shell: /settings → /settings/integrations redirect works. Tab bar renders settings-tab-{integrations,ai,widget,users} with per-tab icons. settings-tab-description changes per tab (e.g. integrations: 'Connections to your mailbox, store, AI providers and email.'). Amber dot settings-tab-integrations-alert visible because Grokbot is in Error.",
+    "Agent role: switching 'View as → Agent' via user-menu-trigger, navigating to /settings renders the no-access card with 'You don\\'t have access to Settings' and Back to Dashboard button.",
+    "Integrations tab: integrations-summary = '3 connected · 1 error · 1 not configured'. All five integration-purpose-{outlook,shopify,claude,grokbot,resend} match the required copy exactly (Pulls email from support@goorin.com / Orders, customers & app embed / Tier-1 AI replies / Tier-2 AI fallback / Transactional email & CSAT). integration-error-grokbot = 'Connection error. 401 Unauthorized: API key was rejected'. integration-expand-* toggles details; secret-outlook renders the lock-icon Credentials block with masked value 'gph-••••8c21' + 'Set via environment variable OUTLOOK_CLIENT_SECRET.'. Full secret is not in the DOM. Collapsed cards don't leave empty detail space.",
+    "AI tab: threshold-zone-grokbot, threshold-zone-claude, threshold-line present. threshold-line text = 'Replies below 75% escalate to Grokbot'. Auto-send matrix exposes auto-send-{email,chat}-{claude,grokbot}. prompt-claude / prompt-grokbot viewers present; prompt-toggle-claude opens, prompt-copy-claude shows the 'Prompt copied' toast (visible in screenshot).",
+    "Users tab: users-count resolves to '3 members' after load (shows '–' briefly during loading as implemented). users-search filter: typing 'sam' narrows to Sam Okafor only; 'zzzzz' shows users-no-results. invite-user opens the dialog; invalid email shows 'Enter a valid email address.'",
+    "Chat Widget tab: preview-toolbar present; preview-device-desktop/tablet/mobile icon buttons expose aria-label=Desktop/Tablet/Mobile. preview-state is a native <select> (TAG=SELECT); select_option works for all 8 required values (launcher_closed, greeting_bubble, prechat, active_chat, handoff, offline, csat, transcript_sent). ws-section-toggle-branding collapses the section; ws-section-summary-branding = 'Tobacco & Brass · 14px radius · Store font'.",
+    "Demo state: demo-state-trigger opens a menu with Live/Loading/Empty/Error (plus descriptions 'Mock data with simulated latency' / 'Requests never resolve' / 'Every list comes back empty' / 'Every request fails'); switch is reachable on every Settings tab.",
+    "Responsive: no horizontal page overflow at 1024 or 768 for Integrations, AI, Chat Widget or Users (document.scrollWidth − clientWidth = 0 on each). Users table fits inside its card at 768 (verified by screenshot: table with Name/Role/Status/Last login/Actions all visible, 3 rows)."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: users-count renders '–' while loading. This is a loading placeholder (seen in /app/frontend/src/components/settings/UsersTab.tsx L125). Fine functionally but tests that read users-count before mock latency resolves can momentarily see '–'. Not a bug.",
+    "The requirement text mentioned integration id 'gmail', but the actual id in /app/frontend/src/types/index.ts and mocks is 'outlook' (Outlook / Microsoft Graph). The purpose line copy ('Pulls email from support@goorin.com') matches the requirement; only the id label differs. Confirm with product that the renaming (if any was planned) is not in scope."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "ava@goorin.com / goorin123 (Admin). Role toggle via user-menu-trigger → Agent.",
+  "seed_data_creation": "None (all data is mocked in /app/frontend/src/mocks and /app/frontend/src/api; resets on reload).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All Phase 5 Settings redesign requirements verified at 1440/1024/768. Correct integration ids are outlook/shopify/claude/grokbot/resend (not gmail). user-menu-trigger opens the user menu; menu items 'Admin' / 'Agent' are exact-text buttons. demo-state-trigger menu items contain two lines (label + description) so match them with startsWith('Loading') etc., not strict textContent equality. preview-state is a native <select>; use page.select_option with values launcher_closed/greeting_bubble/prechat/active_chat/handoff/offline/csat/transcript_sent."
+}

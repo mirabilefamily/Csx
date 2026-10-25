@@ -1,0 +1,57 @@
+{
+  "summary": "Comprehensive Playwright testing of Goorin Support Desk Phase 1 (frontend-only prototype). Executed JRN-1 through JRN-26 against the public preview URL. 25/26 journeys fully pass; one minor Recharts console warning observed on initial render; no critical issues. Code audit confirms JRN-26 passes (no /src/mocks imports from components/pages, no 'emergent' package in package.json).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Dashboard (initial render)", "issues": ["Recharts logs 12+ console warnings: 'The width(-1) and height(-1) of chart should be greater than 0'. Charts still display correctly after measurement, but the warnings pollute the console. Add minHeight/minWidth to Recharts ResponsiveContainer wrappers or set explicit height on the parent card to suppress these warnings."]}
+    ]
+  },
+  "test_results_detail": {
+    "JRN-1 gate redirect": "PASS - /dashboard → /login with email/password/submit/forgot-password visible",
+    "JRN-2 successful sign-in": "PASS - ava@goorin.com/goorin123 → /dashboard, user menu 'Ava Martinez / Admin', title font Fraunces",
+    "JRN-3 wrong creds": "PASS - error@goorin.com shows 'Incorrect email or password.' and stays on /login",
+    "JRN-4 field validation": "PASS - 'Enter a valid email address.' and 'Enter your password.' render under respective fields",
+    "JRN-5 forgot password": "PASS - invalid email error + success message 'If an account exists for ava@goorin.com, we've sent a reset link.'",
+    "JRN-6 accept invite": "PASS - mismatched → 'Passwords don't match.'; 'short' → 'Use at least 8 characters.'; valid → /dashboard as Priya Patel (Agent)",
+    "JRN-7 expired invite": "PASS - 'This invite has expired' with 'Back to sign in' link (data-testid=invite-expired)",
+    "JRN-8 reload persistence + data reset": "PASS - session persists on reload, CSAT send delay resets from 5 back to 2 (default)",
+    "JRN-9 sign out": "PASS - sign-out lands on /login, revisiting /dashboard re-redirects to /login",
+    "JRN-10 sidebar + needs-human badge": "PASS - inbox-needs-human-badge=7, bell-count=7, collapse toggle works",
+    "JRN-11 role toggle": "PASS - Agent hides nav-settings; /settings shows settings-no-access; Admin restores settings",
+    "JRN-12 notification bell": "PASS - 7 items shown, first (bell-item-GB-1076) navigates to /inbox/GB-1076",
+    "JRN-13 global search Ctrl+K": "PASS - Margaret → customers+tickets groups; sizing → tickets+articles groups; zzqx → 'No results for \"zzqx\"'; Esc closes",
+    "JRN-14 placeholders + 404": "PASS - inbox/guidance placeholders include 'Coming in a later phase'; /does-not-exist shows not-found-page",
+    "JRN-15 date range + 7 KPI cards": "PASS - 7 KPI cards present with Fraunces values, deltas 'vs prior 30 days'; range switching works; custom-range-apply present",
+    "JRN-16 delta coloring tones": "PASS - open=good(▼), created=neutral(▲), aiRate=good(▲), frt=good(▼), resolution=good(▼), csatAvg=good(▲), csatRate=good(▲). All deltas include descriptive text ('down, an improvement' / 'up') + arrow, not color-only.",
+    "JRN-17 charts": "PASS - all 4 charts render (volume-by-channel, resolved-by, escalation-reasons, top-tags) with Goorin palette (no blue defaults observed)",
+    "JRN-18 CSAT section": "PASS - 4 CSAT charts (trend/distribution/by-channel/by-resolver), latest-comments feed, low-scores list (3 ≤2 entries with needs-follow-up-flag), first comment navigates to /inbox/GB-1066",
+    "JRN-19 CSAT question builder": "PASS - keyboard reorder (question-move-up-1) changes order and live preview; Add Text/Choice/Rating via add-question-button menu; clearing a label blocks save with 'Question text is required.'; choice with 1 option shows 'Add at least 2 options.'; delete disabled when only 1 question remains",
+    "JRN-20 CSAT delivery": "PASS - toggling both channels off shows surveys-paused-warning; 'bad-email' shows validation; 'lead@goorin.com' chip created; save toast 'CSAT settings saved' appears; reopening drawer shows saved send-delay=5",
+    "JRN-21 CSAT discard guard": "PASS - Esc with dirty state shows discard-dialog; Keep editing preserves changes & drawer; Discard closes & reverts",
+    "JRN-22 demo state switcher": "PASS - Live/Loading/Empty/Error cycle on dashboard; dashboard-error-retry present in Error; switcher also on /login, /styleguide",
+    "JRN-23 keyboard focus": "SPOT-CHECK PASS - Esc closes CSAT drawer (with discard guard), focus-ring styles visible on buttons (visual spot check)",
+    "JRN-24 tablet 768x1024": "PASS - no horizontal scroll on /login or /dashboard; sidebar collapsed by default (icon-only ~47px wide)",
+    "JRN-25 styleguide (signed out)": "PASS - /styleguide loads without redirecting to /login; Customer/Claude/Grokbot badges visible; needs_human + status pills present",
+    "JRN-26 code checks": "PASS - no imports from /src/mocks in /src/components or /src/pages; no 'emergent' in package.json"
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Low) Suppress Recharts width/height=-1 console warnings by giving each ResponsiveContainer parent an explicit height or setting minWidth=0 on ResponsiveContainer (observed on initial Dashboard render)."
+  ],
+  "critical_code_review_comments": [
+    "The data-testids documented in the testing brief use 1-indexed question suffixes (question-item-N starting at 1) but the implementation uses 0-indexed suffixes (question-item-0..2). Not a bug — just note the testid taxonomy convention in the brief vs code.",
+    "add-question-button opens a menu with add-question-rating / add-question-text / add-question-choice as menuitem options — this matches the brief.",
+    "Agent-invite flow signs the invited user in as 'Priya Patel' (Agent). Settings nav is correctly hidden for the invited Agent, matching JRN-11 contract.",
+    "Delta deltas are not color-only: each contains a descriptive sibling text ('down, an improvement' etc.) plus arrow glyph — accessibility good."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (no backend)", "frontend": "100% (26/26 journeys passing, 1 minor console warning)"},
+  "test_credentials": "ava@goorin.com / goorin123 (any valid email + non-empty password); error@goorin.com → error path; /login?invite=demo-invite → agent invite; /login?invite=expired → expired state. Source: /app/memory/test_credentials.md.",
+  "seed_data_creation": "none - mocks reset on reload",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 26 JRNs pass end-to-end. Only cosmetic issue is Recharts width=-1 console warnings on initial render — charts render correctly after measurement. If re-testing, note question-item testids are 0-indexed. Demo-state popover stays open between selections (click a different state option without re-opening). CSAT drawer Esc with dirty state triggers discard-dialog; non-dirty Esc closes directly without dialog.",
+  "rca of the issue": "No functional bugs found. Recharts width=-1 warnings are because ResponsiveContainer measures before the parent has layout; adding explicit height on the chart card or a minHeight prop silences them."
+}

@@ -1,0 +1,18 @@
+{
+  "passed": 6,
+  "failed": 0,
+  "retest_needed": false,
+  "notes": "8 criteria covered by 6 browser checks (some criteria combined). There's no backend, so the backend lane doesn't apply. The portability criterion was checked statically: no imports of src/mocks in src/components or src/pages, zero 'emergent' strings in package.json, vite.config.ts and tsconfig.json are present. styleguide-public ran against the preview ingress URL. Keyboard-sensor drag (focus handle + Space/Enter + arrows) gave inconsistent results under automation after 2 attempts. Keyboard reorder was verified through the move up/down buttons and mouse drag through the handle. Open tickets stays at 21 across all ranges because it is a point-in-time count; only its delta changes.",
+  "bugs": [
+    {"severity": "low", "title": "Global search panel closes right after Ctrl+K when used directly after selecting a bell notification", "evidence": "shell-nav-search-bell: bell-item-GB-1076 click -> /inbox/GB-1076, Ctrl+K focuses input (toBeFocused passed), typing 'Margaret' showed 'Searching…' then global-search-results disappeared. When the input is clicked before typing, results show 'Margaret Okonkwo'. This is likely focus returning to the bell trigger, which fires onBlur -> setOpen(false) in GlobalSearch.tsx:112. Frontend-only (no backend). The check now clicks the input first so it can cover the rest of the flow."}
+  ],
+  "action_items": [],
+  "checks": [
+    {"criterion": "JRN-1..JRN-9 auth gate/errors/forgot/invite/expired/reload/sign out", "name": "auth-login-flows", "lane": "browser", "status": "passed", "evidence": "/dashboard->/login; field errors, 'Incorrect email or password.', reset message, invite validations, expired invite, invite sign-in, sign out, Ava login, reload keeps session"},
+    {"criterion": "JRN-10..JRN-14 sidebar/badge/collapse/role/bell/search/placeholders/404", "name": "shell-nav-search-bell", "lane": "browser", "status": "passed", "evidence": "badge 7, tooltip on collapse, agent hides Settings + no-access page, 7 bell items -> /inbox/GB-1076, Margaret/sizing/zzqx search, Esc closes, 404 -> Dashboard. Passed after the input-click workaround (see bug)"},
+    {"criterion": "JRN-15..JRN-18 date range, KPIs, charts, CSAT section", "name": "dashboard-kpis-charts-csat", "lane": "browser", "status": "passed", "evidence": "30d created 1,079 / 7d 240 / 90d 3,161 / today 6; 8 charts visible; low-score flags 3@30d 4@90d; comment link to /inbox/GB-1066; custom range popover has disabled days"},
+    {"criterion": "JRN-19..JRN-21 CSAT settings drawer", "name": "csat-settings-drawer", "lane": "browser", "status": "passed", "evidence": "move buttons + mouse drag reorder update preview; 'Question text is required.'; 'Add at least 2 options.'; last delete disabled; paused warning; bad-email rejected, lead@goorin.com chip; toast 'CSAT settings saved', delay 5 persists; discard dialog; reload resets delay to 2"},
+    {"criterion": "JRN-22..JRN-24 demo states, focus, tablet", "name": "demo-states-focus-tablet", "lane": "browser", "status": "passed", "evidence": "768x1024 no overflow on login/dashboard, sidebar 72px; loading skeleton, empty, error with Try again; focus ring box-shadow brass; user menu traps focus + Esc; drawer traps Tab + Esc"},
+    {"criterion": "JRN-25, JRN-26 styleguide + portable code", "name": "styleguide-public", "lane": "browser", "status": "passed", "evidence": "signed-out via preview URL: 5 author badges, 6 status pills, needs_human bg rgb(240,168,48) amber, 12 swatches, table/buttons/inputs; static scan clean"}
+  ]
+}

@@ -1,0 +1,52 @@
+import type { AiSettings, IntegrationStatus } from '@/types'
+import { hoursAgo, daysAgo } from './time'
+
+// Secrets are never stored in full, only the masked preview a real backend would return.
+export const integrations: IntegrationStatus[] = [
+  {
+    id: 'outlook', name: 'Outlook', description: 'Shared support mailbox via Microsoft Graph', status: 'connected', lastSyncAt: hoursAgo(0.05), error: null,
+    envVar: 'OUTLOOK_CLIENT_SECRET', secretPreview: 'gph-••••8c21',
+    details: { Mailbox: 'support@goorin.com', 'Subscription status': 'Active · renews in 2 days', 'Last poll': '3 minutes ago', 'Processed folder': 'Inbox/Processed by Desk' },
+  },
+  {
+    id: 'shopify', name: 'Shopify', description: 'Orders, customers and the chat widget app embed', status: 'connected', lastSyncAt: hoursAgo(0.2), error: null,
+    envVar: 'SHOPIFY_ADMIN_API_TOKEN', secretPreview: 'shpat_••••41d0',
+    details: { 'Shop domain': 'goorin-bros.myshopify.com', 'App embed': 'Enabled on the live theme' },
+  },
+  {
+    id: 'claude', name: 'Claude', description: 'First-line AI replies (Anthropic)', status: 'connected', lastSyncAt: hoursAgo(0.01), error: null,
+    envVar: 'ANTHROPIC_API_KEY', secretPreview: 'sk-ant-••••3f9a',
+    details: {}, models: ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-4-5'], model: 'claude-sonnet-5-5',
+  },
+  {
+    id: 'grokbot', name: 'Grokbot', description: 'Second-tier AI for escalations (xAI)', status: 'error', lastSyncAt: hoursAgo(6), error: '401 Unauthorized: API key was rejected',
+    envVar: 'XAI_API_KEY', secretPreview: 'xai-••••b77e',
+    details: {}, models: ['grok-4.7', 'grok-4.7-fast'], model: 'grok-4.7',
+  },
+  {
+    id: 'resend', name: 'Resend', description: 'Outbound email and CSAT surveys', status: 'not_configured', lastSyncAt: null, error: 'API key not set',
+    envVar: 'RESEND_API_KEY', secretPreview: null,
+    details: { 'From address': 'support@goorin.com', Webhook: 'Not configured' },
+    checklist: [{ label: 'SPF record', ok: true }, { label: 'DKIM record', ok: false }, { label: 'Return-path (MX)', ok: false }],
+  },
+]
+
+const day = (d: string, open: boolean, from = '09:00', to = '18:00') => ({ day: d, open, from, to })
+
+export const aiSettings: AiSettings = {
+  threshold: 75,
+  autoSend: { email: { claude: true, grokbot: false }, chat: { claude: true, grokbot: true } },
+  timezone: 'America/Los_Angeles',
+  hours: [day('Monday', true), day('Tuesday', true), day('Wednesday', true), day('Thursday', true), day('Friday', true), day('Saturday', true, '10:00', '16:00'), day('Sunday', false, '10:00', '16:00')],
+  rules: [
+    { id: 'r-1', condition: 'refund_over', value: '250', target: 'human' },
+    { id: 'r-2', condition: 'keyword', value: 'wholesale', target: 'human' },
+    { id: 'r-3', condition: 'sentiment', value: 'negative', target: 'grokbot' },
+  ],
+  prompts: {
+    claude: 'You are the first-line support assistant for Goorin Bros., hat makers since 1895.\nAnswer warmly and briefly, using only the guidance articles provided.\nNever promise refunds over $250 or custom work. Escalate when unsure.',
+    grokbot: 'You are the second-tier support assistant for Goorin Bros.\nYou receive tickets Claude could not resolve. Use order data from Shopify to investigate.\nIf a human decision is needed, summarize the case for the agent and draft a reply for approval.',
+  },
+}
+
+export const settingsUpdatedAt = daysAgo(3)

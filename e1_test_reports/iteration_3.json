@@ -1,0 +1,25 @@
+{
+  "iteration": 3,
+  "phase": "3",
+  "passed": 8,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    {"type": "note", "severity": "low", "detail": "This is a frontend-only prototype with no backend (/api is not served), so there are no backend tests. Every criterion was checked in the browser against the preview URL."},
+    {"type": "note", "severity": "low", "detail": "Macro placeholders use double braces ({{order.tracking_url}}), while the criterion text says {order.tracking_url}. Insert and preview both work (the preview filled in https://tracking.example.com/ups/1Z20398)."},
+    {"type": "note", "severity": "low", "detail": "The AI tab has no Empty demo state, only Loading and Error. This seems reasonable for a settings form. Loading, Empty and Error all work on Articles, Macros, Integrations and Users. The Sandbox shows sandbox-error when the demo state is Error."},
+    {"type": "improvement", "severity": "low", "detail": "At 1440x900 on /inbox/GB-1076, the conversation column is about 552px wide. The status, priority and assignee controls sit on one line, but they wrap below the two-line subject rather than sharing a row with it."},
+    {"type": "note", "severity": "low", "detail": "The deactivated-article test had to toggle the seeded top sizing article ('Between sizes: which way to go') off. The check turns it back on afterwards, and data resets on reload anyway."}
+  ],
+  "retest_needed": false,
+  "checks": [
+    {"criterion": "JRN-45/46/47 Articles table, editor, guard, deep link", "name": "guidance-articles-editor", "lane": "browser", "status": "passed", "evidence": "15 rows; 'zzqx' -> 'No articles match your search'; 'size' -> 4 rows; empty save -> both required errors; live markdown h1/strong; 'Article saved'; dirty back -> 'Discard unsaved changes?'; toggle toasts deactivated/activated; global search article -> /guidance?article=<id> editor"},
+    {"criterion": "JRN-48 Macros", "name": "guidance-macros-crud", "lane": "browser", "status": "passed", "evidence": "8 macros; 'Name is required.'; duplicate 'Return label sent' -> 'A macro with this name already exists.'; placeholder inserted; preview 'Hi Margaret, track here: https://tracking.example.com/ups/1Z20398'; 'Macro saved'; 'Sizing follow-up' in Inbox / picker; 'Delete Sizing follow-up?' confirm removes it"},
+    {"criterion": "JRN-49/50 Sandbox + threshold + inactive", "name": "guidance-sandbox-threshold", "lane": "browser", "status": "passed", "evidence": "empty -> 'Enter a customer question.'; Sizing 86% 'Claude would handle this', top 'Between sizes: which way to go'; Wholesale 62% escalate; gibberish 'No relevant articles found'; 99999 not-found msg; '#GB20398 · delivered · Hampton Wool Fedora'; threshold 95 saved -> sizing escalates; deactivated top article not retrieved"},
+    {"criterion": "JRN-51 CSV import/export", "name": "guidance-csv-import-export", "lane": "browser", "status": "passed", "evidence": ".txt -> 'Only .csv files are supported.'; template guidance-template.csv downloaded; 7-row file previews 5; unmapped title -> 'Map a column to Title.' + Import disabled; 3 rows/1 blank -> 'Imported 2 articles' + '1 rows skipped (missing title)'; export guidance-articles.csv"},
+    {"criterion": "JRN-52/53/54 Settings routes, integrations, secrets", "name": "settings-routes-integrations", "lane": "browser", "status": "passed", "evidence": "/settings -> /settings/integrations; tab routes ok; widget placeholder; 5 statuses match; Claude 'Connection OK · Nms', Grokbot 'Connection failed: ...'; secrets masked 'sk-ant-••••3f9a' etc with env var names, no inputs, no full keys in DOM; model select + Run prompt; SPF/DKIM checklist; 'bad' -> 'Enter a valid email address.'; Agent -> 'You don't have access to Settings'"},
+    {"criterion": "JRN-55 AI settings", "name": "settings-ai-form", "lane": "browser", "status": "passed", "evidence": "line tracks slider 75->73->76 via keyboard, focus ring visible; 2x2 matrix toggles via Space; 17:00-09:00 -> 'Closing time must be after opening time.'; rule add/remove; 'Managed in code. Read only.' + Copy toast; unsaved bar, Discard reverts, 'AI settings saved'"},
+    {"criterion": "JRN-56 Users", "name": "settings-users-manage", "lane": "browser", "status": "passed", "evidence": "Ava Admin Active, Sam Agent Active, Priya Agent Invited Never; bad/duplicate errors; 'Invite sent to lee@goorin.com' Invited row; on Lee: 'Role updated', deactivate confirm -> Reactivate, 'Password reset email sent to lee@goorin.com'; Ava self note + disabled items"},
+    {"criterion": "JRN-57/58 States/keyboard/tablet + inbox width", "name": "phase3-states-tablet-inbox-width", "lane": "browser", "status": "passed", "evidence": "skeleton/empty/error+Try again on all tabs (AI has no empty state); sandbox-error; 768px: no h-scroll, Write/Preview tabs; 1440x900 GB-1076 conversation >=520px, header controls same line (tops 202/207)"}
+  ]
+}

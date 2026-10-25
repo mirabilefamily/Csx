@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only E2E for Goorin Support Desk Phase 5 fix pack: 1) widget preview font 'Inherit from store theme' now resolves to Georgia serif (not Inter); 2) sidebar refactor (expanded bottom row with Settings + right-aligned toggle, collapsed toggle below Settings icon, no mid-edge collapse tab, white castle on brass tile, centered 160px wordmark in 64px header). All targeted scenarios + Agent role + 768px + regression checks (active indicator on all nav items, needs-human badge, tooltips) passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_scenarios": [
+    "Font bug: /settings/widget Branding → 'Inherit from store theme' sets widget --gw-font to 'Georgia, \"Times New Roman\", serif' and panel fontFamily is serif. 'Inter' sets --gw-font to Inter stack. preview-screen fontFamily uses STORE_FONT (Georgia).",
+    "Sidebar expanded @1440 (Admin): width 240, no element protrudes past right edge, bottom row has Settings nav + toggle on same row, toggle right-aligned (x≈191, nav at x≈12), aria-expanded=true, aria-label='Collapse sidebar'.",
+    "Sidebar collapsed @1440 (Admin): width 72, toggle directly below Settings icon (horizontally centered, y above/below), aria-expanded=false, aria-label='Expand sidebar', tooltip [data-testid=sidebar-collapse-tooltip] shown on hover, castle color computed rgb(255,255,255) on brass bg rgb(176,141,87).",
+    "Expanded header: wordmark img width=160 (±2px), centered within 240px sidebar (centers match within 0.5px), header height exactly 64px.",
+    "Agent role: Settings hidden in bottom (count=0), only toggle present in both states, toggle works to collapse/expand.",
+    "768px viewport: sidebar defaults to collapsed (72px), no horizontal page overflow, nav tooltips still work (nav-tooltip-dashboard visible on hover).",
+    "Regression: nav-active-indicator present on Dashboard/Inbox/Guidance/Settings in both states; inbox-needs-human-badge visible."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SupportWidget.tsx L354: initial inheritFont uses document.body (sans-serif). Since the inherit font is only re-read on host mount via getComputedStyle(host.parentElement...), initial render for a brief moment may use body font. In the preview this now works correctly because preview-screen is the host parent and has STORE_FONT applied, but initial state could flicker. Low priority."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "ava@goorin.com / goorin123 (Admin)",
+  "seed_data_creation": "None (mock data)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 3 sidebar changes + font bug fix verified end-to-end at 1440 and 768 viewports in both Admin and Agent roles. Font read via computed CSS var --gw-font and panel fontFamily on the widget shadowRoot inside [data-testid=preview-screen]."
+}

@@ -1,0 +1,13 @@
+{
+ "passed": 7, "failed": 0, "bugs": [], "retest_needed": false,
+ "action_items": [{"type":"note","severity":"low","detail":"No backend (spec deviation); backend lane N/A. Ran against http://localhost:3000. Only console errors seen were Vite HMR websocket noise (ignored per criterion). Styleguide widget section lazy-loads (skeleton) before 15 shadow roots appear."}],
+ "checks": [
+  {"criterion":"JRN-91 Styleguide complete","name":"p6-styleguide-complete","lane":"browser","status":"passed","evidence":"Signed out; sticky index with 15 links; 5 author badges, 6 status pills; 15 shadow-root hosts; sections for launcher Circle/Pill S/M/L, greeting, order card #GB20411, typing, handoff, offline form, CSAT stars/emoji/numeric, transcript confirmation; Claude/Grokbot, KPI, Resolved, integration all present"},
+  {"criterion":"JRN-92 README handoff coverage","name":"readme-check-script+spot-check","lane":"browser","status":"passed","evidence":"node scripts/check-readme.mjs: 'Checked 65 api exports, 106 component/page files, 75 types. README coverage: 0 missing.' Random spot-check found in README: ViewsNav, StyleguidePage, AiTab, UserMenu, QuestionItem, submitOfflineMessage, getAiDraft, acceptInvite, stashDeskPreview, request. Env vars, Shadow DOM, widget.js, and mock swap terms present."},
+  {"criterion":"JRN-93 axe every route","name":"p6-axe-all-routes","lane":"browser","status":"passed","evidence":"axe-core WCAG 2.1 A/AA, serious+critical = [] on dashboard, inbox/GB-1076, guidance articles/macros/sandbox, settings integrations/ai/widget/users, styleguide, widget-demo (open), theme-editor, survey/tok_GB1066"},
+  {"criterion":"JRN-93 axe login + focus rings","name":"p6-login-axe-focus-rings","lane":"browser","status":"passed","evidence":"/login axe []; Tab x12 on dashboard, inbox, settings/ai: every focused element has an outline or ring (0 missing)"},
+  {"criterion":"JRN-94 Tablet + console sweep","name":"p6-axe-all-routes","lane":"browser","status":"passed","evidence":"scrollWidth-innerWidth = 0 at 768 and 1024 on all 13 routes; no non-HMR console errors"},
+  {"criterion":"JRN-95 Full smoke regression","name":"p6-full-smoke","lane":"browser","status":"passed","evidence":"7d changed values; 'Approved by Ava Martinez'; sandbox 86% 'Claude would handle this'; 'Widget settings saved'; Hi Dev! + order card GB20411; 'Thank you for your feedback'"},
+  {"criterion":"Portability hygiene","name":"tsc-imports-package","lane":"browser","status":"passed","evidence":"npx tsc --noEmit exit 0; grep for mocks imports in src/components|src/pages: none; no 'emergent' in package.json; vite.config.ts + tsconfig.json present"}
+ ]
+}

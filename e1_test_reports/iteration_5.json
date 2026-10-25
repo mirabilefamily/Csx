@@ -1,0 +1,11 @@
+{"iteration":5,"mode":"retest","passed":7,"failed":0,"bugs":[],"action_items":[],"retest_needed":false,
+"notes":"Only console noise: Vite HMR websocket (ws://localhost:443) refused, dev-server artifact, not app error. No 'destroy is not a function' page errors. No backend (per spec_deviations) so no backend lane.",
+"checks":[
+{"criterion":"JRN-61, JRN-62 Pre-chat + logged-in skip","name":"widget-header-prechat-loggedin","lane":"browser","status":"passed","evidence":"Pre-chat submit opens chat; logged-in greets Hi Dev!; only vite HMR ws errors"},
+{"criterion":"JRN-63, JRN-64 Chat, order card, handoff","name":"widget-chat-order-handoff","lane":"browser","status":"passed","evidence":"Typing->AI bubble, order card #GB20411, handoff copy shown"},
+{"criterion":"JRN-65, JRN-66 Offline, CSAT, transcript","name":"widget-offline-csat-transcript","lane":"browser","status":"passed","evidence":"Offline validation + thanks; CSAT -> Transcript sent"},
+{"criterion":"JRN-67, JRN-68 State jumps + Shadow DOM","name":"widget-state-jumps-shadow","lane":"browser","status":"passed","evidence":"All 8 states ok incl active_chat, handoff; inShadow true; widget font unchanged while body became Comic Sans"},
+{"criterion":"JRN-69, JRN-70 Keyboard + mobile","name":"widget-mobile-sheet","lane":"browser","status":"passed","evidence":"390 width, overflow hidden/hidden (scroll lock), sheet + composer visible"},
+{"criterion":"JRN-8 persistence split","name":"regression-send-delay-core-pages","lane":"browser","status":"passed","evidence":"Send delay resets to 2 hours after reload; core pages render"},
+{"criterion":"JRN-73 persistence split","name":"survey-picks-up-new-question","lane":"browser","status":"passed","evidence":"New CSAT question persisted; survey tok_GB1066 shows extra step (n 3)"}
+]}

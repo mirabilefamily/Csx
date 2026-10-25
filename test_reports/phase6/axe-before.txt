@@ -1,0 +1,62 @@
+/login                       serious/critical nodes: 1  overflow: {}
+    - label-content-name-mismatch(serious) x1: .group
+/dashboard                   serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/inbox/GB-1076               serious/critical nodes: 2  overflow: {"768":0,"1024":0}
+    - aria-prohibited-attr(serious) x1: .tiptap
+    - label-content-name-mismatch(serious) x1: .bg-\[\#F3EEE7\]
+/guidance?tab=articles       serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/guidance?tab=macros         serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/guidance?tab=sandbox        serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/settings/integrations       serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/settings/ai                 serious/critical nodes: 3  overflow: {"768":0,"1024":0}
+    - aria-allowed-attr(critical) x2: pre[data-testid="prompt-text-claude"] | pre[data-testid="prompt-text-grokbot"]
+    - label-content-name-mismatch(serious) x1: .group
+/settings/widget             serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/settings/users              serious/critical nodes: 1  overflow: {"768":0,"1024":0}
+    - label-content-name-mismatch(serious) x1: .group
+/styleguide                  serious/critical nodes: 6  overflow: {}
+    - aria-prohibited-attr(serious) x2: .tiptap | .xl\:grid-cols-3 > figure:nth-child(3) > .bg-\[\#FBF8F3\].ring-border.ring-1 > div[data-testid="widget-host"][data-goorin-widget=""],.gw-typing
+    - label-content-name-mismatch(serious) x4: .group | .sm\:grid-cols-3.gap-4.grid > figure:nth-child(4) > .bg-\[\#FBF8F3\].ring-border.ring-1 > div[data-testid="widget-host"][data-goorin-widget=""],.is-pill.anim-pulse.gw-launcher | .sm\:grid-cols-3.gap-4.grid > figure:nth-child(5) > .bg-\[\#FBF8F3\].ring-border.ring-1 > div[data-testid="widget-host"][data-goorin-widget=""],.is-pill.anim-pulse.gw-launcher
+/widget-demo                 serious/critical nodes: 0  overflow: {}
+/widget-demo/theme-editor    serious/critical nodes: 1  overflow: {}
+    - color-contrast(serious) x1: .mt-2.py-1\.5.text-\[\#8A8A8A\]
+/survey/tok_GB1066           serious/critical nodes: 0  overflow: {}
+
+TOTAL serious/critical nodes: 20
+Console errors: 45
+    ! http://localhost:3000/login :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/login :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/login :: WebSocket closed without opened.
+    ! http://localhost:3000/dashboard :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/dashboard :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/dashboard :: WebSocket closed without opened.
+    ! http://localhost:3000/inbox/GB-1076 :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/inbox/GB-1076 :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/inbox/GB-1076 :: WebSocket closed without opened.
+    ! http://localhost:3000/guidance?tab=articles :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/guidance?tab=articles :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/guidance?tab=articles :: WebSocket closed without opened.
+    ! http://localhost:3000/guidance?tab=macros :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/guidance?tab=macros :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/guidance?tab=macros :: WebSocket closed without opened.
+    ! http://localhost:3000/guidance?tab=sandbox :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/guidance?tab=sandbox :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/guidance?tab=sandbox :: WebSocket closed without opened.
+    ! http://localhost:3000/settings/integrations :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/settings/integrations :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/settings/integrations :: WebSocket closed without opened.
+    ! http://localhost:3000/settings/ai :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/settings/ai :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/settings/ai :: WebSocket closed without opened.
+    ! http://localhost:3000/settings/widget :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/settings/widget :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/settings/widget :: WebSocket closed without opened.
+    ! http://localhost:3000/settings/users :: WebSocket connection to 'ws://localhost:443/?token=R9CvxhAo0oTj' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+    ! http://localhost:3000/settings/users :: [vite] failed to connect to websocket (Error: WebSocket closed without opened.). 
+    ! http://localhost:3000/settings/users :: WebSocket closed without opened.

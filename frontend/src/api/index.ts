@@ -1,0 +1,13 @@
+// Public API surface. Components and pages import from '@/api' only, never from '@/mocks'.
+export * as authApi from './auth'
+export * as ticketsApi from './tickets'
+export * as directoryApi from './directory'
+export * as csatApi from './csat'
+export * as dashboardApi from './dashboard'
+export * as inboxApi from './inbox'
+export * as guidanceApi from './guidance'
+export * as settingsApi from './settings'
+export * as widgetApi from './widget'
+export * as surveyApi from './survey'
+export { ApiError } from './client'
+export { getDemoState, setDemoState, subscribeDemoState, type DemoState } from './demoState'

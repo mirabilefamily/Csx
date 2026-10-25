@@ -1,0 +1,17 @@
+/login                       serious/critical nodes: 0  overflow: {}
+/dashboard                   serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/inbox/GB-1076               serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/guidance?tab=articles       serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/guidance?tab=macros         serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/guidance?tab=sandbox        serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/settings/integrations       serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/settings/ai                 serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/settings/widget             serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/settings/users              serious/critical nodes: 0  overflow: {"768":0,"1024":0}
+/styleguide                  serious/critical nodes: 0  overflow: {}
+/widget-demo                 serious/critical nodes: 0  overflow: {}
+/widget-demo/theme-editor    serious/critical nodes: 0  overflow: {}
+/survey/tok_GB1066           serious/critical nodes: 0  overflow: {}
+
+TOTAL serious/critical nodes: 0
+Console errors: 0

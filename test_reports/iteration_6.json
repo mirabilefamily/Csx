@@ -1,0 +1,47 @@
+{
+  "summary": "Frontend-only regression for Phase 6 sidebar restyle + brand wordmark rollout. Tested at 1440 and 768 viewports with mock admin ava@goorin.com. Sidebar collapsed/expanded states, active indicator, hover+focus tooltips, needs-human badge, collapse toggle aria, agent role Settings gating, horizontal overflow at 768 (dashboard/inbox/guidance/settings/widget), login error, wordmark on login/widget-demo/survey/widget shadow DOM/theme-editor/settings-widget preview, favicon, JRN-10 wordmark→/dashboard, primary color controls. All critical behaviours PASS. Invite flow URLs could not be re-verified due to Cloudflare bot challenge triggering after many sequential navigations, but iteration_5 already covered them.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_items": [
+    "/inbox at 1440 auto-collapses sidebar (data-collapsed=true)",
+    "nav-dashboard/inbox/guidance/settings each becomes data-active=true with aria-current=page and renders [data-testid=nav-active-indicator] (3x20px bar vertically centered at x=-0.5 along the sidebar left edge, NOT top-left)",
+    "nav-tooltip-<id> appears on both hover (visible=true) and keyboard focus with side='right'",
+    "inbox-needs-human-badge rendered when collapsed",
+    "sidebar-collapse-toggle has aria-label 'Expand sidebar'/'Collapse sidebar' and aria-expanded flips correctly when toggled",
+    "Expanded sidebar at 1440 shows sidebar-logo-tile + wordmark + 'Support Desk' label; Inbox count visible to the right",
+    "JRN-10: wordmark element is an <a href=/dashboard>",
+    "No horizontal overflow at 768 on /dashboard, /inbox, /guidance, /settings/widget (scrollWidth === clientWidth)",
+    "Login card renders Goorin wordmark img (src=/images/brand/goorin-wordmark-black.svg, alt='Goorin Bros.')",
+    "error@goorin.com shows 'Incorrect email or password.'",
+    "View as Agent hides nav-settings; /settings shows 'You don't have access to Settings' message",
+    "/widget-demo store header uses goorin-wordmark-black.svg",
+    "Chat widget inside shadow DOM exposes [data-testid=widget-logo] = goorin-wordmark-cream.svg (alt 'Goorin Bros. logo')",
+    "/survey/tok_GB1066 header uses goorin-wordmark-cream.svg over dark/espresso bg (castle+GOORIN wordmark)",
+    "/widget-demo/theme-editor storefront preview uses goorin-wordmark-black.svg",
+    "/settings/widget live preview includes wordmark-cream header; 9 images including wordmark-black (sidebar), wordmark-cream (preview header/launcher) and ai-avatar; no castle crest PNGs",
+    "Primary color controls present with testids ws-color-primary, ws-primary-picker, ws-primary-hex and 10 presets (tobacco, espresso, brass, saddle, sage, oxblood, charcoal, cream, white). Changing color via color input works without error",
+    "Favicon = /favicon.svg"
+  ],
+  "notes": [
+    "Login card wordmark element is a plain <img alt='Goorin Bros.'> and does NOT carry data-testid='wordmark' (unlike the sidebar instance). JRN-10 requirement is that the WORDMARK links to /dashboard — this is satisfied by the sidebar wordmark (<a href='/dashboard'>) which is the only clickable brand mark inside the authed shell. The login card wordmark is intentionally not a link (pre-auth). If the product spec expects data-testid='wordmark' on the login img too, consider adding it for consistency, but it is not functionally a bug.",
+    "Hover tooltip test required ~1s delay after mouse.move before DOM reflects the tooltip; initial 400ms wait returned false. Keyboard-focus tooltip appears immediately.",
+    "After ~6-8 rapid navigations the preview domain starts returning a Cloudflare 'Performing security verification' interstitial, which prevents further automated testing until the challenge clears. This is infra, not an app bug. Invite flows (/login?invite=demo-invite, /login?invite=expired) and dashboard KPI/CSAT testids therefore could not be re-verified in this iteration, but were green in iteration_5."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: consider adding data-testid='wordmark' to the login card <img> for symmetry with other wordmark instances; makes automated brand audits simpler.",
+    "Minor DX: nav tooltip delay is noticeable in testing (hover needs ~800-1000ms before DOM mounts). If this is Radix Tooltip default (700ms), acceptable; just note for future a11y audits."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% on tested items (invite flows not re-tested due to CF rate-limit)"},
+  "test_credentials": "ava@goorin.com / goorin123 (mock admin); error@goorin.com for error path",
+  "seed_data_creation": "None (mocked data layer, resets on reload by design)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Mock auth with sessionStorage; after ~8 nav() calls Cloudflare bot challenge may appear and block subsequent fills. Prefer fewer cross-page navigations per playwright session, or distribute across multiple browser_automation calls. Important testids: sidebar (data-collapsed), sidebar-logo-tile, wordmark (sidebar), nav-dashboard/inbox/guidance/settings (data-active, aria-current), nav-active-indicator, nav-tooltip-<id>, inbox-needs-human-badge, sidebar-collapse-toggle (aria-expanded), user-menu-trigger, role-toggle-admin/agent, widget-logo (inside shadow DOM), ws-color-primary, ws-primary-preset-*."
+}

@@ -1,0 +1,49 @@
+{
+  "summary": "Phase 2 Inbox end-to-end testing of JRN-27 through JRN-44 against the public preview URL. 17/18 journeys fully pass; JRN-31 (bulk failure path) is partially verifiable from the UI due to a demo-state switcher behavior (see below) — the error toast codepath exists in InboxPage.tsx bulk() catch block but is hard to reach without first selecting in Live. Phase 1 smoke (login, dashboard, Ctrl+K, bell) still works.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "JRN-31 bulk failure under demo-state Error", "issue": "Switching demo state to Error reloads tickets to empty, which clears bulk selection via the useEffect that prunes selected ids not present in the list. As a result, pressing bulk-close in Error state requires selection but selection has just been emptied by the state switch. The error path (toast.error \"Couldn't update tickets. Try again.\" in InboxPage.tsx line 77) still exists in code but cannot be reached from the UI in the sequence described by JRN-31. Consider: preserve selection across demoState changes, or allow selecting rows while list shows error, or trigger failure via a different flow.", "affected_selectors": ["bulk-bar", "bulk-close", "demo-state-option-error"]}
+    ],
+    "design_issues": []
+  },
+  "test_results_detail": {
+    "JRN-27 views + counts + ?view=": "PASS - All 7 view testids and counts work (all_open=21, needs_human=7, ai_handling=9, mine=2, unassigned=17, resolved=12, closed=7). URL carries ?view=<id>. conversation-placeholder visible at 1440 when no ticket.",
+    "JRN-28 row content": "PASS - Each row shows customer name, subject, preview, channel icon (email/chat), status pill, relative time. Resolved view rows include resolver badge text (Claude/Grokbot/Agent).",
+    "JRN-29 filters": "PASS - Filters popover opens; channel=chat narrows to 8; adding status=needs_human narrows to 2 and active-filter-count=2; adding an unlikely assignee shows ticket-list-no-match 'No tickets match these filters'; Clear filters restores 21 and clears AFC.",
+    "JRN-30 bulk": "PASS - Checking 3 rows shows bulk-bar '3 selected'. Toasts: '3 tickets assigned to Sam Okafor', 'Tag added to 3 tickets', '3 tickets closed'. all_open 21→20→18 after close; closed 7→10. select-all picks all 18 visible.",
+    "JRN-31 bulk failure": "PARTIAL - Error demo state renders 'Tickets didn't load'/'Try again' UI correctly; but the error toast path can't be triggered from the UI in the documented sequence because switching to Error wipes list + selection. Error-handling code path (catch -> toast.error \"Couldn't update tickets. Try again.\") is present in InboxPage.tsx bulk() but unreachable.",
+    "JRN-32 thread + notes": "PASS - GB-1076 message-thread renders 5 distinct author types (customer, claude, grokbot, agent, system) visually distinct. GB-1074 confirmed to have 1 internal-note-label (yellow tinted 'Internal note').",
+    "JRN-33 approve draft": "PASS - draft-card-draft-1 shows 'Claude draft · Awaiting approval', confidence 58%, guidance 'Damaged or defective items'. After Approve the card is removed and the thread shows 'Approved by Ava Martinez'.",
+    "JRN-34 edit + discard+undo": "PASS - Edit loads 248 chars of draft text into composer; Send appends an Agent message. Discard removes draft-3 and shows 'Draft discarded' toast with Undo; Undo restores the draft-card.",
+    "JRN-35 escalation chip": "PASS - escalation-chip renders 3 steps (Claude → Grokbot → Human). Hover and Tab-focus show reason tooltips (e.g. 'Confidence 0.46 below 0.70 threshold').",
+    "JRN-36 header controls": "PASS - header-status→resolved, header-priority→urgent, header-assignee→u-sam all persist. inbox-needs-human-badge 7→6, bell 7→6, view-count-needs_human 7→6. 3 system messages appended ('Ava Martinez changed status to Resolved', '...priority to Urgent', '...assigned the ticket to Sam Okafor'). GB-1076 moves from All open (21→20) to Resolved (12→13) correctly.",
+    "JRN-37 composer": "PASS - Send disabled when empty. Bold wraps in <strong>, bulleted list produces <ul>. Reply mode Send appends Agent message. Note mode toggle changes button label to 'Add note' and composer tints yellow; adding note appends internal-note-label.",
+    "JRN-38 macros": "PASS - '/' opens macro-picker; '/ret' filters to 1 option 'Return label sent'; selection inserts body ('I have emailed you a fresh prepaid return label…'). '/zzqx' shows macro-none 'No macros found'. composer-macros button opens the same picker.",
+    "JRN-39 right sidebar": "PASS - customer-card shows Margaret Okonkwo, email, Brooklyn NY, Orders=2, Lifetime=$276.00, 'Shopify customer' tag. 2 tracking links present, both target=_blank. past-ticket-GB-1056 present. AI attempt log toggles. Oliver Grant (GB-1078) shows no-shopify-orders. GB-1079 shows ai-attempts-empty.",
+    "JRN-40 shortcuts": "PASS - j→next ticket (GB-1080), j→GB-1079, k→GB-1080. ? opens shortcut-help. r focuses composer-editor (reply). n focuses composer-editor (note). Typing 'jkj' in composer does NOT navigate (URL preserved). e → toast 'GB-1080 closed'.",
+    "JRN-41 ticket-not-found": "PASS - /inbox/GB-9999 shows ticket-not-found + back-to-inbox link.",
+    "JRN-42 demo states on /inbox": "PASS - Loading shows '…' counts + skeletons. Empty shows '0' counts + 'No open tickets. The shop is quiet.' + 'New tickets will show up here.' Error shows 'Tickets didn't load' + 'Try again'. Live restores. All 4 demo-state-option-* testids present.",
+    "JRN-43 responsive": "PASS - 1280px: details-sidebar hidden by default, details-toggle present and opens the panel. 1024px: scrollWidth=1024, no horizontal overflow. 768px /inbox/GB-1076: scrollWidth=768, conversation-back visible, Back navigates to list; views-dropdown appears; no horizontal overflow at list view either.",
+    "JRN-44 search after bell (phase-1 fix)": "PASS - Clicking a bell-item navigates; Ctrl+K opens global-search-input; typing 'Margaret' shows global-search-results containing both tickets (GB-1076, GB-1056) and the Margaret Okonkwo customer entry."
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Low) JRN-31: Make the bulk-failure path reachable from the UI by either (a) preserving bulk selection across demoState changes, or (b) allowing the list error view to still expose selected rows / a 'retry close' affordance. Alternatively, update journey wording to acknowledge that errors are only observable by triggering a bulk action while an API call is in flight when demo state switches. The error-toast code path exists in InboxPage.tsx bulk() catch handler and would fire if reached."
+  ],
+  "critical_code_review_comments": [
+    "InboxPage.tsx line 49 effect `setSelected((s) => s.filter((id) => list.some((t) => t.id === id)))` is the correct guard against stale selections but makes JRN-31 unreachable when switching demo-state to Error. Consider only pruning when list is non-empty.",
+    "Draft discard+undo relies on sonner toast action. Works correctly; verified both branches.",
+    "Macros picker correctly filters while slash-prefix is in editor and inserts body with placeholders ({{customer.first_name}} resolved); the Return label macro body did not reference first name so could not verify placeholder substitution end-to-end — tested indirectly via Warm greeting macro template earlier (not re-verified here).",
+    "No '/src/mocks' imports leaking into pages/components (phase-1 constraint maintained)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (no backend)", "frontend": "17/18 journeys pass fully; JRN-31 partial (error UI renders, bulk-failure toast path exists in code but UX makes it unreachable)."},
+  "test_credentials": "ava@goorin.com / goorin123 (mock auth; any valid email + non-empty password). Source: /app/memory/test_credentials.md.",
+  "seed_data_creation": "none - mocks reset on reload",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 18 Phase 2 journeys verified end-to-end against public URL. Key quirks noticed: (1) The sonner Undo button isn't inside the toast root selector on all renders — using page.get_by_role('button', name='Undo') is more reliable. (2) Demo-state popover closes after each selection and the trigger may need a 400-500ms wait after a state change before reopening. (3) 'Mine' = Ava's tickets = 2 (GB-1065, GB-1061). (4) After bulk-close, selection persists in bulk bar until status change clears it (line 75: if (patch.status) setSelected([])). (5) Earlier flaky run showed draft-3 'gone: False' immediately after discard; a retry with longer wait confirmed discard works — likely a 500ms race with the sonner toast action render.",
+  "rca of the issue": "JRN-31: The useEffect at InboxPage.tsx:49 prunes selection to only ids present in the current `list`. When the user switches demo state to Error, the ticket API returns an error, `tickets` becomes empty, `list` becomes empty, and `selected` is emptied. Hence pressing bulk-close in Error state is a no-op and the error toast never fires. Fix: skip the prune when `list` is empty due to error (or expose a way to retry the last bulk action after state switch)."
+}

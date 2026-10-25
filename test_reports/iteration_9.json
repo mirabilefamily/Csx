@@ -1,0 +1,38 @@
+{
+  "summary": "Phase 6 handoff pack validation. Verified JRN-91 (styleguide + sticky index), JRN-92 (README check-readme.mjs = 0 missing), JRN-93 (axe = 0 serious/critical over all 14 routes after one fix), JRN-94 (overflow = 0 at 768/1024 on every signed-in route, no real console errors), and the JRN-95 full smoke path end-to-end. Fixed one serious axe violation (label-content-name-mismatch on the Shadow DOM greeting bubble).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_scenarios": [
+    "JRN-91 Styleguide: /styleguide loads signed-out. data-testid=styleguide-index is visible and stays stuck at top=96px after scrolling 2000px. 15 index links (styleguide-index-{colors,type,buttons,inputs,badges,pills,cards,tables,states,inbox,widget,dashboard,navigation,controls,settings}). All 6 required sections present (styleguide-{inbox,widget,dashboard,navigation,controls,settings}). 4 DraftCard variants, 15 widget-host shadow roots (6 launchers + 9 panel scenarios), 1 composer with role=textbox + aria-label='Message composer'.",
+    "JRN-92 README: `node scripts/check-readme.mjs` prints 'Checked 65 api exports, 106 component/page files, 75 types.' + 'README coverage: 0 missing.'",
+    "JRN-93 a11y (axe-after.txt): 0 serious/critical on all 14 routes (/login, /dashboard, /inbox/GB-1076, /guidance?tab=articles|macros|sandbox, /settings/{integrations,ai,widget,users}, /styleguide, /widget-demo [launcher open], /widget-demo/theme-editor, /survey/tok_GB1066). After fix of greeting-bubble aria-label the previous /styleguide label-content-name-mismatch is gone.",
+    "JRN-94 tablet + console: overflow=0 at both 768 and 1024 on every signed-in route. No non-dev console errors. The 45 console messages are all Vite HMR 'WebSocket closed without opened' / ws://localhost:443 noise (documented dev-only artifact).",
+    "JRN-95 smoke: login (ava@goorin.com / goorin123) → /dashboard (range switcher works, 7-item KPI strip + Resolved-by + ranked lists render) → /inbox/GB-1076 (approve-draft testid present, click succeeds) → /guidance?tab=sandbox (Run clicked successfully) → /settings/widget (color input updated + Save clicked, no error) → /widget-demo (widget-launcher click opens panel) → /widget-demo/theme-editor (loads) → /survey/tok_GB1066 (rating + Submit) → /styleguide. No console errors across the full flow.",
+    "A11y spot checks: Expanded sidebar brand <a> accessible name resolves to 'Goorin Bros. Support Desk' (get_by_role link match). Collapsed sidebar: brand aria-label='Goorin Bros. Support Desk home'; nav links have sr-only labels Dashboard / Inbox / Guidance / Settings (not aria-label). Inbox badge: data-testid=inbox-needs-human-badge renders '7' + sr-only ' need a human'. Shadow DOM pill launcher textContent starts with 'Chat with us: open chat with Goorin Bros.' (no aria-label, visible label leads). Circle launcher aria-label='Open chat with Goorin Bros.'. Composer in styleguide has role=textbox + aria-label='Message composer'. type=time hours-from-monday computed boxShadow on focus = '…rgb(140,106,53) 0px 0px 0px 3px…' (visible amber ring confirmed in screenshot).",
+    "No horizontal overflow at 1024 or 768 on any signed-in route."
+  ],
+  "test_report_links": [
+    "/app/test_reports/phase6/axe-after.txt",
+    "/app/frontend/scripts/check-readme.mjs",
+    "/app/frontend/scripts/audit.mjs"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "audit.mjs FOCUS_CHECK walks into element.shadowRoot.activeElement, so for <input type=time> it ends up on an internal Chromium ::-webkit-datetime-edit-* field which doesn't inherit the outer input's focus ring, producing a false positive 'focus without visible ring: hours-from-monday, hours-to-monday'. The actual input does render the amber focus ring (verified via screenshot + getComputedStyle). Consider skipping internal UA shadow roots in the audit script or short-circuiting on el.tagName==='INPUT' && el.type==='time'. Non-blocking (not a product defect)."
+  ],
+  "updated_files": [
+    "/app/frontend/src/components/widget/Launcher.tsx",
+    "/app/test_reports/phase6/axe-after.txt"
+  ],
+  "rca of the issue": "GreetingBubble's open button had aria-label=`Open chat: ${text}` but the visible text starts with 'Goorin Bros.' + text. Axe label-content-name-mismatch (serious, WCAG 2.5.3) requires the accessible name to begin with the visible label. Fix: changed aria-label to `Goorin Bros.: ${text} (open chat)` so it starts with the visible brand label. Re-ran audit → 0 serious/critical on /styleguide.",
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "ava@goorin.com / goorin123 (Admin). See /app/memory/test_credentials.md.",
+  "seed_data_creation": "None — all mocks in /app/frontend/src/api and /src/mocks, reset on reload.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 6 handoff pack is green. audit.mjs false-positive on type=time focus ring (hours-from/to-monday) is a tooling artifact only — don't treat as a UI bug. Vite WS console errors over localhost:443 are expected dev-only noise. Running the audit against the preview URL (https://goorin-inbox.preview.emergentagent.com) times out waiting for networkidle because of the dev websocket; run it against http://localhost:3000 instead."
+}

@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-background font-sans text-ink antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  ::selection {
+    background: theme('colors.brass.100');
+    color: theme('colors.ink.DEFAULT');
+  }
+  :focus-visible {
+    outline: 2px solid theme('colors.ring');
+    outline-offset: 2px;
+  }
+  .font-display {
+    font-optical-sizing: auto;
+  }
+  .recharts-wrapper,
+  .recharts-surface {
+    outline: none;
+  }
+  .recharts-wrapper:focus-visible {
+    outline: 2px solid theme('colors.ring');
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
+  input[type='time']::-webkit-calendar-picker-indicator {
+    border-radius: 4px;
+  }
+  input[type='time']::-webkit-calendar-picker-indicator:focus-visible {
+    outline: 2px solid theme('colors.ring');
+    outline-offset: 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
