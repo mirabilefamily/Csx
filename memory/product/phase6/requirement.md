@@ -44,3 +44,14 @@ Q-36 Tag: Portability.Build
      Meter: tsc, grep
      Must: 0   Plan: 0
 ```
+
+## Post-handoff polish: login (user request: "a little nicer, but keep simple"), interpreted
+All REQ-28..REQ-42 flows, copy, validation and testids and REQ-330..REQ-333 stay (single centered card, GOORIN wordmark, no photo, heading "Sign in to Support Desk").
+- REQ-375 [always] The system shall render the login background as a very soft warm radial gradient on #FAF8F5 (no image, no pattern noise).
+- REQ-376 [always] The system shall show under the wordmark a small heritage line: a thin brass rule with letter-spaced "EST. 1895".
+- REQ-377 [always] The system shall render the login heading in Fraunces with a short muted subline "Use your Goorin work email." (interpreted).
+- REQ-378 [always] The system shall give the login card a 2px brass top accent, ~44px inputs with leading Mail/Lock icons, and labels above the inputs.
+- REQ-379 [event] When the user clicks the eye icon in the password field, the system shall toggle password visibility (aria-label "Show password"/"Hide password").
+- REQ-380 [state] While sign-in is in progress, the system shall show a spinner and "Signing in…" on the button and disable it.
+- REQ-381 [always] The system shall fade the card in (8px rise, ≤250ms), with no motion under prefers-reduced-motion.
+- REQ-382 [always] The system shall show a quiet footer with the castle mark, "Goorin Bros. · Hat makers since 1895" and the Styleguide link.
