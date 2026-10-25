@@ -1,3 +1,4 @@
+import { ShopifyMark } from '@/components/brand/ShopifyMark'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, Copy, ExternalLink, Loader2, MousePointer2, XCircle } from 'lucide-react'
@@ -59,7 +60,7 @@ export function InstallSection({ draft, theme, update }: { draft: WidgetSettings
   return (
     <>
       <div className="rounded-lg border border-border p-4" data-testid="install-status-card">
-        <p className="text-sm font-semibold text-ink">Shopify store</p>
+        <p className="flex items-center gap-2 text-sm font-semibold text-ink"><ShopifyMark size={18} decorative />Shopify store</p>
         {status.loading && <p className="mt-2 text-sm text-ink-muted">Checking your store…</p>}
         {status.error && <p className="mt-2 text-sm text-red-600">Couldn't load install status. <button className="underline" onClick={status.reload}>Retry</button></p>}
         {s && (
@@ -100,7 +101,7 @@ export function InstallSection({ draft, theme, update }: { draft: WidgetSettings
         <p className="text-sm font-semibold text-ink">Fallback: script tag</p>
         <p className="mt-1 text-sm text-ink-muted">If you can't use the app embed, paste this just before <code className="rounded bg-surface-muted px-1 font-mono text-xs">&lt;/body&gt;</code> in <code className="rounded bg-surface-muted px-1 font-mono text-xs">theme.liquid</code>.</p>
         <div className="mt-3 flex items-start gap-2">
-          <pre className="min-w-0 flex-1 overflow-x-auto rounded-md bg-[#1F1D1A] p-3 font-mono text-xs text-[#F1E6CF]" data-testid="install-snippet">{snippet}</pre>
+          <pre tabIndex={0} aria-label="Script tag snippet" className="min-w-0 flex-1 overflow-x-auto rounded-md bg-[#1F1D1A] p-3 font-mono text-xs text-[#F1E6CF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="install-snippet">{snippet}</pre>
           <Button variant="outline" size="sm" onClick={copy} data-testid="install-copy">
             <Copy aria-hidden /> {copied ? 'Copied' : 'Copy'}
           </Button>

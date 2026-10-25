@@ -1,4 +1,8 @@
 import { SlidersHorizontal } from 'lucide-react'
+import { useState } from 'react'
+import { DialogTrigger } from '@radix-ui/react-dialog'
+import { Dialog, DialogContent, DialogTitle, SheetGrabber } from '@/components/ui/dialog'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import type { Channel, Resolver, Ticket, TicketStatus, User } from '@/types'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/overlay'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -51,19 +55,46 @@ function FilterSelect({ id, label, value, options, onChange }: { id: string; lab
 
 export function TicketFilters({ filters, onChange, tags, users }: Props) {
   const count = activeFilterCount(filters)
-  const set = <K extends keyof Filters>(k: K) => (v?: string) => onChange({ ...filters, [k]: v })
+  const isPhone = useIsPhone()
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState<Filters>(filters)
+  const value = isPhone ? draft : filters
+  const set = <K extends keyof Filters>(k: K) => (v?: string) => (isPhone ? setDraft({ ...draft, [k]: v }) : onChange({ ...filters, [k]: v }))
+  const fields = (
+    <>
+      <FilterSelect id="status" label="Status" value={value.status} onChange={set('status')} options={Object.entries(STATUS_LABELS)} />
+      <FilterSelect id="channel" label="Channel" value={value.channel} onChange={set('channel')} options={Object.entries(CHANNEL_LABELS)} />
+      <FilterSelect id="resolvedBy" label="Resolved by" value={value.resolvedBy} onChange={set('resolvedBy')} options={Object.entries(RESOLVER_LABELS)} />
+      <FilterSelect id="tag" label="Tag" value={value.tag} onChange={set('tag')} options={tags.map((t) => [t, t])} />
+      <FilterSelect id="assignee" label="Assignee" value={value.assignee} onChange={set('assignee')} options={[['unassigned', 'Unassigned'], ...users.map((u) => [u.id, u.name] as [string, string])]} />
+    </>
+  )
+  const trigger = (
+    <>
+      <SlidersHorizontal aria-hidden /> Filters
+      {count > 0 && <span className="rounded-full bg-tobacco-600 px-1.5 text-[11px] font-semibold leading-5 text-white" data-testid="active-filter-count">{count}</span>}
+    </>
+  )
+  if (isPhone)
+    return (
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setDraft(filters) }}>
+        <DialogTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), count && 'border-tobacco-500 bg-tobacco-50')} data-testid="filters-button">{trigger}</DialogTrigger>
+        <DialogContent className="space-y-3 pt-3" aria-describedby={undefined} data-testid="filters-panel">
+          <SheetGrabber />
+          <DialogTitle className="text-base font-semibold text-ink">Filters</DialogTitle>
+          {fields}
+          <div className="sticky bottom-0 -mx-6 grid grid-cols-2 gap-2 border-t border-border bg-surface px-6 pt-3">
+            <Button variant="outline" onClick={() => { onChange({}); setOpen(false) }} data-testid="filters-clear">Clear</Button>
+            <Button onClick={() => { onChange(draft); setOpen(false) }} data-testid="filters-apply">Apply</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   return (
     <Popover>
-      <PopoverTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), count && 'border-tobacco-500 bg-tobacco-50')} data-testid="filters-button">
-        <SlidersHorizontal aria-hidden /> Filters
-        {count > 0 && <span className="rounded-full bg-tobacco-600 px-1.5 text-[11px] font-semibold leading-5 text-white" data-testid="active-filter-count">{count}</span>}
-      </PopoverTrigger>
+      <PopoverTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), count && 'border-tobacco-500 bg-tobacco-50')} data-testid="filters-button">{trigger}</PopoverTrigger>
       <PopoverContent align="start" className="w-72 space-y-3 p-4" data-testid="filters-panel">
-        <FilterSelect id="status" label="Status" value={filters.status} onChange={set('status')} options={Object.entries(STATUS_LABELS)} />
-        <FilterSelect id="channel" label="Channel" value={filters.channel} onChange={set('channel')} options={Object.entries(CHANNEL_LABELS)} />
-        <FilterSelect id="resolvedBy" label="Resolved by" value={filters.resolvedBy} onChange={set('resolvedBy')} options={Object.entries(RESOLVER_LABELS)} />
-        <FilterSelect id="tag" label="Tag" value={filters.tag} onChange={set('tag')} options={tags.map((t) => [t, t])} />
-        <FilterSelect id="assignee" label="Assignee" value={filters.assignee} onChange={set('assignee')} options={[['unassigned', 'Unassigned'], ...users.map((u) => [u.id, u.name] as [string, string])]} />
+        {fields}
         <Button variant="ghost" size="sm" className="w-full" disabled={!count} onClick={() => onChange({})} data-testid="filters-clear">Clear filters</Button>
       </PopoverContent>
     </Popover>

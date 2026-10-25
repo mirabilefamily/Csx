@@ -71,7 +71,7 @@
 .gw-header { display: flex; align-items: flex-start; gap: 12px; padding: 16px 12px 14px 16px; background: var(--gw-header-bg); color: var(--gw-header-text); }
 .gw-header-logo { height: 22px; width: auto; max-width: 132px; flex: none; object-fit: contain; margin-top: 3px; }
 .gw-header-text { flex: 1; min-width: 0; }
-.gw-title { font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600; line-height: 1.2; }
+.gw-title { font-family: var(--gw-font); letter-spacing: -0.015em; font-size: 18px; font-weight: 600; line-height: 1.2; }
 .gw-subtitle { font-size: 12px; opacity: 0.85; margin-top: 2px; }
 .gw-disclosure { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11.5px; padding: 3px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); }
 .gw-header-actions { display: flex; gap: 2px; }
@@ -141,7 +141,7 @@ textarea.gw-input { height: auto; min-height: 96px; padding: 10px 12px; resize: 
 .gw-primary:disabled { opacity: 0.6; }
 .gw-secondary { height: 44px; border-radius: 10px; border: 1px solid var(--gw-primary); color: var(--gw-primary); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; background: #fff; }
 .gw-card { background: #fff; border: 1px solid rgba(31, 29, 26, 0.08); border-radius: calc(var(--gw-radius) * 0.85); padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-.gw-card-title { font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 600; }
+.gw-card-title { font-family: var(--gw-font); letter-spacing: -0.01em; font-size: 17px; font-weight: 600; }
 .gw-success { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 24px 8px; }
 .gw-success-icon { width: 48px; height: 48px; border-radius: 999px; background: #eef3ea; color: #3c6b3a; display: inline-flex; align-items: center; justify-content: center; }
 

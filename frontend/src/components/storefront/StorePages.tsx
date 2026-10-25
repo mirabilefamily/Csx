@@ -35,7 +35,7 @@ export function ProductPage({ products }: { products: StoreProduct[] }) {
           </div>
         </div>
         <div>
-          <h1 className="font-display text-[36px] font-semibold leading-tight text-[#2E2219]">{p.name}</h1>
+          <h1 className="font-store text-[36px] font-semibold leading-tight text-[#2E2219]">{p.name}</h1>
           <div className="mt-2 flex items-center gap-2 text-[13px] text-[#6B5E50]">
             <span className="flex text-[#B08D57]" aria-hidden>{[0, 1, 2, 3, 4].map((i) => <Star key={i} className="h-4 w-4 fill-current" />)}</span>
             4.8 · 212 reviews
@@ -62,7 +62,7 @@ export function ProductPage({ products }: { products: StoreProduct[] }) {
           <p className="mt-4 flex items-center gap-2 text-[13px] text-[#6B5E50]"><Truck className="h-4 w-4" /> Ships in 1–2 business days. Free returns within 30 days.</p>
         </div>
       </div>
-      <h2 className="mt-20 font-display text-[24px] font-semibold text-[#2E2219]">Complete the look</h2>
+      <h2 className="mt-20 font-store text-[24px] font-semibold text-[#2E2219]">Complete the look</h2>
       <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-4">{products.slice(1, 5).map((x) => <ProductTile key={x.id} p={x} />)}</div>
     </div>
   )
@@ -76,13 +76,13 @@ export function CollectionPage({ products }: { products: StoreProduct[] }) {
         <div className="absolute inset-0 bg-gradient-to-r from-[#2E2219]/80 via-[#2E2219]/40 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-[1280px] flex-col justify-center px-4 sm:px-8">
           <p className="text-[12px] uppercase tracking-[0.28em] text-[#E3CDA2]">The fall collection</p>
-          <h1 className="mt-3 max-w-lg font-display text-[44px] font-semibold leading-[1.05] text-white">Felt, tweed and straw, made to be worn in.</h1>
+          <h1 className="mt-3 max-w-lg font-store text-[44px] font-semibold leading-[1.05] text-white">Felt, tweed and straw, made to be worn in.</h1>
           <a href="#grid" className="mt-6 inline-flex h-12 w-fit items-center rounded-md bg-[#FBF8F3] px-6 text-[14px] font-semibold text-[#2E2219]">Shop the collection</a>
         </div>
       </section>
       <div id="grid" className="mx-auto max-w-[1280px] px-4 pt-12 sm:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="font-display text-[28px] font-semibold text-[#2E2219]">All hats <span className="font-sans text-[15px] font-normal text-[#6B5E50]">({products.length})</span></h2>
+          <h2 className="font-store text-[28px] font-semibold text-[#2E2219]">All hats <span className="font-sans text-[15px] font-normal text-[#6B5E50]">({products.length})</span></h2>
           <div className="flex flex-wrap gap-2">
             {['All', 'Felt', 'Straw', 'Caps', 'Knits'].map((f, i) => (
               <button key={f} type="button" className={cn('h-10 rounded-full border px-4 text-[13px]', i === 0 ? 'border-[#2E2219] bg-[#2E2219] text-white' : 'border-[#D9CEBF] text-[#2E2219]')}>{f}</button>
@@ -94,7 +94,7 @@ export function CollectionPage({ products }: { products: StoreProduct[] }) {
           <img src="/images/store/lifestyle.jpg" alt="A customer wearing a Hampton fedora on an autumn street" className="h-full max-h-[380px] w-full object-cover" />
           <div className="p-8">
             <p className="text-[12px] uppercase tracking-[0.28em] text-[#8C6A35]">Since 1895</p>
-            <p className="mt-3 font-display text-[28px] font-semibold leading-tight text-[#2E2219]">A hat for the long walk home.</p>
+            <p className="mt-3 font-store text-[28px] font-semibold leading-tight text-[#2E2219]">A hat for the long walk home.</p>
             <p className="mt-3 text-[15px] text-[#4A3F35]">Not sure about your size? Ask us in the chat; our hatters answer in minutes.</p>
           </div>
         </section>
@@ -109,7 +109,7 @@ export function CartPage({ products }: { products: StoreProduct[] }) {
   const qty = (id: string, d: number) => setLines((ls) => ls.map((l) => (l.p.id === id ? { ...l, qty: Math.max(1, l.qty + d) } : l)))
   return (
     <div className="mx-auto max-w-[1100px] px-4 pt-10 sm:px-8" data-testid="store-page-cart">
-      <h1 className="font-display text-[36px] font-semibold text-[#2E2219]">Your cart</h1>
+      <h1 className="font-store text-[36px] font-semibold text-[#2E2219]">Your cart</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
         <ul className="divide-y divide-[#E6DED2] border-y border-[#E6DED2]">
           {lines.map((l) => (

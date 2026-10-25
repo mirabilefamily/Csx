@@ -161,6 +161,30 @@ function PromptViewer({ id, text }: { id: 'claude' | 'grokbot'; text: string }) 
   )
 }
 
+const limitInvalid = (n: number) => !(n >= 0 && n <= 500)
+
+function AutoRefunds({ form, set }: { form: AiSettings; set: SetFn }) {
+  const v = form.autoRefund
+  const bad = limitInvalid(v.limit)
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4 rounded-xl bg-surface-muted/60 px-4 py-3">
+        <span className="text-sm font-medium text-ink" id="auto-refund-toggle-label">Let AI issue refunds automatically</span>
+        <Switch checked={v.enabled} onCheckedChange={(enabled) => set({ autoRefund: { ...v, enabled } })} aria-labelledby="auto-refund-toggle-label" data-testid="auto-refund-toggle" />
+      </div>
+      <div className="max-w-[12rem]">
+        <Label htmlFor="auto-refund-limit" className="text-xs text-ink-muted">Max amount (USD)</Label>
+        <div className="relative mt-1">
+          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted" aria-hidden>$</span>
+          <Input id="auto-refund-limit" type="number" inputMode="decimal" min={0} max={500} className="pl-7" value={Number.isNaN(v.limit) ? '' : v.limit} onChange={(e) => set({ autoRefund: { ...v, limit: e.target.value === '' ? NaN : Number(e.target.value) } })} aria-invalid={bad} aria-describedby="auto-refund-error auto-refund-note" data-testid="auto-refund-limit" />
+        </div>
+        <FieldError id="auto-refund-error">{bad ? 'Enter an amount between $0 and $500.' : null}</FieldError>
+      </div>
+      <p id="auto-refund-note" className="text-sm text-ink-muted" data-testid="auto-refund-note">Refunds above this amount, or with an open fraud alert, wait for human approval.</p>
+    </div>
+  )
+}
+
 function AiSkeleton() {
   return (
     <div className="rounded-2xl bg-surface px-6 shadow-card ring-1 ring-black/[0.04]" data-testid="ai-settings-loading">
@@ -190,6 +214,7 @@ export function AiTab() {
   const hourErr = (i: number) => form.hours[i].open && form.hours[i].to <= form.hours[i].from
   const save = async () => {
     if (form.hours.some((_, i) => hourErr(i))) return toast.error('Closing time must be after opening time.')
+    if (limitInvalid(form.autoRefund.limit)) return toast.error('Enter an amount between $0 and $500.')
     setSaving(true)
     try { const s = await settingsApi.saveAiSettings(form); setSaved(s); setForm(s); toast.success('AI settings saved') } catch (e) { toast.error((e as Error).message) }
     setSaving(false)
@@ -202,6 +227,7 @@ export function AiTab() {
         <FormSection title="Auto-send" description="When off, the AI drafts a reply for an agent to approve." testId="ai-section-auto-send"><Matrix form={form} set={set} /></FormSection>
         <FormSection title="Business hours" description="Outside these hours AI replies mention when the team is back." testId="ai-section-hours"><Hours form={form} set={set} hourErr={hourErr} /></FormSection>
         <FormSection title="Escalation rules" description="Send matching tickets straight to Grokbot or a human." testId="ai-section-rules"><Rules form={form} set={set} /></FormSection>
+        <FormSection title="Auto-refunds" description="Small refunds the AI can issue without a person." testId="ai-section-auto-refunds"><AutoRefunds form={form} set={set} /></FormSection>
         <FormSection title="System prompts" description="Managed in code. Read only." testId="ai-section-prompts">
           {(['claude', 'grokbot'] as const).map((k) => <PromptViewer key={k} id={k} text={form.prompts[k]} />)}
         </FormSection>

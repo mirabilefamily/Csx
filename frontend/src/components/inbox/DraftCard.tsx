@@ -39,7 +39,7 @@ export function DraftCard({ draft, titles, editing, busy, onApprove, onEdit, onD
           </span>
         ))}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2 max-sm:grid max-sm:grid-cols-1" data-testid="draft-actions">
         <Button size="sm" onClick={onApprove} loading={busy} data-testid="draft-approve"><Check aria-hidden /> Approve</Button>
         <Button size="sm" variant="outline" onClick={onEdit} disabled={busy} data-testid="draft-edit"><Pencil aria-hidden /> Edit</Button>
         <Button size="sm" variant="ghost" onClick={onDiscard} disabled={busy} data-testid="draft-discard"><Trash2 aria-hidden /> Discard</Button>

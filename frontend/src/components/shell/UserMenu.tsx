@@ -1,5 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { Check, ChevronDown, LogOut } from 'lucide-react'
+import { DialogTrigger } from '@radix-ui/react-dialog'
+import { Dialog, DialogContent, DialogTitle, SheetGrabber } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import type { Role } from '@/types'
 import {
   DropdownMenu,
@@ -20,7 +24,41 @@ import { toast } from 'sonner'
 export function UserMenu() {
   const { user, setRole, signOut } = useAuth()
   const navigate = useNavigate()
+  const isPhone = useIsPhone()
   if (!user) return null
+  const pickRole = (v: Role) => {
+    setRole(v)
+    toast(`Now viewing as ${v === 'admin' ? 'Admin' : 'Agent'}`)
+  }
+  const out = () => {
+    signOut()
+    navigate('/login', { replace: true })
+  }
+  if (isPhone)
+    return (
+      <Dialog>
+        <DialogTrigger data-testid="user-menu-trigger" className={cn('flex h-11 w-11 items-center justify-center rounded-lg', focusRing)}>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brass-100 text-xs font-semibold text-tobacco-800" aria-hidden>{initials(user.name)}</span>
+          <span className="sr-only">Account: {user.name}</span>
+        </DialogTrigger>
+        <DialogContent className="space-y-4 pt-3" aria-describedby={undefined} data-testid="user-menu">
+          <SheetGrabber />
+          <div>
+            <DialogTitle className="text-base font-semibold text-ink" data-testid="user-menu-fullname">{user.name}</DialogTitle>
+            <p className="text-sm text-ink-muted">{user.email}</p>
+          </div>
+          <div role="radiogroup" aria-label="View as" className="space-y-1">
+            <p className="text-xs font-medium text-ink-muted">View as</p>
+            {(['admin', 'agent'] as Role[]).map((r) => (
+              <button key={r} type="button" role="radio" aria-checked={user.role === r} onClick={() => pickRole(r)} className={cn('flex h-12 w-full items-center justify-between rounded-lg px-3 text-left text-base capitalize text-ink', user.role === r ? 'bg-brass-50 font-semibold' : 'hover:bg-surface-muted', focusRing)} data-testid={`role-toggle-${r}`}>
+                {r}{user.role === r && <Check className="h-4 w-4 text-tobacco-600" aria-hidden />}
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" className="w-full" onClick={out} data-testid="sign-out"><LogOut aria-hidden /> Sign out</Button>
+        </DialogContent>
+      </Dialog>
+    )
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

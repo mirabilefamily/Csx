@@ -27,7 +27,7 @@ There is **no backend**. Every read and write goes through the async, typed `src
 - React 19, TypeScript 5.9, Vite 6 and Tailwind CSS 3.
 - shadcn/ui-style primitives on Radix (`src/components/ui`).
 - lucide-react, Recharts, react-router-dom 7, Tiptap, @dnd-kit, react-day-picker, date-fns, papaparse, react-markdown and sonner.
-- Self-hosted Fraunces and Inter via @fontsource.
+- Self-hosted Inter Variable (with the opsz axis, so large titles get the Inter Display cut) via @fontsource. There's no serif in the app; the storefront mock uses a Georgia store theme. Title-font alternates (Geist, Manrope, Plus Jakarta Sans) are lazy-loaded for the dev picker only.
 - **No Emergent or other platform-specific packages.**
 
 ```bash
@@ -70,6 +70,7 @@ frontend/
     components/        reusable components grouped by feature (ui/ = primitives)
     pages/             one component per route
     hooks/useApi.ts    useApi (fetch, reload, refetch on demo-state change), useDemoState
+    hooks/useIsPhone.ts useIsPhone (<640px media query), useVisualViewportHeight (keyboard-aware height)
     lib/               pure helpers: format, labels, date ranges, inbox views, widget rules, cn()
 ```
 
@@ -91,7 +92,10 @@ frontend/
 | `/inbox`, `/inbox/:ticketId` (`?view=`) | signed-in | views, ticket list, conversation, AI drafts, composer, details sidebar |
 | `/guidance` (`?tab=articles\|macros\|sandbox`, `?article=<id>`) | signed-in | Articles, Macros, Test Sandbox |
 | `/settings` → `/settings/integrations` | admin | Agents see "You don't have access to Settings" |
-| `/settings/integrations`, `/settings/ai`, `/settings/widget` (`#install`), `/settings/users` | admin | the four Settings tabs |
+| `/settings/integrations`, `/settings/ai`, `/settings/users` | admin | the three Settings tabs (Integrations = tile grid). The Shopify tile shows "Chat widget · Live on store / Embed off" |
+| `/settings/integrations/shopify` (Overview), `/settings/integrations/shopify/widget` (Chat widget editor + live preview), `/settings/integrations/shopify/install` (Install) | admin | Shopify sub-tabs `shopify-subtab-overview|widget|install`. Overview has the `shopify-widget-summary` card. Sub-tab switches with unsaved widget changes ask "Discard unsaved changes?" |
+| `/settings/widget`, `/settings/widget#install` | admin | Redirect to `/settings/integrations/shopify/widget` or `/install` |
+| `/settings/integrations/:id` (`outlook` \| `shopify` \| `claude` \| `grokbot` \| `resend`) | admin | one integration: header + Test connection, error callout, Connection details / Configuration / Credentials. An unknown id shows "Integration not found" |
 | `/styleguide` | public | living styleguide with a sticky index |
 | `/widget-demo` (`?page=product\|collection\|cart`, `?desk_preview=1`) | public | mock Goorin storefront + live widget + demo controls |
 | `/widget-demo/theme-editor` | public | mock Shopify theme editor "App embeds" block |
@@ -99,6 +103,15 @@ frontend/
 | `*` | any | designed 404 (inside the shell when signed in) |
 
 Signed-in routes are wrapped in `RequireAuth` (it redirects to `/login`). Admin-only routes check `user.role === 'admin'` in the page.
+
+## 3b. Responsive (phones, tablet, desktop)
+
+| width | layout |
+|---|---|
+| ≥1024 desktop / 640–1023 tablet | unchanged from Phase 6: sidebar (collapsed by default <1024), drawers and centered modals |
+| **<640 phone** | **Shell:**<ul><li>The sidebar is replaced by `BottomTabBar` (Dashboard, Inbox + badge, Guidance, Settings admin-only; `bottom-tab-*`).</li><li>The top bar shows the castle mark and page title, then `mobile-search-trigger` (opens a full-screen search), the bell (bottom sheet) and the avatar (bottom sheet with View as + Sign out).</li><li>Toasts, unsaved bars, the bulk bar and the demo switcher (a compact pill) sit above the tab bar.</li></ul>**Primitives:** `DialogContent` / `AlertDialogContent` become bottom sheets (`PHONE_SHEET`, max 92dvh, safe-area padding), and `SheetContent` becomes full-screen.<br>**Touch:**<ul><li>Global CSS gives 44px minimum targets and 16px form text. Switches keep their look and gain hit area through transparent borders.</li><li>Escalation reasons open on tap (Popover).</li><li>Shortcut hints are hidden on `(hover: none)`.</li><li>dnd-kit uses MouseSensor + TouchSensor (250ms delay) + KeyboardSensor, with up/down buttons as well.</li></ul>**Inbox:**<ul><li>Views chip row, filters bottom sheet with Apply/Clear, "Select" mode (`select-mode-toggle`) with a docked bulk bar.</li><li>The conversation is full-screen and hides the tab bar. It has a back button, a `ticket-actions-trigger` sheet (`ticket-actions-sheet`) for status/priority/assignee, and Details as a full-screen `ticket-details-sheet`.</li><li>Draft buttons are full-width, and the composer is docked using a visualViewport-aware height.</li></ul>**Guidance:** articles as cards; editors full-screen via Sheet.<br>**Settings:**<ul><li>Scrollable tab bar; 1-column tiles; stacked sections.</li><li>Users as cards.</li><li>Chat Widget is a single column with a floating `widget-preview-open` button that opens a full-screen preview (`widget-preview-sheet`, device Mobile).</li><li>The theme editor is stacked.</li></ul> |
+
+Checks: `node scripts/phone-sweep.mjs` (overflow / tap targets / font size at 360/390/430, axe + screenshots at 390) and `node scripts/audit.mjs` (desktop + 768/1024 unchanged).
 
 ## 4. Components
 
@@ -111,7 +124,8 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/ChartCard.tsx` | `ChartCard`, `Legend` | Titled card for a chart, plus a color legend |
 | `components/DemoStateSwitcher.tsx` | `DemoStateSwitcher`, `demoToolsEnabled` | Floating Live / Loading / Empty / Error switcher for the mock API |
 | `components/KpiCard.tsx` | `KpiCard`, `KpiCardSkeleton` | Single KPI card with delta (styleguide / legacy) |
-| `components/PageHeader.tsx` | `PageHeader` | Fraunces page title + description + actions row |
+| `components/Num.tsx` | `Num` | Number display: Inter 600, `tabular-nums lining-nums`, -0.02em tracking (`.num`); unit runs (h, m, min, %, pts, / 5) at 62% size, muted (`.unit`). Used for every KPI / CSAT / %, refund $ and risk score. Titles use `--font-title` (Inter Display). |
+| `components/PageHeader.tsx` | `PageHeader` | Inter Display page title (`.title-page`, 600, 28px / 24px phone, -0.025em) + 15px muted subtitle + description + actions row |
 | `components/PlaceholderPage.tsx` | `PlaceholderPage` | Designed "coming later" placeholder |
 | `components/ScoreChip.tsx` | `ScoreChip` | Colored 1–5 CSAT score chip |
 | `components/States.tsx` | `EmptyState`, `ErrorState` | Shared empty and error (with Try again) states |
@@ -123,6 +137,7 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | file | exports | purpose |
 |---|---|---|
 | `components/auth/AuthContext.tsx` | `AuthProvider`, `useAuth`, `RequireAuth` | Mock session (sessionStorage), role toggle, route guard |
+| `components/brand/ShopifyMark.tsx` | `ShopifyMark` | Official Shopify bag mark (`/images/brand/shopify-bag.svg`, Simple Icons CC0, #95BF47, never recolored). Alt "Shopify", or `decorative` next to text. Used on the Shopify tile and detail header (22–24px on a white tile), the inbox "Shopify orders" heading and "View in Shopify" links (14–16px), the Install status card, Theme editor source badges and the theme editor top bar. |
 | `components/brand/GoorinBrand.tsx` | `GoorinWordmark`, `GoorinCastle`, `GoorinMonogram` | Official wordmark img (6.2:1, never stretched), castle mark SVG, G monogram |
 
 ### Shell (`components/shell`)
@@ -133,6 +148,8 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/shell/GlobalSearch.tsx` | `GlobalSearch` | ⌘K / Ctrl+K combobox over tickets, customers, articles |
 | `components/shell/NotificationBell.tsx` | `NotificationBell` | Needs-human notifications popover |
 | `components/shell/UserMenu.tsx` | `UserMenu` | Account menu: "View as" Admin/Agent, sign out |
+| `components/shell/BottomTabBar.tsx` | `BottomTabBar` | Phone (<640px) bottom navigation with Inbox badge and safe-area padding; hidden in an open conversation |
+| `components/shell/MobileTopBar.tsx` | `MobileTitle`, `MobileSearch` | Phone top bar: castle mark + page title, and a full-screen search sheet |
 | `components/shell/ShellData.tsx` | `ShellDataProvider`, `useShellData` | Single ticket store for the shell (views, badges and bell stay consistent) |
 
 ### Dashboard (`components/dashboard`)
@@ -144,6 +161,9 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/dashboard/Panel.tsx` | `Panel`, `RankedList` | Borderless dashboard surface with loading/empty, and a ranked inline-bar list |
 | `components/dashboard/CsatSection.tsx` | `CsatSection` | Condensed CSAT block (headline, distribution, splits, feedback) |
 | `components/dashboard/CsatCharts.tsx` | `CsatTrend`, `CsatDistribution`, `CsatSplits`, `CsatFeedback` | CSAT trend, 1–5 distribution, channel/resolver splits, Latest comments / Needs follow-up tabs |
+| `components/dashboard/RefundsPanel.tsx` | `RefundsPanel` | Phase 8 "Refunds" panel: total refunded + delta, count, % auto-refunded, pending approval, trend, pipeline, Awaiting approval list, auto-refund limit chip; skeleton / "No refunds in this period" / error |
+| `components/dashboard/FraudPanel.tsx` | `FraudPanel` | Phase 8 "Fraud alerts" panel (`#fraud` anchor): open count, Open / Reviewed tabs, Mark safe / Hold refund / Escalate with toast + Undo; keeps the last list on a failed refresh so failing actions show "Couldn't update the alert. Try again." |
+| `components/dashboard/FraudBits.tsx` | `RiskBadge`, `FraudShield`, `SignalChips`, `RefundPipeline`, `FraudAlertRow`, `RISK_LABEL` | Risk badge (score + High/Medium/Low text), inbox shield icon, signal chips, Requested → Approved → Refunded pipeline bar, fraud alert row |
 | `components/dashboard/chartTheme.tsx` | `Responsive`, `ChartFigure`, `axisProps`, `gridProps`, `tooltipProps` | Shared Recharts wrappers and styling |
 
 ### CSAT settings (`components/csat`)
@@ -158,7 +178,8 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 ### Inbox (`components/inbox`)
 | file | exports | purpose |
 |---|---|---|
-| `components/inbox/ViewsNav.tsx` | `ViewsNav`, `ViewsDropdown` | Inbox views with counts (sidebar list, dropdown on tablet) |
+| `components/inbox/FraudBanner.tsx` | `FraudBanner` | Red conversation banner "Fraud risk <score> · <level>" + signal chips + "View alert" → `/dashboard#fraud` (only while the ticket has an open alert) |
+| `components/inbox/ViewsNav.tsx` | `ViewsNav`, `ViewsDropdown`, `ViewsChips` | Inbox views with counts (sidebar list, dropdown on tablet, chip row on phones) |
 | `components/inbox/TicketFilters.tsx` | `TicketFilters`, `Filters`, `matchFilters`, `activeFilterCount` | Channel / priority / assignee / tag filters |
 | `components/inbox/TicketList.tsx` | `TicketList` | Ticket list with selection, keyboard nav, loading/empty/error |
 | `components/inbox/TicketRow.tsx` | `TicketRow` | One ticket row (customer, subject, status, time) |
@@ -169,7 +190,9 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/inbox/EscalationChip.tsx` | `EscalationChip`, `escalationPath` | Claude → Grokbot → Human timeline chip with reasons |
 | `components/inbox/Composer.tsx` | `Composer`, `ComposerHandle`, `ComposerMode` | Tiptap reply / internal-note composer with formatting and macros |
 | `components/inbox/MacroPicker.tsx` | `MacroPicker`, `macroToHtml` | Searchable macro insert popover |
-| `components/inbox/DetailsSidebar.tsx` | `DetailsSidebar` | Customer, Shopify orders, past tickets, AI attempt log |
+| `components/inbox/DetailsSidebar.tsx` | `DetailsSidebar` | Customer & Shopify panel: customer header, stats, orders (newest first, latest expanded), past tickets, AI attempt log. At ≥1024px it's the always-visible right panel (`customer-panel`, open by default, `customer-panel-collapse` with aria-expanded, rail when collapsed, kept in sessionStorage `goorin.customerPanel`). Below 1024px and on phones it's the Details sheet. |
+| `components/inbox/LoopReturns.tsx` | `LoopReturnsSection`, `LoopReturnCard`, `LoopMark`, `loopStats` | "Loop Returns" section below Shopify orders (`loop-returns-section`). Loop wordmark header (`/images/brand/loop-wordmark.svg`, official, #0472FF ring). Stats (`loop-stats`): Returns count, Returned $ and Return rate % of lifetime spend; cancelled/expired returns are counted but left out of the $ and %. Amber "High return rate" chip over 30%. Return cards (`loop-return-<id>`) show state + outcome pills, items with reason, totals, label status and `loop-view-<id>` (MOCKED admin.loopreturns.com, new tab, with the Loop mark `/images/brand/loop-mark.svg`). Empty state `loop-empty` "No returns with Loop". The collapsed rail shows the Loop mark + count. |
+| `components/inbox/CustomerPanel.tsx` | `CustomerHeader`, `CustomerStats`, `OrderCard`, `CustomerRail`, `useCustomerPanel`, `initials`, `newestFirst` | Initials avatar, email, phone, location, "Customer since Mon YYYY", Shopify tag chips (`customer-tags`), View in Shopify, red "Fraud risk <level>" chip, guest state. Stats row (`customer-stats`: Orders, Lifetime spend, Avg order value, Last order). Order card (`order-card-<id>`: payment + fulfillment pills, total, line items with thumbnails, ship-to, tracking link and `order-view-shopify-<id>`, which opens a MOCKED admin.shopify.com URL in a new tab). |
 | `components/inbox/ShortcutHelp.tsx` | `ShortcutHelp` | Keyboard shortcut help dialog |
 
 ### Guidance (`components/guidance`)
@@ -184,15 +207,16 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 ### Settings (`components/settings`)
 | file | exports | purpose |
 |---|---|---|
-| `components/settings/IntegrationsTab.tsx` | `IntegrationsTab`, `IntegrationCard` | Health summary + integration cards (status, purpose, test, error callout, credentials, testers) |
-| `components/settings/AiTab.tsx` | `AiTab` | Threshold band slider, auto-send matrix, business hours, sentence rules, prompt viewer |
+| `components/settings/IntegrationsTab.tsx` | `IntegrationsTab`, `IntegrationTile`, `StatusPill`, `LogoTile`, `Result`, `Credentials`, `STATUS`, `META`, `lastSync` | Health summary + 3/2/1-column tile grid; each tile links to its detail page |
+| `components/settings/IntegrationDetail.tsx` | `IntegrationDetail` | Detail page: header with Test connection, error callout, Connection details, Configuration (model + test prompt, Resend test email), Credentials, unsaved bar |
+| `components/settings/AiTab.tsx` | `AiTab` | Threshold band slider, auto-send matrix, business hours, sentence rules, Auto-refunds (toggle + $0–500 limit, default $75), prompt viewer |
 | `components/settings/UsersTab.tsx` | `UsersTab` | Team header + search, user rows, invite dialog, row actions, deactivate confirm |
 | `components/settings/SaveBar.tsx` | `SaveBar`, `FormSection` | Shared sticky unsaved-changes bar, and the label-left/control-right form section |
 
 ### Chat widget settings (`components/widgetSettings`)
 | file | exports | purpose |
 |---|---|---|
-| `components/widgetSettings/WidgetSettingsTab.tsx` | `WidgetSettingsTab` | Draft state, validation, save bar, route guard, "Preview on my store" |
+| `components/widgetSettings/WidgetSettingsTab.tsx` | `WidgetSettingsTab` | `view='editor'` (Shopify → Chat widget: sections + sticky live preview + Preview on my store) or `view='install'` (Shopify → Install). Draft state, validation, save bar, route guard |
 | `components/widgetSettings/BrandingSection.tsx` | `BrandingSection` | 7 colors, logo/avatars, font, radius, shadow |
 | `components/widgetSettings/LauncherSection.tsx` | `LauncherSection` | Icon, style, label, size, position, offsets, badge, animation |
 | `components/widgetSettings/MessagingSection.tsx` | `MessagingSection`, `PageTypePicker`, `ToggleRow`, `PAGE_TYPES` | Header, greeting, proactive bubble, pre-chat, handoff, offline |
@@ -234,7 +258,7 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/styleguide/SgSection.tsx` | `SgSection`, `Specimen`, `SgIndex`, `SG_INDEX` | Styleguide section wrapper, specimen caption, sticky in-page index |
 | `components/styleguide/InboxSamples.tsx` | `InboxSamples` | Draft card variants, escalation chip, internal note, composer |
 | `components/styleguide/WidgetSamples.tsx` | `WidgetSamples` | All widget components through the real SupportWidget (Shadow DOM, contained) |
-| `components/styleguide/AppPatterns.tsx` | `DashboardSamples`, `NavSamples`, `SegmentedSample`, `SettingsSamples` | KPI strip, stacked + ranked bars, nav item states, segmented control, integration card, form section |
+| `components/styleguide/AppPatterns.tsx` | `DashboardSamples`, `NavSamples`, `SegmentedSample`, `SettingsSamples`, `PhoneSamples` | KPI strip, stacked + ranked bars, nav item states, segmented control, integration tiles, form section, phone tab bar + bottom sheet |
 
 ### UI primitives (`components/ui`)
 | file | exports | purpose |
@@ -243,7 +267,7 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/ui/input.tsx` | `Input`, `Textarea`, `Label`, `FieldError` | Form fields with focus ring and invalid styling |
 | `components/ui/select.tsx` | `Select`, `SelectTrigger`, `SelectValue`, `SelectContent`, `SelectItem` | Radix select |
 | `components/ui/card.tsx` | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent` | Card surface |
-| `components/ui/dialog.tsx` | `Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription` | Modal dialog |
+| `components/ui/dialog.tsx` | `Dialog`, `DialogContent`, `DialogTitle`, `DialogDescription`, `PHONE_SHEET`, `SheetGrabber` | Modal dialog; becomes a bottom sheet below 640px (`PHONE_SHEET`, also used by AlertDialog) |
 | `components/ui/alert-dialog.tsx` | `AlertDialog`, `AlertDialogContent`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogCancel`, `AlertDialogAction` | Confirm dialog |
 | `components/ui/sheet.tsx` | `Sheet`, `SheetTrigger`, `SheetClose`, `SheetContent`, `SheetTitle`, `SheetDescription`, `SheetCloseButton` | Side drawer |
 | `components/ui/dropdown-menu.tsx` | `DropdownMenu`, `DropdownMenuTrigger`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuLabel`, `DropdownMenuSeparator`, `DropdownMenuRadioGroup`, `DropdownMenuRadioItem` | Menus |
@@ -312,6 +336,21 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 |---|---|---|---|---|
 | `dashboardApi.getDashboardSummary(range)` | `GET /api/dashboard/summary?from=YYYY-MM-DD&to=YYYY-MM-DD` | query `DateRange` | `DashboardSummary` (KPIs with prior-period values + series, charts, `CsatSummary`) | — |
 
+### Loop Returns (`loopApi`, `api/loop.ts`), MOCKED (Loop is a Shopify returns app)
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `loopApi.getCustomerReturns(customerId)` | `GET /api/customers/:id/loop-returns` | — | `LoopReturn[]` newest first | — |
+
+### refunds + fraud alerts (`refundsApi`, `api/refunds.ts`), Phase 8, MOCKED (no real Shopify refunds or fraud engine)
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `refundsApi.getRefunds(range)` | `GET /api/refunds/summary?from=YYYY-MM-DD&to=YYYY-MM-DD` | query `DateRange` | `RefundSummary` (totals, prior-period total, auto %, pending, stage counts, trend, awaiting list, current `AutoRefundSettings`) | — |
+| `refundsApi.getFraudAlerts()` | `GET /api/fraud-alerts` | — | `FraudAlert[]` newest first | — |
+| `refundsApi.reviewFraudAlert(id, action, actor)` | `POST /api/fraud-alerts/:id/review` | `{ action: FraudAction }` (actor from the session) | `FraudReviewResult` (`held` also sets the linked requested/approved refund to `on_hold`) | 404 "Alert not found.", 409 "This alert was already reviewed." |
+| `refundsApi.undoFraudReview(id)` | `POST /api/fraud-alerts/:id/undo` | — | `FraudAlert` back to `open` (a held refund returns to its earlier stage) | 404 |
+
+Tickets carry `fraud: TicketFraudFlag \| null` and `TicketDetail.fraudAlert` is the open alert. Both are derived by the server, and the bell and Inbox badge still count needs_human only. `PUT /api/settings/ai` also validates `autoRefund.limit` (422 "Enter an amount between $0 and $500.").
+
 ### csat (`csatApi`, `api/csat.ts`)
 | function | method + path | request | response | errors |
 |---|---|---|---|---|
@@ -340,7 +379,9 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 ### integrations, AI settings, users (`settingsApi`, `api/settings.ts`)
 | function | method + path | request | response | errors |
 |---|---|---|---|---|
-| `settingsApi.listIntegrations()` | `GET /api/integrations` | — | `IntegrationStatus[]` (secrets masked only) | — |
+| `settingsApi.listIntegrations()` | `GET /api/integrations` | — | `IntegrationStatus[]` (secrets masked only; Shopify adds `widget: { embedEnabled, lastSeenAt }`) | — |
+| `settingsApi.getIntegration(id)` | `GET /api/integrations/:id` | — | `IntegrationStatus \| null` | — |
+| `settingsApi.saveIntegrationConfig(id, config)` | `PATCH /api/integrations/:id/config` | `{ model?: string }` | `IntegrationStatus` | 404 "Integration not found", 422 "Choose one of the available models." |
 | `settingsApi.testIntegration(id)` | `POST /api/integrations/:id/test` | — | `TestResult { ok, ms, message }` | — |
 | `settingsApi.testPrompt(id, model, prompt)` | `POST /api/integrations/:id/prompt` | `{ model, prompt }` | `TestResult` | — |
 | `settingsApi.sendTestEmail(to)` | `POST /api/integrations/resend/test-email` | `{ to }` | `TestResult` | 422 "Enter a valid email address." |
@@ -381,7 +422,7 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 |---|---|---|
 | `client.request(resolve, { empty })` | `api/client.ts` | The single mock transport: latency, demo state, `structuredClone` of the result |
 | `client.ApiError` | `api/client.ts` | Error class `{ message, status }` (re-exported from `@/api`) |
-| `db.db`, `db.CSAT_QUESTIONS_KEY` | `api/db.ts` | In-memory copy of the seed (resets on reload), and the sessionStorage key for CSAT questions |
+| `db.db`, `db.CSAT_QUESTIONS_KEY`, `db.syncFraudFlag(ticketId)` | `api/db.ts` | In-memory copy of the seed (resets on reload), the sessionStorage key for CSAT questions, and re-deriving a ticket's fraud flag from its open alert |
 | `demoState.getDemoState()`, `demoState.setDemoState(s)`, `demoState.subscribeDemoState(fn)` | `api/demoState.ts` | Global demo-state store (re-exported from `@/api`) |
 
 ## 6. Types
@@ -402,6 +443,9 @@ All of these live in `src/types/index.ts`.
 - `CsatQuestionType`
 - `DelayUnit`
 - `RangePreset`
+- Loop types: `LoopState` (open, in_review, closed, cancelled, expired), `LoopOutcome` (refund, exchange, store_credit, gift_card), `LoopLabelStatus` (label_created, in_transit, delivered_to_warehouse), `LoopReturnItem`, `LoopReturn` {id, customerId, orderNumber, state, outcome, returnTotal, refund, exchangeTotal, storeCredit, items[], labelStatus, createdAt, adminUrl}.
+- Inbox panel types: `FinancialStatus`, `FulfillmentStatus`, `ShippingAddress`. `Customer` (+ `phone`, `tags`, `shopifyCustomerId: string | null` (null = guest), `adminUrl`), `ShopifyOrder` (+ `financialStatus: FinancialStatus` paid/pending/partially_refunded/refunded, `fulfillmentStatus: FulfillmentStatus` unfulfilled/fulfilled/in_transit/delivered, `shippingAddress: ShippingAddress`, `adminUrl`), `LineItem` (+ `image` from /images/products).
+- Phase 8: `RefundStage` (`requested`, `approved`, `refunded`, `declined`, `on_hold`), `RiskLevel` (`high` ≥75, `medium` 45–74, `low` <45), `FraudAction` (`safe`, `held`, `escalated`), `FraudStatus` (`open` + `FraudAction`), `FraudSignalCode`. Records: `RefundRecord` (+ `recommendation`), `FraudSignal`, `FraudAlert` (+ `refundId`), `FraudReviewResult`, `TicketFraudFlag`, `AutoRefundSettings`, `RefundSummary`.
 - `KpiFormat`
 - `InboxViewId`
 - `IntegrationId` (`outlook`, `shopify`, `claude`, `grokbot`, `resend`)
@@ -525,6 +569,8 @@ All of these live in `src/types/index.ts`.
 
 ## 9. Demo tools, mock auth, persistence
 
+**Title font picker (Phase 8).** It sits in the same demo popover with the same visibility rules (`title-font-option-inter-display|geist|manrope|jakarta`). It switches the `--font-title` and `--title-scale` CSS variables app-wide (`lib/titleFont.ts`) and saves the choice in localStorage `goorin.titleFont`. Inter Display is the default and ships in the main bundle. Geist, Manrope and Plus Jakarta Sans are lazy-loaded chunks.
+
 **Demo state switcher.** The floating pill at the bottom right appears in dev or when `VITE_DEMO_TOOLS=true`. It sets a global mode that `request()` reads:
 - **Live:** mock data after latency.
 - **Loading:** promises never resolve, so skeletons show.
@@ -597,4 +643,7 @@ On `/widget-demo` the switcher moves so it doesn't cover the launcher.
   - Grokbot is in error (401).
   - Resend is not configured.
   - Masked secrets show the env var names `OUTLOOK_CLIENT_SECRET`, `SHOPIFY_ADMIN_API_TOKEN`, `ANTHROPIC_API_KEY`, `XAI_API_KEY` and `RESEND_API_KEY`.
+- **Refunds (Phase 8):** 30 records (`rf-201`…`rf-206` hand-placed, `rf-001`…`rf-024` spread over ~90 days). At 90d: 4 requested (awaiting approval: GB-1064 $168, GB-1068 $451, GB-1071 $96, GB-1076 $210 = $925), 1 approved, 1 on hold, 3 declined, 21 refunded, $2,907 refunded. At **30d**: 14 refunds, $826 refunded (−32% vs prior), 30% auto-refunded by AI, pending 4 · $925. Auto-refund limit $75 (on).
+- **Loop returns:** 7 returns across 6 customers. Margaret Okonkwo (GB-1076): `48213` closed refund $58 for #GB19790 (the partially refunded order), plus `48690` cancelled, for a 12.3% rate. Clara Bianchi (GB-1068): `49102`, $303 of $451, 67.2%, High return rate. Samuel Adeyemi 100%, Imogen Clarke 34.5% (exchange, in review), Hannah Whitlock 25.1% (store credit, open), Theo Ramirez expired gift card (0%). Everyone else has none.
+- **Fraud alerts (Phase 8):** 8 alerts, 4 open. `fa-101` on **GB-1064** is HIGH 91 and linked to pending refund `rf-201`. `fa-102` GB-1068 Medium 68 (→ `rf-202`), `fa-103` GB-1077 Low 38, `fa-104` GB-1071 Medium 57 (→ `rf-203`). Reviewed: `fa-105` safe, `fa-106` held, `fa-107` escalated, `fa-108` safe.
 - **Shopify:** goorin.myshopify.com, theme "Dawn – Goorin 2026", App embed enabled.

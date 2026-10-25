@@ -3,6 +3,7 @@ import { formatKpiValue } from '@/lib/format'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { Num } from '@/components/Num'
 
 function delta(m: KpiMetric) {
   if (m.value === null || m.previous === null) return null
@@ -22,8 +23,8 @@ export function KpiCard({ metric, comparisonLabel }: { metric: KpiMetric; compar
   return (
     <Card className="flex flex-col gap-3 p-5" data-testid={`kpi-card-${metric.key}`}>
       <p className="text-sm font-medium text-ink-muted">{metric.label}</p>
-      <p className="font-display text-3xl font-medium tracking-tight text-ink" data-testid={`kpi-value-${metric.key}`}>
-        {formatKpiValue(metric.value, metric.format)}
+      <p className="text-3xl leading-9 text-ink" data-testid={`kpi-value-${metric.key}`}>
+        <Num value={formatKpiValue(metric.value, metric.format)} />
       </p>
       <p className={cn('text-xs font-medium', tone)} data-testid={`kpi-delta-${metric.key}`} data-tone={d?.good === null ? 'neutral' : d?.good ? 'good' : 'bad'}>
         {!d ? (

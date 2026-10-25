@@ -19,7 +19,7 @@ export const SheetContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col border-l border-border bg-surface shadow-popover focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right data-[state=open]:duration-300 data-[state=closed]:duration-200',
+        'fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col border-l border-border bg-surface shadow-popover focus:outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right data-[state=open]:duration-300 data-[state=closed]:duration-200 max-sm:h-[100dvh] max-sm:border-l-0 max-sm:pb-[env(safe-area-inset-bottom)] max-sm:pt-[env(safe-area-inset-top)] max-sm:data-[state=open]:slide-in-from-bottom',
         className,
       )}
       {...props}
@@ -33,7 +33,7 @@ SheetContent.displayName = 'SheetContent'
 export function SheetCloseButton({ label = 'Close', ...props }: { label?: string } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <DialogPrimitive.Close asChild>
-      <button type="button" aria-label={label} className={cn('inline-flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-muted hover:text-ink', focusRing)} {...props}>
+      <button type="button" aria-label={label} className={cn('inline-flex h-9 w-9 max-sm:h-11 max-sm:w-11 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-muted hover:text-ink', focusRing)} {...props}>
         <X className="h-4 w-4" aria-hidden />
       </button>
     </DialogPrimitive.Close>

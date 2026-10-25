@@ -53,6 +53,7 @@ A fully clickable, front-end-only prototype of an AI-first customer service desk
 | F-38 | Widget Install (Shopify): status card, App Embed step card + "Open Theme Editor" + toggle illustration, script-tag fallback snippet, source indicator, "Verify installation" | Admin | 5 |
 | F-39 | Shopify Theme Editor mock (/widget-demo/theme-editor) styled like Shopify admin | Admin | 5 |
 | F-40 | README: every component listed + mock-to-API contract; Shadow DOM approach documented; styleguide completed (AI draft card, widget components); final accessibility + tablet audit | Dev | 6 |
+| F-41 | Phone-optimized agent app (<640px): bottom tab bar, phone top bar, bottom sheets, phone layouts for Dashboard, Inbox, Guidance, Settings (user request, extends 'usable down to tablet') | Admin, Agent | 7 |
 
 ## Phases
 - **Phase 1: Foundation + Dashboard.** Gets the Vite/TS project, tokens, shell, login, mock data + API layer, Dashboard and CSAT drawer, and styleguide foundations working. Delivers F-1 to F-18. [requirement](phase1/requirement.md) · [journeys](phase1/journeys.md)
@@ -61,17 +62,18 @@ A fully clickable, front-end-only prototype of an AI-first customer service desk
 - **Phase 4: Customer-facing widget + survey.** The widget component in every state, /widget-demo, hosted survey. Delivers F-33 to F-35.
 - **Phase 5: Chat Widget settings + Theme Editor mock.** Delivers F-36 to F-39.
 - **Phase 6: Handoff.** Finished styleguide, README contract, accessibility/tablet audit. Delivers F-40.
+- **Phase 7: Phones.** The whole agent app optimized for 360–430px phones. Delivers F-41. [requirement](phase7/requirement.md) · [journeys](phase7/journeys.md)
 
 ## UI/UX Rules
 - Light mode only. Heritage-craft warmth with modern SaaS usability, not corporate blue.
 - Tokens: background #FAF8F5, surfaces white, text charcoal #1F1D1A, primary tobacco #6B4F3A, accent muted brass #B08D57; status muted green / amber / red / slate.
-- Fraunces for page titles and KPI numbers ONLY; Inter everywhere else.
+- Typography is all sans: page titles in Inter Display (600, tight tracking), Inter everywhere else, numbers in Inter with tabular figures. User feedback removed the serif titles and KPI numbers from the original brief for a modern look.
 - 8px spacing grid, 10px radius, subtle 1px borders, minimal shadows, generous whitespace.
 - Author badges and status pills always come from the shared components and are never restyled locally.
 - needs_human is always the highest-visibility (amber) status.
 - Every data page has designed skeleton, empty and error states, all reachable via the demo state switcher.
 - WCAG AA contrast, every control keyboard-reachable, visible focus rings, drawers and modals trap focus and close on Esc.
-- Desktop-first; nothing breaks or scrolls horizontally at 768px.
+- Desktop-first; nothing breaks or scrolls horizontally at 768px. Phone layouts (<640px) are first-class from phase 7.
 - Copy speaks the Goorin voice: warm, a little old-world, never cutesy.
 
 ## Integrations

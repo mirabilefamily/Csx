@@ -1,3 +1,4 @@
+import { ShopifyMark } from '@/components/brand/ShopifyMark'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Blocks, LayoutTemplate, Monitor, Paintbrush, Search, Smartphone } from 'lucide-react'
@@ -55,12 +56,13 @@ function Editor({ desk, initial }: { desk: WidgetSettings; initial: ThemeEmbedSe
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-[#F1F1F1] text-[#303030]" style={{ fontFamily: SHOP }} data-testid="theme-editor">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[#E3E3E3] bg-white px-3">
-        <Link to="/settings/widget#install" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium hover:bg-[#F1F1F1]" data-testid="te-back">
+    <div className="flex h-[100dvh] flex-col bg-[#F1F1F1] text-[#303030] max-sm:h-auto max-sm:min-h-[100dvh] max-sm:pb-[env(safe-area-inset-bottom)]" style={{ fontFamily: SHOP }} data-testid="theme-editor">
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[#E3E3E3] bg-white px-3 max-sm:sticky max-sm:top-0 max-sm:z-20 max-sm:h-auto max-sm:flex-wrap max-sm:gap-2 max-sm:py-2 max-sm:pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <Link to="/settings/integrations/shopify/widget" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-[13px] font-medium hover:bg-[#F1F1F1] max-sm:h-11" data-testid="te-back">
           <ArrowLeft className="h-4 w-4" aria-hidden /> Back to Goorin Support Desk
         </Link>
         <span className="hidden h-5 w-px bg-[#E3E3E3] sm:block" />
+        <ShopifyMark size={20} className="hidden sm:block" />
         <span className="hidden text-[13px] font-semibold sm:inline" data-testid="te-theme-name">Dawn – Goorin 2026</span>
         <span className="hidden rounded-full bg-[#CDFEE1] px-2 py-0.5 text-[11px] font-medium text-[#0C5132] sm:inline">Live</span>
         <label className="ml-auto flex items-center gap-2 text-[13px]">
@@ -82,14 +84,14 @@ function Editor({ desk, initial }: { desk: WidgetSettings; initial: ThemeEmbedSe
           {saving ? 'Saving…' : 'Save'}
         </button>
       </header>
-      <div className="flex min-h-0 flex-1">
-        <nav className="flex w-[52px] shrink-0 flex-col items-center gap-1 border-r border-[#E3E3E3] bg-white py-2" aria-label="Theme editor panels">
+      <div className="flex min-h-0 flex-1 max-sm:flex-col">
+        <nav className="flex w-[52px] shrink-0 flex-col items-center gap-1 border-r border-[#E3E3E3] bg-white py-2 max-sm:hidden" aria-label="Theme editor panels">
           {[[LayoutTemplate, 'Sections'], [Paintbrush, 'Theme settings'], [Blocks, 'App embeds']].map(([Icon, label], i) => {
             const I = Icon as typeof Blocks
             return <span key={label as string} title={label as string} className={cn('flex h-9 w-9 items-center justify-center rounded-lg', i === 2 ? 'bg-[#EBEBEB] text-[#303030]' : 'text-[#8A8A8A]')}><I className="h-[18px] w-[18px]" aria-hidden /></span>
           })}
         </nav>
-        <aside className="w-[300px] shrink-0 overflow-y-auto border-r border-[#E3E3E3] bg-white p-3" aria-label="App embeds" data-testid="te-app-embeds">
+        <aside className="w-[300px] shrink-0 overflow-y-auto border-r border-[#E3E3E3] bg-white p-3 max-sm:w-full max-sm:border-b max-sm:border-r-0" aria-label="App embeds" data-testid="te-app-embeds">
           <p className="px-1 text-[14px] font-semibold">App embeds</p>
           <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#E3E3E3] px-2 py-1.5 text-[13px] text-[#616161]"><Search className="h-4 w-4" aria-hidden /> Search app embeds</div>
           <div className="mt-3 rounded-xl border border-[#E3E3E3] bg-white shadow-[0_1px_0_rgba(0,0,0,0.05)]" data-testid="te-embed-block">
@@ -113,17 +115,17 @@ function Editor({ desk, initial }: { desk: WidgetSettings; initial: ThemeEmbedSe
                 </select>
                 {desk.sources.launcherPosition === 'desk' && <p className="mt-1 text-[12px] text-[#616161]">Overridden by Goorin Support Desk</p>}
               </div>
-              <label className="flex items-center gap-2 text-[13px]">
+              <label className="flex items-center gap-2 text-[13px] max-sm:min-h-11">
                 <input type="checkbox" checked={draft.hideOnMobile} onChange={(e) => set('hideOnMobile', e.target.checked)} className="h-4 w-4 accent-[#303030]" data-testid="te-hide-mobile" />
                 Hide on mobile
               </label>
               <p className="text-[12px] text-[#616161]" data-testid="te-helper">
-                <Link to="/settings/widget" className="text-[#005BD3] underline" data-testid="te-helper-link">Advanced settings are managed in Goorin Support Desk</Link>
+                <Link to="/settings/integrations/shopify/widget" className="text-[#005BD3] underline" data-testid="te-helper-link">Advanced settings are managed in Goorin Support Desk</Link>
               </p>
             </div>
           </div>
         </aside>
-        <main className="min-w-0 flex-1 overflow-auto p-6 pb-20" data-testid="te-preview">
+        <main className="min-w-0 flex-1 overflow-auto p-6 pb-20 max-sm:min-h-[640px] max-sm:p-3 max-sm:pb-10" data-testid="te-preview">
           {draft.enabled ? (
             <DeviceStage settings={effective} opts={{ page, device, state: 'launcher_closed', outsideHours: false }} keyExtra={`${draft.launcherPosition}`} />
           ) : (

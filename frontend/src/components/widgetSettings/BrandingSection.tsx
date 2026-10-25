@@ -28,7 +28,7 @@ export function BrandingSection({ draft, update, uploadErrors, setUploadError }:
         <ColorField id="link" label="Link" value={c.link} onChange={set('link')} contrast={{ against: '#FFFFFF', label: 'Link on white' }} />
       </div>
       <div className="grid gap-5 sm:grid-cols-3">
-        <UploadField id="logo" label="Header logo" value={draft.branding.logoUrl} onChange={(v) => update((d) => { d.branding.logoUrl = v })} error={uploadErrors.logo} onError={(e) => setUploadError('logo', e)} />
+        <UploadField id="logo" label="Header logo" thumbBg={c.headerBackground} value={draft.branding.logoUrl} onChange={(v) => update((d) => { d.branding.logoUrl = v })} error={uploadErrors.logo} onError={(e) => setUploadError('logo', e)} />
         <UploadField id="ai-avatar" label="AI avatar" value={draft.branding.aiAvatarUrl} onChange={(v) => update((d) => { d.branding.aiAvatarUrl = v })} error={uploadErrors['ai-avatar']} onError={(e) => setUploadError('ai-avatar', e)} />
         <UploadField id="agent-avatar" label="Human agent avatar" value={draft.branding.agentAvatarUrl} onChange={(v) => update((d) => { d.branding.agentAvatarUrl = v })} error={uploadErrors['agent-avatar']} onError={(e) => setUploadError('agent-avatar', e)} />
       </div>

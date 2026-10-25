@@ -9,7 +9,8 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useShellData } from '@/components/shell/ShellData'
 import { EmptyState } from '@/components/States'
 import { Button } from '@/components/ui/button'
-import { ViewsDropdown, ViewsNav } from '@/components/inbox/ViewsNav'
+import { ViewsChips, ViewsDropdown, ViewsNav } from '@/components/inbox/ViewsNav'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import { TicketFilters, activeFilterCount, matchFilters, type Filters } from '@/components/inbox/TicketFilters'
 import { TicketList } from '@/components/inbox/TicketList'
 import { ConversationPane, type ConversationHandle } from '@/components/inbox/ConversationPane'
@@ -36,6 +37,8 @@ export default function InboxPage() {
   const [filters, setFilters] = useState<Filters>({})
   const [selected, setSelected] = useState<string[]>([])
   const [help, setHelp] = useState(false)
+  const isPhone = useIsPhone()
+  const [selectMode, setSelectMode] = useState(false)
   const conv = useRef<ConversationHandle>(null)
   const { data: allUsers } = useApi(() => directoryApi.listUsers(), [])
   const { data: macros } = useApi(() => directoryApi.listMacros(), [])
@@ -85,11 +88,11 @@ export default function InboxPage() {
   return (
     <div className="flex h-full min-h-0" data-testid="inbox-page">
       <ViewsNav active={view.id} counts={counts} loading={loading} />
-      <section aria-label="Ticket list" className={cn('min-h-0 w-full flex-col border-r border-border bg-surface lg:flex lg:w-[300px] lg:shrink-0 xl:w-[320px]', ticketId ? 'hidden' : 'flex')}>
+      <section aria-label="Ticket list" className={cn('min-h-0 w-full flex-col border-r border-border bg-surface lg:flex lg:w-[232px] lg:shrink-0 xl:w-[280px] wide:w-[320px]', ticketId ? 'hidden' : 'flex')}>
         <div className="flex items-center gap-2 border-b border-border px-3 py-3">
-          <h1 className="hidden flex-1 truncate font-display text-xl font-medium text-ink lg:block" data-testid="page-title">{view.label}</h1>
-          <div className="flex-1 lg:hidden"><ViewsDropdown active={view.id} counts={counts} loading={loading} /></div>
-          <Button variant="ghost" size="icon-sm" aria-label="Keyboard shortcuts" onClick={() => setHelp(true)} data-testid="shortcuts-button"><Keyboard aria-hidden /></Button>
+          <h1 className="sr-only wide:not-sr-only wide:flex-1 wide:truncate wide:font-display wide:text-[24px] wide:text-ink" data-testid="page-title">{view.label}</h1>
+          {isPhone ? <div className="min-w-0 flex-1"><h1 className="sr-only">{view.label}</h1><ViewsChips active={view.id} counts={counts} loading={loading} /></div> : <div className="min-w-0 flex-1 wide:hidden"><ViewsDropdown active={view.id} counts={counts} loading={loading} /></div>}
+          <Button variant="ghost" size="icon-sm" className="hover-only" aria-label="Keyboard shortcuts" onClick={() => setHelp(true)} data-testid="shortcuts-button"><Keyboard aria-hidden /></Button>
         </div>
         <TicketList
           title={view.label}
@@ -103,6 +106,7 @@ export default function InboxPage() {
           onClearFilters={() => setFilters({})}
           selected={selected}
           onSelect={setSelected}
+          selectable={!isPhone || selectMode}
           users={users}
           tags={tags}
           onAssign={(u: User) => bulk({ assignee: u.id }, `${plural(selected.length)} assigned to ${u.name}`)}
@@ -111,7 +115,8 @@ export default function InboxPage() {
           toolbar={
             <>
               <span className="text-xs text-ink-muted" data-testid="list-count">{loading ? '…' : `${list.length} shown`}</span>
-              <div className="ml-auto"><TicketFilters filters={filters} onChange={setFilters} tags={tags} users={users} /></div>
+              {isPhone && <Button variant="ghost" size="sm" className="ml-auto" aria-pressed={selectMode} onClick={() => { setSelectMode((m) => !m); setSelected([]) }} data-testid="select-mode-toggle">{selectMode ? 'Done' : 'Select'}</Button>}
+              <div className={isPhone ? '' : 'ml-auto'}><TicketFilters filters={filters} onChange={setFilters} tags={tags} users={users} /></div>
             </>
           }
         />

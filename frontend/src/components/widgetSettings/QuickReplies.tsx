@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { DndContext, KeyboardSensor, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { ArrowDown, ArrowUp, GripVertical, Plus, Trash2 } from 'lucide-react'
@@ -26,7 +26,7 @@ function Row({ item, index, count, onText, onMove, onRemove }: { item: Item; ind
 export function QuickReplies({ value, onChange, error }: { value: string[]; onChange: (v: string[]) => void; error?: string }) {
   const [ids, setIds] = useState<string[]>(() => value.map(() => `qr-${++seq}`))
   const items: Item[] = value.map((text, i) => ({ id: ids[i] ?? `qr-x-${i}`, text }))
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
+  const sensors = useSensors(useSensor(MouseSensor, { activationConstraint: { distance: 4 } }), useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
   const move = (from: number, to: number) => {
     onChange(arrayMove(value, from, to))
     setIds((x) => arrayMove(x, from, to))

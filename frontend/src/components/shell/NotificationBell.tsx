@@ -2,6 +2,9 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, CheckCheck } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/overlay'
+import { Dialog, DialogContent, DialogTitle, SheetGrabber } from '@/components/ui/dialog'
+import { DialogTrigger } from '@radix-ui/react-dialog'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/States'
 import { useShellData } from './ShellData'
@@ -45,7 +48,30 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false)
   const picked = useRef(false)
   const { needsHuman } = useShellData()
+  const isPhone = useIsPhone()
   const count = needsHuman?.length ?? 0
+  const label = count ? `Notifications, ${count} tickets need a human` : 'Notifications'
+  const header = (
+    <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <p className="text-sm font-semibold text-ink">Needs a human</p>
+      <span className="text-xs text-ink-muted">{count} ticket{count === 1 ? '' : 's'}</span>
+    </div>
+  )
+  if (isPhone)
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger aria-label={label} data-testid="notification-bell" className={cn('relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted', focusRing)}>
+          <Bell className="h-5 w-5" aria-hidden />
+          {count > 0 && <span data-testid="notification-bell-count" className="absolute right-1.5 top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-semibold text-amber-900 ring-2 ring-surface">{count}</span>}
+        </DialogTrigger>
+        <DialogContent className="p-0 pt-3" aria-describedby={undefined} data-testid="notification-panel">
+          <SheetGrabber />
+          <DialogTitle className="sr-only">Needs a human</DialogTitle>
+          {header}
+          <BellList onPick={() => setOpen(false)} />
+        </DialogContent>
+      </Dialog>
+    )
   return (
     <Popover open={open} onOpenChange={(o) => { if (o) picked.current = false; setOpen(o) }} modal>
       <PopoverTrigger

@@ -63,7 +63,7 @@ export function CsatInChatSection({ draft, update, questions }: { draft: WidgetS
       <div>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium text-ink">Questions (from CSAT Settings)</p>
-          <Link to="/dashboard?csat=settings" className="text-sm font-medium text-tobacco-700 underline underline-offset-2" data-testid="ws-edit-questions">Edit questions</Link>
+          <Link to="/dashboard?csat=settings&return=/settings/integrations/shopify/widget" className="text-sm font-medium text-tobacco-700 underline underline-offset-2" data-testid="ws-edit-questions">Edit questions</Link>
         </div>
         <ol className="space-y-1.5" data-testid="ws-csat-questions">
           {(questions ?? []).map((q, i) => (

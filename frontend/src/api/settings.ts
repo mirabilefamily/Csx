@@ -6,8 +6,30 @@ import { db } from './db'
 const ms = () => Math.round(120 + Math.random() * 380)
 
 // GET /api/integrations
+// Shopify carries the chat widget's embed sub-status (REQ-474).
+const withWidget = (i: IntegrationStatus): IntegrationStatus =>
+  i.id === 'shopify' ? { ...i, widget: { embedEnabled: db.shopifyInstall.embedEnabled, lastSeenAt: db.shopifyInstall.lastSeenAt } } : i
+
 export function listIntegrations(): Promise<IntegrationStatus[]> {
-  return request(() => db.integrations, { empty: () => [] })
+  return request(() => db.integrations.map(withWidget), { empty: () => [] })
+}
+
+// GET /api/integrations/:id
+export function getIntegration(id: string): Promise<IntegrationStatus | null> {
+  return request(() => { const i = db.integrations.find((x) => x.id === id); return i ? withWidget(i) : null })
+}
+
+// PATCH /api/integrations/:id/config
+export function saveIntegrationConfig(id: IntegrationId, config: { model?: string }): Promise<IntegrationStatus> {
+  return request(() => {
+    const i = db.integrations.find((x) => x.id === id)
+    if (!i) throw new ApiError('Integration not found', 404)
+    if (config.model !== undefined) {
+      if (!i.models?.includes(config.model)) throw new ApiError('Choose one of the available models.', 422)
+      i.model = config.model
+    }
+    return i
+  })
 }
 
 // POST /api/integrations/:id/test
@@ -51,6 +73,8 @@ export function getAiSettings(): Promise<AiSettings> {
 export function saveAiSettings(s: AiSettings): Promise<AiSettings> {
   return request(() => {
     if (s.hours.some((h) => h.open && h.to <= h.from)) throw new ApiError('Closing time must be after opening time.', 422)
+    const limit = s.autoRefund.limit
+    if (!(limit >= 0 && limit <= 500)) throw new ApiError('Enter an amount between $0 and $500.', 422)
     db.aiSettings = structuredClone(s)
     return db.aiSettings
   })

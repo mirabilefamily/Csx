@@ -21,6 +21,7 @@ function detail(id: string): TicketDetail | null {
     customer: db.customers.find((c) => c.id === ticket.customer.id) ?? null,
     pastTickets: db.tickets.filter((t) => t.customer.id === ticket.customer.id && t.id !== id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     guidanceTitles: Object.fromEntries(db.guidanceArticles.filter((a) => ids.has(a.id)).map((a) => [a.id, a.title])),
+    fraudAlert: db.fraudAlerts.find((a) => a.ticketId === id && a.status === 'open') ?? null,
   }
 }
 

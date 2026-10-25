@@ -4,6 +4,7 @@ import { Legend } from '@/components/ChartCard'
 import { chartColors } from '@/theme/tokens'
 import { ChartFigure, Responsive, axisProps, tooltipProps } from './chartTheme'
 import { Panel, RankedList } from './Panel'
+import { Num } from '@/components/Num'
 
 type Props = { data?: DashboardSummary; loading: boolean }
 const mutedAxis = { ...axisProps, axisLine: false, tick: { ...axisProps.tick, fontSize: 11 } } as const
@@ -68,7 +69,7 @@ export function ResolvedByChart({ data, loading }: Props) {
               {r.label}
             </span>
             <span className="mt-1 block text-sm tabular-nums text-ink-muted">
-              <span className="font-display text-xl font-medium text-ink">{pct(r.count)}%</span> · {r.count.toLocaleString()}
+              <Num value={`${pct(r.count)}%`} className="text-xl text-ink" /> · {r.count.toLocaleString()}
             </span>
           </li>
         ))}

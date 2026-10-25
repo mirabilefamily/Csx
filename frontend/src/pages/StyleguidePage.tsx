@@ -1,3 +1,4 @@
+import { Num } from '@/components/Num'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Plus, Search } from 'lucide-react'
@@ -21,7 +22,7 @@ import { timeAgo } from '@/lib/format'
 import { SgIndex, SgSection as Section } from '@/components/styleguide/SgSection'
 import { InboxSamples } from '@/components/styleguide/InboxSamples'
 import { WidgetSamples } from '@/components/styleguide/WidgetSamples'
-import { DashboardSamples, NavSamples, SegmentedSample, SettingsSamples } from '@/components/styleguide/AppPatterns'
+import { DashboardSamples, NavSamples, PhoneSamples, SegmentedSample, SettingsSamples } from '@/components/styleguide/AppPatterns'
 
 const AUTHORS: AuthorType[] = ['customer', 'claude', 'grokbot', 'agent', 'system']
 const STATUSES: TicketStatus[] = ['open', 'ai_handling', 'grok_handling', 'needs_human', 'resolved', 'closed']
@@ -78,7 +79,7 @@ export default function StyleguidePage() {
         <SgIndex />
         <div className="min-w-0 space-y-14">
           <div>
-            <h1 className="font-display text-4xl font-medium tracking-tight text-ink md:text-5xl" data-testid="page-title">Styleguide</h1>
+            <h1 className="font-display text-[32px] text-ink md:text-[40px]" data-testid="page-title">Styleguide</h1>
             <p className="mt-3 max-w-2xl text-sm text-ink-muted md:text-base">The shared foundations of the Goorin support desk. Every token here lives in <code className="rounded bg-surface-muted px-1.5 py-0.5 text-xs">src/theme/tokens.ts</code> and feeds the Tailwind config. Product pieces below are the real components rendered with sample data, so this page always matches the app.</p>
           </div>
 
@@ -99,8 +100,11 @@ export default function StyleguidePage() {
           <Section id="type" title="Type scale">
             <Card className="divide-y divide-border">
               {[
-                ['Page title · Fraunces 500 · 36–48px', <p key="a" className="font-display text-4xl font-medium tracking-tight md:text-5xl">Dashboard</p>],
-                ['KPI number · Fraunces 500 · 30px', <p key="b" className="font-display text-3xl font-medium">4.62</p>],
+                ['Page title · Inter Display (Inter Variable, opsz auto) 600 · 28px desktop / 24px phone · -0.025em · lh 1.15 (Title font picker in demo controls)', <p key="a" className="title-page font-display">Dashboard</p>],
+                ['Page subtitle · Inter 400 · 15px muted', <p key="s" className="text-[15px] text-ink-muted">How the desk is doing, Sep 26 – Oct 25, 2026.</p>],
+                ['KPI number · Inter 600 tabular lining · 28px, units 62% muted', <p key="b" className="text-[28px] leading-8"><Num value="6h 4m" /> <span className="text-ink-subtle">·</span> <Num value="77.8%" /> <span className="text-ink-subtle">·</span> <Num value="5.7 min" /></p>],
+                ['Panel title · Inter 600 · 15px', <p key="p" className="text-[15px] font-semibold">Fraud alerts</p>],
+                ['Label · Inter 500 · 13px muted', <p key="l" className="text-[13px] font-medium text-ink-muted">Total refunded</p>],
                 ['Section heading · Inter 600 · 16–18px', <p key="c" className="text-base font-semibold md:text-lg">Customer satisfaction</p>],
                 ['Card title · Inter 600 · 14px', <p key="d" className="text-sm font-semibold">Volume by channel</p>],
                 ['Body · Inter 400 · 14–16px', <p key="e" className="text-sm md:text-base">My Hampton fedora arrived with the crown crushed.</p>],
@@ -112,7 +116,7 @@ export default function StyleguidePage() {
                 </div>
               ))}
             </Card>
-            <p className="text-xs text-ink-muted">Families: display {fonts.display[0]}, body {fonts.sans[0]}. Fraunces is reserved for page titles and KPI numbers.</p>
+            <p className="text-xs text-ink-muted">Families: titles Inter Display (switchable in the demo Title font picker: Geist, Manrope, Plus Jakarta Sans), body Inter Variable. There's no serif in the app; only the storefront mock uses a Georgia store theme for the font-inheritance demo.</p>
           </Section>
 
           <Section id="buttons" title="Buttons">
@@ -185,6 +189,7 @@ export default function StyleguidePage() {
           <Section id="navigation" title="Sidebar nav item states"><NavSamples /></Section>
           <Section id="controls" title="Segmented control"><SegmentedSample /></Section>
           <Section id="settings" title="Settings patterns"><SettingsSamples /></Section>
+          <Section id="phone" title="Phone patterns" description="Below 640px the sidebar becomes a bottom tab bar and modals, drawers and menus become bottom or full-screen sheets."><PhoneSamples /></Section>
         </div>
       </main>
     </div>

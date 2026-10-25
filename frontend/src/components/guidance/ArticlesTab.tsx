@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/States'
 import { timeAgo } from '@/lib/format'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import { ArticleEditor } from './ArticleEditor'
 import { CsvImportDialog, downloadCsv } from './CsvImportDialog'
 
@@ -30,6 +31,7 @@ function FilterSelect({ label, value, options, onChange, testId }: { label: stri
 
 export function ArticlesTab({ articleId, openArticle }: { articleId: string | null; openArticle: (id: string | null) => void }) {
   const [rev, setRev] = useState(0)
+  const isPhone = useIsPhone()
   const { data, loading, error, reload } = useApi(() => directoryApi.listArticles(), [rev])
   const [articles, setArticles] = useState<GuidanceArticle[]>([])
   const [q, setQ] = useState('')
@@ -84,6 +86,19 @@ export function ArticlesTab({ articleId, openArticle }: { articleId: string | nu
           <EmptyState compact title="No articles yet" description="Write your first article or import a CSV." testId="articles-empty" />
         ) : !rows.length ? (
           <EmptyState compact title="No articles match your search" icon={<SearchX className="h-5 w-5" aria-hidden />} action={<Button size="sm" variant="outline" onClick={clear} data-testid="articles-clear-filters">Clear filters</Button>} testId="articles-no-match" />
+        ) : isPhone ? (
+          <ul className="divide-y divide-border" data-testid="articles-table">
+            {rows.map((a) => (
+              <li key={a.id} className="flex items-start gap-3 px-4 py-3" data-testid={`article-row-${a.id}`}>
+                <button type="button" onClick={() => openArticle(a.id)} className="min-h-11 min-w-0 flex-1 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`article-open-${a.id}`}>
+                  <span className="block font-medium text-ink">{a.title}</span>
+                  <span className="mt-0.5 block text-xs text-ink-muted">{a.category} · {timeAgo(a.updatedAt)}</span>
+                  {a.tags.length > 0 && <span className="mt-1.5 flex flex-wrap gap-1">{a.tags.map((t) => <span key={t} className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink">{t}</span>)}</span>}
+                </button>
+                <label className="flex min-h-11 items-center"><Switch checked={a.active} onCheckedChange={(v) => toggle(a, v)} aria-label={`${a.title} active`} data-testid={`article-active-${a.id}`} /></label>
+              </li>
+            ))}
+          </ul>
         ) : (
           <Table data-testid="articles-table">
             <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Category</TableHead><TableHead>Tags</TableHead><TableHead>Active</TableHead><TableHead>Last updated</TableHead></TableRow></TableHeader>

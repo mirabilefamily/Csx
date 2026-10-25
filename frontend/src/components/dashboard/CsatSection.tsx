@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Settings2 } from 'lucide-react'
 import type { CsatSummary } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -8,10 +8,13 @@ import { CsatDistribution, CsatFeedback, CsatSplits, CsatTrend } from './CsatCha
 
 export function CsatSection({ csat, loading }: { csat?: CsatSummary; loading: boolean }) {
   const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
   const [open, setOpenState] = useState(() => params.get('csat') === 'settings')
   const setOpen = (o: boolean) => {
     setOpenState(o)
-    if (!o && params.has('csat')) setParams((p) => { p.delete('csat'); return p }, { replace: true })
+    const back = params.get('return')
+    if (!o && back?.startsWith('/settings/')) navigate(back)
+    else if (!o && params.has('csat')) setParams((p) => { p.delete('csat'); return p }, { replace: true })
   }
   return (
     <section aria-labelledby="csat-heading" className="space-y-4" data-testid="csat-section">

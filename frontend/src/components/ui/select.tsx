@@ -10,7 +10,7 @@ export const SelectTrigger = React.forwardRef<React.ElementRef<typeof SelectPrim
   ({ className, children, ...props }, ref) => (
     <SelectPrimitive.Trigger
       ref={ref}
-      className={cn('flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-border-strong bg-surface px-3 text-sm text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-50 data-[placeholder]:text-ink-subtle', className)}
+      className={cn('flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-border-strong bg-surface px-3 text-sm max-sm:h-11 max-sm:text-base text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:opacity-50 data-[placeholder]:text-ink-subtle', className)}
       {...props}
     >
       {children}

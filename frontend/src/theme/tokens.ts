@@ -14,8 +14,8 @@ export const palette = {
 } as const
 
 export const fonts = {
-  display: ['Fraunces', 'Georgia', 'serif'],
-  sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+  display: ["var(--font-title, 'Inter Variable')", 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+  sans: ['Inter Variable', 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
 }
 
 export const radius = { none: '0', sm: '6px', md: '8px', DEFAULT: '10px', lg: '10px', xl: '14px', '2xl': '18px', full: '9999px' }

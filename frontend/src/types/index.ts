@@ -30,14 +30,28 @@ export interface LineItem {
   variant: string
   quantity: number
   price: number
+  image: string
 }
 
 export type OrderStatus = 'unfulfilled' | 'in_transit' | 'delivered' | 'returned' | 'cancelled'
+export type FinancialStatus = 'paid' | 'pending' | 'partially_refunded' | 'refunded'
+export type FulfillmentStatus = 'unfulfilled' | 'fulfilled' | 'in_transit' | 'delivered'
+
+export interface ShippingAddress {
+  name: string
+  line1: string
+  city: string
+  region: string
+  zip: string
+  country: string
+}
 
 export interface ShopifyOrder {
   id: string
   number: string
   status: OrderStatus
+  financialStatus: FinancialStatus
+  fulfillmentStatus: FulfillmentStatus
   total: number
   currency: 'USD'
   createdAt: string
@@ -45,14 +59,50 @@ export interface ShopifyOrder {
   trackingNumber: string | null
   trackingUrl: string | null
   lineItems: LineItem[]
+  shippingAddress: ShippingAddress
+  adminUrl: string
+}
+
+export type LoopState = 'open' | 'in_review' | 'closed' | 'cancelled' | 'expired'
+export type LoopOutcome = 'refund' | 'exchange' | 'store_credit' | 'gift_card'
+export type LoopLabelStatus = 'label_created' | 'in_transit' | 'delivered_to_warehouse'
+
+export interface LoopReturnItem {
+  sku: string
+  title: string
+  variant: string
+  reason: string
+  quantity: number
+  price: number
+  image: string
+  exchangeFor: string | null
+}
+
+export interface LoopReturn {
+  id: string
+  customerId: string
+  orderNumber: string
+  state: LoopState
+  outcome: LoopOutcome
+  returnTotal: number
+  refund: number
+  exchangeTotal: number
+  storeCredit: number
+  items: LoopReturnItem[]
+  labelStatus: LoopLabelStatus
+  createdAt: string
+  adminUrl: string
 }
 
 export interface Customer {
   id: string
   name: string
   email: string
+  phone: string | null
   location: string
-  shopifyCustomerId: string
+  tags: string[]
+  shopifyCustomerId: string | null
+  adminUrl: string | null
   customerSince: string
   note: string | null
   orders: ShopifyOrder[]
@@ -79,6 +129,7 @@ export interface Ticket {
   updatedAt: string
   escalationReason: EscalationReason | null
   orderNumber: string | null
+  fraud?: TicketFraudFlag | null
 }
 
 export interface Message {
@@ -196,6 +247,77 @@ export interface DateRange {
   to: string
 }
 
+export type RefundStage = 'requested' | 'approved' | 'refunded' | 'declined' | 'on_hold'
+export type RiskLevel = 'high' | 'medium' | 'low'
+export type FraudAction = 'safe' | 'held' | 'escalated'
+export type FraudStatus = 'open' | FraudAction
+export type FraudSignalCode = 'repeat_refund' | 'not_received_delivered' | 'high_value' | 'new_account' | 'address_mismatch'
+
+export interface RefundRecord {
+  id: string
+  ticketId: string
+  orderNumber: string
+  customer: string
+  amount: number
+  currency: 'USD'
+  reason: string
+  stage: RefundStage
+  decidedBy: Resolver | null
+  auto: boolean
+  createdAt: string
+  refundedAt: string | null
+  recommendation: 'approve' | 'decline' | 'hold'
+}
+
+export interface FraudSignal {
+  code: FraudSignalCode
+  label: string
+}
+
+export interface FraudAlert {
+  id: string
+  ticketId: string
+  orderNumber: string
+  customer: string
+  riskScore: number
+  level: RiskLevel
+  signals: FraudSignal[]
+  amountAtRisk: number
+  status: FraudStatus
+  createdAt: string
+  reviewedBy: string | null
+  reviewedAt: string | null
+  refundId: string | null
+}
+
+export interface FraudReviewResult {
+  alert: FraudAlert
+  refund: RefundRecord | null
+}
+
+export interface TicketFraudFlag {
+  alertId: string
+  level: RiskLevel
+  score: number
+}
+
+export interface AutoRefundSettings {
+  enabled: boolean
+  limit: number
+}
+
+export interface RefundSummary {
+  totalRefunded: number
+  previousTotal: number | null
+  count: number
+  autoPct: number | null
+  pending: { count: number; amount: number }
+  stages: Record<RefundStage, number>
+  trend: number[]
+  awaiting: RefundRecord[]
+  autoRefund: AutoRefundSettings
+}
+
 export type KpiFormat = 'count' | 'percent' | 'duration' | 'score'
 
 export interface KpiMetric {
@@ -260,6 +382,7 @@ export interface TicketDetail {
   attempts: AIAttempt[]
   customer: Customer | null
   pastTickets: Ticket[]
+  fraudAlert: FraudAlert | null
   guidanceTitles: Record<string, string>
 }
 
@@ -314,6 +437,7 @@ export interface IntegrationStatus {
   models?: string[]
   model?: string
   checklist?: { label: string; ok: boolean }[]
+  widget?: { embedEnabled: boolean; lastSeenAt: string | null }
 }
 
 export interface TestResult { ok: boolean; ms: number; message: string }
@@ -331,6 +455,7 @@ export interface AiSettings {
   hours: BusinessDay[]
   rules: EscalationRule[]
   prompts: { claude: string; grokbot: string }
+  autoRefund: AutoRefundSettings
 }
 
 export interface SandboxResult {

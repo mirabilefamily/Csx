@@ -1,3 +1,4 @@
+import { useHideBottomTabBar } from '@/components/shell/BottomTabBar'
 import { useState } from 'react'
 import Papa from 'papaparse'
 import { Download, Upload } from 'lucide-react'
@@ -32,6 +33,7 @@ export function CsvImportDialog({ open, onOpenChange, onImported }: { open: bool
   const [csv, setCsv] = useState<{ headers: string[]; rows: Record<string, string>[] } | null>(null)
   const [map, setMap] = useState<Record<Field, string>>({ title: NONE, body: NONE, category: NONE, tags: NONE, active: NONE })
   const [busy, setBusy] = useState(false)
+  useHideBottomTabBar(open)
 
   const reset = () => { setCsv(null); setError(null) }
   const accept = (file?: File) => {

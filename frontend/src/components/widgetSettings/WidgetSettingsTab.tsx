@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { CircleDot, ExternalLink, Filter, MessageSquareText, PackageCheck, Palette, Star, type LucideIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { CircleDot, ExternalLink, Eye, Filter, MessageSquareText, Palette, Star, type LucideIcon } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { SheetCloseButton } from '@/components/ui/sheet'
+import { useIsPhone } from '@/hooks/useIsPhone'
 import { toast } from 'sonner'
 import { csatApi, widgetApi } from '@/api'
 import { useApi } from '@/hooks/useApi'
@@ -27,16 +29,15 @@ const SECTIONS: [string, string, string, LucideIcon][] = [
   ['messaging', 'Messaging', 'Header, greeting, pre-chat, handoff, offline and quick replies', MessageSquareText],
   ['display', 'Display rules', 'Where the widget shows and what the AI can see', Filter],
   ['csat', 'CSAT in chat', 'Inline survey style and questions', Star],
-  ['install', 'Install', 'Shopify app embed, script tag and verification', PackageCheck],
 ]
 
-function Loaded({ saved: initial, theme, onRetry }: { saved: WidgetSettings; theme: ThemeEmbedSettings; onRetry: () => void }) {
-  void onRetry
-  const { hash } = useLocation()
+function Loaded({ saved: initial, theme, view }: { saved: WidgetSettings; theme: ThemeEmbedSettings; view: 'editor' | 'install' }) {
   const [saved, setSaved] = useState(initial)
   const [draft, setDraft] = useState(initial)
   const [uploadErrors, setUploadErrors] = useState<WidgetErrors>({})
-  const [open, setOpen] = useState<Set<string>>(() => new Set(hash === '#install' ? ['install'] : ['branding']))
+  const isPhone = useIsPhone()
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [open, setOpen] = useState<Set<string>>(() => new Set(['branding']))
   const [opts, setOpts] = useState<PreviewOptions>({ page: 'product', device: 'desktop', state: 'active_chat', outsideHours: false })
   const [saving, setSaving] = useState(false)
   const questions = useApi(() => csatApi.getCsatSurvey(), [])
@@ -45,12 +46,6 @@ function Loaded({ saved: initial, theme, onRetry }: { saved: WidgetSettings; the
   const invalid = Object.keys(errors).length > 0
   useUnsavedGuard('widget-settings', dirty)
   const preview = useMemo(() => mergeEffective(sanitizeForPreview(draft, saved), theme), [draft, saved, theme])
-
-  useEffect(() => {
-    if (hash !== '#install') return
-    setOpen((o) => new Set(o).add('install'))
-    requestAnimationFrame(() => document.getElementById('install')?.scrollIntoView({ block: 'start' }))
-  }, [hash])
 
   const update = (fn: (d: WidgetSettings) => void) =>
     setDraft((d) => {
@@ -84,6 +79,23 @@ function Loaded({ saved: initial, theme, onRetry }: { saved: WidgetSettings; the
     window.open('/widget-demo?desk_preview=1', '_blank', 'noopener')
   }
 
+  const saveBar = dirty && (
+    <SaveBar note={invalid && <span className="hidden text-xs text-red-600 sm:inline" data-testid="ws-invalid-note">Fix the highlighted fields</span>}>
+      <Button variant="ghost" size="sm" onClick={() => { setDraft(saved); setUploadErrors({}) }} data-testid="ws-discard">Discard</Button>
+      <Button size="sm" onClick={save} loading={saving} aria-disabled={invalid} className={invalid ? 'opacity-50' : ''} data-testid="ws-save">Save</Button>
+    </SaveBar>
+  )
+
+  if (view === 'install')
+    return (
+      <div className="pb-24" data-testid="widget-install">
+        <div id="install" className="rounded-2xl bg-surface p-6 shadow-card ring-1 ring-black/[0.04] max-sm:px-4" data-testid="widget-settings-form">
+          <InstallSection draft={draft} theme={theme} update={update} />
+        </div>
+        {saveBar}
+      </div>
+    )
+
   return (
     <div className="grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)]" data-testid="widget-settings">
       <div className="min-w-0 space-y-3" data-testid="widget-settings-form">
@@ -94,10 +106,28 @@ function Loaded({ saved: initial, theme, onRetry }: { saved: WidgetSettings; the
             {id === 'messaging' && <MessagingSection draft={draft} update={update} errors={errors} />}
             {id === 'display' && <DisplaySection draft={draft} update={update} />}
             {id === 'csat' && <CsatInChatSection draft={draft} update={update} questions={questions.data?.questions} />}
-            {id === 'install' && <InstallSection draft={draft} theme={theme} update={update} />}
           </Section>
         ))}
       </div>
+      {isPhone ? (
+        <>
+          <Button className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-4 z-30 rounded-full shadow-popover" onClick={() => { setOpts({ ...opts, device: 'mobile' }); setPreviewOpen(true) }} data-testid="widget-preview-open">
+            <Eye aria-hidden /> Preview
+          </Button>
+          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+            <DialogContent className="max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-none max-sm:rounded-none max-sm:p-3 max-sm:pt-[max(0.75rem,env(safe-area-inset-top))]" aria-describedby={undefined} data-testid="widget-preview-sheet">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <DialogTitle className="text-[15px] font-semibold text-ink">Live preview</DialogTitle>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" onClick={previewOnStore} data-testid="preview-on-store"><ExternalLink aria-hidden /> My store</Button>
+                  <SheetCloseButton label="Close preview" />
+                </div>
+              </div>
+              <WidgetPreview settings={preview} opts={opts} onChange={setOpts} />
+            </DialogContent>
+          </Dialog>
+        </>
+      ) : (
       <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start" aria-label="Live preview">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[15px] font-semibold text-ink">Live preview</p>
@@ -107,17 +137,14 @@ function Loaded({ saved: initial, theme, onRetry }: { saved: WidgetSettings; the
         </div>
         <WidgetPreview settings={preview} opts={opts} onChange={setOpts} />
       </aside>
-      {dirty && (
-        <SaveBar note={invalid && <span className="hidden text-xs text-red-600 sm:inline" data-testid="ws-invalid-note">Fix the highlighted fields</span>}>
-          <Button variant="ghost" size="sm" onClick={() => { setDraft(saved); setUploadErrors({}) }} data-testid="ws-discard">Discard</Button>
-          <Button size="sm" onClick={save} loading={saving} aria-disabled={invalid} className={invalid ? 'opacity-50' : ''} data-testid="ws-save">Save</Button>
-        </SaveBar>
       )}
+      {saveBar}
     </div>
   )
 }
 
-export function WidgetSettingsTab() {
+// Shopify → Chat widget (editor + live preview) and Shopify → Install. Both share one draft per mount.
+export function WidgetSettingsTab({ view = 'editor' }: { view?: 'editor' | 'install' }) {
   const settings = useApi(() => widgetApi.getWidgetSettings(), [])
   const theme = useApi(() => widgetApi.getThemeEmbed(), [])
   if (settings.error || theme.error) return <ErrorState title="Widget settings didn't load" onRetry={() => { settings.reload(); theme.reload() }} />
@@ -128,5 +155,5 @@ export function WidgetSettingsTab() {
         <Skeleton className="h-[640px] w-full rounded-2xl" />
       </div>
     )
-  return <Loaded saved={settings.data} theme={theme.data} onRetry={settings.reload} />
+  return <Loaded saved={settings.data} theme={theme.data} view={view} />
 }

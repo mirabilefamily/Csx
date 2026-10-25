@@ -18,8 +18,54 @@
     outline: 2px solid theme('colors.ring');
     outline-offset: 2px;
   }
+  @media (hover: none) {
+    .hover-only {
+      display: none !important;
+    }
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  :root {
+    --font-title: 'Inter Variable';
+    --title-scale: 1;
+  }
+  body {
+    font-optical-sizing: auto;
+  }
   .font-display {
     font-optical-sizing: auto;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+  .font-store {
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  .title-page {
+    font-size: calc(24px * var(--title-scale));
+  }
+  @media (min-width: 768px) {
+    .title-page {
+      font-size: calc(28px * var(--title-scale));
+    }
+  }
+  .num {
+    font-family: theme('fontFamily.sans');
+    font-weight: 600;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.02em;
+  }
+  .num .unit {
+    font-size: 0.62em;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0;
+    color: theme('colors.ink.muted');
+  }
+  .recharts-text {
+    font-variant-numeric: tabular-nums lining-nums;
   }
   .recharts-wrapper,
   .recharts-surface {
@@ -36,6 +82,49 @@
   input[type='time']::-webkit-calendar-picker-indicator:focus-visible {
     outline: 2px solid theme('colors.ring');
     outline-offset: 1px;
+  }
+}
+
+/* Phone (<640px): 44px minimum tap targets and 16px form text (prevents iOS focus zoom). */
+@media (max-width: 639px) {
+  button:not(.tap-exempt),
+  [role='button'],
+  [role='tab'],
+  [role='radio'],
+  [role='combobox'],
+  [role='menuitem'],
+  [role='menuitemradio'],
+  [role='option'],
+  select,
+  a.tap {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+  select,
+  textarea,
+  [contenteditable='true'] {
+    min-height: 44px;
+    font-size: 16px !important;
+  }
+  /* Switches and small swatches keep their visual size; transparent borders grow the hit area. */
+  [role='switch'] {
+    box-sizing: content-box;
+    border-block: 10px solid transparent !important;
+    background-clip: padding-box;
+    min-width: 44px;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 22px;
+    height: 22px;
+  }
+  input[type='color'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  input[type='range'] {
+    min-height: 44px;
   }
 }
 

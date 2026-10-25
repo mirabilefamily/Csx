@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 interface Guard {
@@ -11,6 +12,7 @@ const Ctx = createContext<Guard | null>(null)
 // App-wide "Discard unsaved changes?" guard for editors and settings forms.
 export function UnsavedGuardProvider({ children }: { children: ReactNode }) {
   const dirty = useRef(new Set<string>())
+  const navigate = useNavigate()
   const [pending, setPending] = useState<(() => void) | null>(null)
   const setDirty = useCallback((key: string, d: boolean) => {
     if (d) dirty.current.add(key)
@@ -27,6 +29,42 @@ export function UnsavedGuardProvider({ children }: { children: ReactNode }) {
     }
     window.addEventListener('beforeunload', onUnload)
     return () => window.removeEventListener('beforeunload', onUnload)
+  }, [])
+
+  // Any in-app link click while dirty goes through the dialog (back links, tab bars, nav).
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!dirty.current.size || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!a || a.target === '_blank' || a.origin !== location.origin) return
+      if (a.pathname + a.search === location.pathname + location.search) return
+      e.preventDefault()
+      e.stopPropagation()
+      const to = a.pathname + a.search + a.hash
+      setPending(() => () => navigate(to))
+    }
+    document.addEventListener('click', onClick, true)
+    return () => document.removeEventListener('click', onClick, true)
+  }, [navigate])
+
+  // Browser back/forward while dirty: undo the pop, ask, then go back for real on Discard.
+  // Registered in a layout effect so it runs before the router's own popstate listener.
+  useLayoutEffect(() => {
+    let ignoreNext = false
+    const onPop = (e: PopStateEvent) => {
+      if (ignoreNext) {
+        ignoreNext = false
+        e.stopImmediatePropagation()
+        return
+      }
+      if (!dirty.current.size) return
+      e.stopImmediatePropagation()
+      ignoreNext = true
+      history.go(1)
+      setPending(() => () => history.back())
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
   return (

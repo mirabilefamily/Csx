@@ -64,6 +64,18 @@ Admin (support lead), Agent (support rep), Customer (later phases), Backend deve
 ## Implemented (Phases 5–6, Oct 2026)
 - Phase 5: Chat Widget settings (/settings/widget), Shopify Theme Editor mock, login/dashboard refresh, light sidebar (toggle in bottom section, white castle tile, centered 160px wordmark), Settings redesign (tab bar, integration health, AI form sections, users search, widget section summaries), preview font inherit fix.
 - Phase 6 handoff: /styleguide updated with sticky index + real-component specimens (drafts, chip, note, composer, 15 SupportWidget Shadow DOM instances, dashboard, nav, segmented, integration card, form section); README full backend contract (verified by scripts/check-readme.mjs, 0 missing); a11y audit scripts/audit.mjs: axe serious/critical 20 → 0 on 14 routes, 0 overflow at 768/1024, 0 console errors.
+- Phase 7 fixes (Sep 2026): the integration tile shows the saved model. The leave guard now covers every internal link click (back link, tabs, bottom bar) and browser Back (popstate).
+- Phase 8 (Sep 2026): Refund tracker + Fraud alerts on the Dashboard (MOCKED via refundsApi), Inbox shield + conversation banner, Settings → AI Auto-refunds ($0–500, default $75).
+- Phase 8 design refresh: Inter Variable tabular numbers via `Num` with muted units. Fraunces Variable (SOFT 0, WONK 0) is used for page titles only. Phones get a large-title top bar and a full-width 7th KPI tile.
+- Iteration 10 (Sep 2026): KPI labels wrap to 2 lines with no ellipsis. The phone tab bar hides in the article/macro editors and CSV import. Instrument Serif page titles, with a dev Title font picker (lazy-loaded alternates). Cleaner login (no glow or icons, minimal card, Inter heading).
+- Iteration 11 (Sep 2026): No serif anywhere. Page titles are Inter Display 600 at 28/24px; the dev picker offers Inter Display, Geist, Manrope and Plus Jakarta Sans. The chat widget moved into Shopify (Overview / Chat widget / Install sub-tabs), and /settings/widget redirects there. Settings tabs are now Integrations, AI, Users.
+- Iteration 12 (Sep 2026): Inbox customer & Shopify panel. At ≥1024px it's always visible on the right, open by default, and collapses to a rail (session-persisted). It shows the customer header with tags, a stats row, rich order cards (payment/fulfillment pills, line items with photos, ship-to, tracking, View in Shopify MOCKED), plus the guest and fraud chip states. The views pane becomes a dropdown below 1440px so the conversation stays ≥480px.
+- Iteration 13 (Sep 2026): Official Shopify bag mark on the Shopify tile, detail header, inbox orders heading, View in Shopify links, Install status card, theme-editor source badges and the theme editor top bar. Header logo thumbnail now uses the header color. New Loop Returns section in the customer panel (MOCKED loopApi): wordmark, stats, High return rate chip, return cards, View in Loop, empty state, rail count.
+
+
+
+
+
 
 ## Backlog
 - P2: real widget.js bundle (Vite IIFE entry), real backend swap per README section 7.

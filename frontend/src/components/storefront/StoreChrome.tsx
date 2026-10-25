@@ -43,7 +43,7 @@ export function StoreFooter() {
     <footer className="mt-24 bg-[#2E2219] text-[#E9DFD1]" data-testid="store-footer">
       <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-16 sm:px-8 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
-          <p className="font-display text-[24px] font-semibold text-white">Goorin Bros.</p>
+          <p className="font-store text-[24px] font-semibold text-white">Goorin Bros.</p>
           <p className="mt-3 max-w-xs text-[14px] leading-relaxed text-[#CBBBA6]">Four generations of hat makers. Every piece is blocked, trimmed and finished by hand.</p>
           <form className="mt-6 flex max-w-sm gap-2" onSubmit={(e) => e.preventDefault()}>
             <label htmlFor="store-news" className="sr-only">Email for newsletter</label>

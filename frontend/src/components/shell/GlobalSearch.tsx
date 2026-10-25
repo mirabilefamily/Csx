@@ -117,7 +117,7 @@ export function GlobalSearch() {
         onKeyDown={onKeyDown}
         className="h-10 w-full rounded-lg border border-border bg-surface-sunken pl-9 pr-16 text-sm text-ink placeholder:text-ink-subtle transition-[border-color,box-shadow,background-color] focus:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />
-      <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border-strong bg-surface px-1.5 py-0.5 text-[11px] font-medium text-ink-muted sm:block">
+      <kbd className="hover-only pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded border border-border-strong bg-surface px-1.5 py-0.5 text-[11px] font-medium text-ink-muted sm:block">
         {isMac ? '⌘K' : 'Ctrl K'}
       </kbd>
       {showPanel && (

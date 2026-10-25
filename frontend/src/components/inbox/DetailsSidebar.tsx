@@ -1,21 +1,20 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { ChevronDown, ExternalLink, MapPin, X } from 'lucide-react'
-import type { TicketDetail } from '@/types'
+import { ChevronDown, PanelRightClose, X } from 'lucide-react'
+import type { LoopReturn, TicketDetail } from '@/types'
+import { LoopReturnsSection } from './LoopReturns'
 import { AuthorBadge } from '@/components/AuthorBadge'
 import { StatusPill } from '@/components/StatusPill'
 import { focusRing } from '@/components/ui/button'
-import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { CustomerHeader, CustomerStats, OrderCard, newestFirst } from './CustomerPanel'
+import { ShopifyMark } from '@/components/brand/ShopifyMark'
 
-const money = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-const ORDER_STATUS = { unfulfilled: 'Unfulfilled', in_transit: 'In transit', delivered: 'Delivered', returned: 'Returned', cancelled: 'Cancelled' }
-
-function Section({ title, children, testId }: { title: string; children: React.ReactNode; testId: string }) {
+function Section({ title, children, testId, icon }: { title: string; children: React.ReactNode; testId: string; icon?: React.ReactNode }) {
   return (
     <section className="space-y-3 border-b border-border px-5 py-5" data-testid={testId}>
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">{title}</h3>
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-muted">{icon}{title}</h3>
       {children}
     </section>
   )
@@ -54,54 +53,36 @@ function AttemptLog({ d }: { d: TicketDetail }) {
   )
 }
 
-export function DetailsSidebar({ d, onClose }: { d: TicketDetail; onClose: () => void }) {
+export function DetailsSidebar({ d, onClose, onCollapse, loop }: { d: TicketDetail; onClose: () => void; onCollapse?: () => void; loop?: { data?: LoopReturn[]; error?: unknown; reload: () => void } }) {
   const { search } = useLocation()
   const c = d.customer
-  const orders = c?.orders ?? []
+  const orders = newestFirst(c?.orders ?? [])
   return (
     <div className="pb-16" data-testid="details-sidebar">
-      <div className="flex items-center justify-between border-b border-border px-5 py-3 wide:hidden">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3 lg:hidden">
         <p className="text-sm font-semibold text-ink">Details</p>
         <button type="button" onClick={onClose} aria-label="Close details" className={cn('inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-surface-muted', focusRing)} data-testid="details-close"><X className="h-4 w-4" aria-hidden /></button>
       </div>
-      <Section title="Customer" testId="customer-card">
-        <div>
-          <p className="text-base font-semibold text-ink">{d.ticket.customer.name}</p>
-          <p className="break-all text-sm text-ink-muted">{d.ticket.customer.email}</p>
-          {c && <p className="mt-1 flex items-center gap-1 text-sm text-ink-muted"><MapPin className="h-3.5 w-3.5" aria-hidden /> {c.location}</p>}
+      {onCollapse && (
+        <div className="hidden items-center justify-between border-b border-border py-1.5 pl-5 pr-2 lg:flex">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Customer &amp; Shopify</p>
+          <button type="button" onClick={onCollapse} aria-expanded aria-controls="customer-panel-body" aria-label="Collapse customer panel" className={cn('inline-flex h-9 w-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink', focusRing)} data-testid="customer-panel-collapse"><PanelRightClose className="h-4 w-4" aria-hidden /></button>
         </div>
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-lg bg-surface-muted p-2.5"><dt className="text-xs text-ink-muted">Orders</dt><dd className="font-semibold text-ink" data-testid="customer-order-count">{orders.length}</dd></div>
-          <div className="rounded-lg bg-surface-muted p-2.5"><dt className="text-xs text-ink-muted">Lifetime spend</dt><dd className="font-semibold text-ink" data-testid="customer-lifetime-spend">{money(orders.reduce((s, o) => s + o.total, 0))}</dd></div>
-        </dl>
-        {c && orders.length > 0 && <span className="inline-flex rounded-full border border-green-100 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700" data-testid="shopify-customer-tag">Shopify customer</span>}
+      )}
+      <Section title="Customer" testId="customer-card">
+        <CustomerHeader name={d.ticket.customer.name} email={d.ticket.customer.email} c={c} fraud={d.fraudAlert} />
+        {c?.shopifyCustomerId && <CustomerStats orders={orders} />}
+        {c?.shopifyCustomerId && orders.length > 0 && <span className="inline-flex rounded-full border border-green-100 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700" data-testid="shopify-customer-tag">Shopify customer</span>}
         {c?.note && <p className="text-xs text-ink-muted">{c.note}</p>}
       </Section>
-      <Section title="Shopify orders" testId="shopify-orders">
+      <Section title="Shopify orders" testId="shopify-orders" icon={<ShopifyMark size={16} decorative />}>
         {orders.length === 0 ? (
           <p className="text-sm text-ink-muted" data-testid="no-shopify-orders">No Shopify orders</p>
         ) : (
-          orders.map((o) => (
-            <div key={o.id} className="space-y-2 rounded-lg border border-border p-3" data-testid={`order-${o.number}`}>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-ink">{o.number}</span>
-                <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink">{ORDER_STATUS[o.status]}</span>
-              </div>
-              <p className="text-xs text-ink-muted">{timeAgo(o.createdAt)} · {money(o.total)}</p>
-              <ul className="space-y-1">
-                {o.lineItems.map((li) => (
-                  <li key={li.sku} className="flex justify-between gap-2 text-xs"><span className="text-ink">{li.title} <span className="text-ink-muted">· {li.variant}</span></span><span className="shrink-0 text-ink-muted">Qty {li.quantity}</span></li>
-                ))}
-              </ul>
-              {o.trackingUrl && (
-                <a href={o.trackingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded text-xs font-medium text-tobacco-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`tracking-link-${o.number}`}>
-                  Track with {o.carrier} <ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only">(opens in a new tab)</span>
-                </a>
-              )}
-            </div>
-          ))
+          orders.map((o, i) => <OrderCard key={o.id} o={o} defaultOpen={i === 0} />)
         )}
       </Section>
+      {loop && <LoopReturnsSection returns={loop.data} lifetimeSpend={orders.reduce((s, o) => s + o.total, 0)} error={loop.error} onRetry={loop.reload} />}
       <Section title="Past tickets" testId="past-tickets">
         {d.pastTickets.length === 0 ? (
           <p className="text-sm text-ink-muted">No other tickets from this customer</p>

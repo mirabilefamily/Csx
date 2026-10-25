@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/States'
 import { AuthorBadge } from '@/components/AuthorBadge'
 import { cn } from '@/lib/utils'
+import { Num } from '@/components/Num'
 
 const EXAMPLES: [string, string][] = [
   ['Sizing', "My head measures 22.5 inches. Which size fedora should I order if I'm between sizes?"],
@@ -22,7 +23,7 @@ const EXAMPLES: [string, string][] = [
 function Gauge({ value, threshold }: { value: number; threshold: number }) {
   return (
     <div data-testid="confidence-gauge">
-      <div className="flex items-baseline justify-between"><span className="text-sm font-medium text-ink">Confidence</span><span className="font-display text-3xl font-medium text-ink" data-testid="confidence-value">{value}%</span></div>
+      <div className="flex items-baseline justify-between"><span className="text-sm font-medium text-ink">Confidence</span><span className="text-3xl leading-9 text-ink" data-testid="confidence-value"><Num value={`${value}%`} /></span></div>
       <div className="relative mt-2 h-3 rounded-full bg-surface-muted" role="meter" aria-valuenow={value} aria-valuemin={0} aria-valuemax={100} aria-label="Confidence">
         <div className={cn('h-full rounded-full', value >= threshold ? 'bg-green-600' : 'bg-brass-500')} style={{ width: `${value}%` }} />
         <span className="absolute -top-1 h-5 w-0.5 bg-ink" style={{ left: `${threshold}%` }} aria-hidden />

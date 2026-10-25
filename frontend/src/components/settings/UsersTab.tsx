@@ -15,6 +15,7 @@ import { Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 import { EmptyState, ErrorState } from '@/components/States'
 import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useIsPhone } from '@/hooks/useIsPhone'
 
 const STATUS_CLS = { active: 'bg-green-50 text-green-700', invited: 'bg-brass-50 text-brass-700', deactivated: 'bg-surface-muted text-ink-muted' }
 const ROLE_CLS = { admin: 'bg-tobacco-50 text-tobacco-700', agent: 'bg-slate-50 text-slate-700' }
@@ -102,6 +103,7 @@ export function UsersTab() {
   const [inviting, setInviting] = useState(false)
   const [deactivate, setDeactivate] = useState<User | null>(null)
   const [q, setQ] = useState('')
+  const isPhone = useIsPhone()
   useEffect(() => {
     setUsers(data ?? [])
   }, [data])
@@ -135,7 +137,28 @@ export function UsersTab() {
           : error ? <ErrorState compact title="Users didn't load" onRetry={reload} testId="users-error" />
           : !users.length ? <EmptyState compact title="No teammates yet" description="Invite someone to get started." testId="users-empty" />
           : !shown.length ? <EmptyState compact title={`No teammates match "${q.trim()}"`} description="Try a different name or email." testId="users-no-results" />
-          : (
+          : isPhone ? (
+            <ul className="divide-y divide-border" data-testid="users-table">
+              {shown.map((u) => {
+                const self = u.id === me?.id
+                return (
+                  <li key={u.id} className="flex items-start gap-3 px-4 py-4" data-testid={`user-row-${u.email}`}>
+                    <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold', u.status === 'deactivated' ? 'bg-surface-muted text-ink-subtle' : 'bg-brass-50 text-brass-700')} aria-hidden>{initials(u.name)}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-ink">{u.name}{self && <span className="ml-1 text-xs font-normal text-ink-muted">(you)</span>}</p>
+                      <p className="truncate text-sm text-ink-muted">{u.email}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                        <span className={cn('rounded-full px-2 py-0.5 font-medium capitalize', ROLE_CLS[u.role])} data-testid={`user-role-${u.email}`}>{u.role}</span>
+                        <span className={cn('rounded-full px-2 py-0.5 font-medium capitalize', STATUS_CLS[u.status])} data-testid={`user-status-${u.email}`}>{u.status}</span>
+                        <span className="text-ink-muted">Last login {u.lastLoginAt ? timeAgo(u.lastLoginAt) : 'Never'}</span>
+                      </div>
+                    </div>
+                    <RowActions u={u} self={self} patch={patch} onDeactivate={() => setDeactivate(u)} />
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
             <div className="overflow-x-auto">
               <Table data-testid="users-table">
                 <TableHeader><TableRow><TableHead className="pl-5">Name</TableHead><TableHead>Role</TableHead><TableHead>Status</TableHead><TableHead>Last login</TableHead><TableHead className="pr-5"><span className="sr-only">Actions</span></TableHead></TableRow></TableHeader>

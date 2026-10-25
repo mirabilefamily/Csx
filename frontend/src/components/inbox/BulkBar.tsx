@@ -15,7 +15,7 @@ interface Props {
 
 export function BulkBar({ count, users, tags, onAssign, onTag, onClose, onClear }: Props) {
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-brass-300 bg-brass-50 px-3 py-2" role="region" aria-label="Bulk actions" data-testid="bulk-bar">
+    <div className="flex flex-wrap items-center gap-2 border-b border-brass-300 bg-brass-50 px-3 py-2 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[calc(3.5rem+env(safe-area-inset-bottom))] max-sm:z-40 max-sm:border-t max-sm:border-b-0 max-sm:shadow-popover" role="region" aria-label="Bulk actions" data-testid="bulk-bar">
       <span className="mr-auto text-sm font-semibold text-ink" data-testid="bulk-count">{count} selected</span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

@@ -14,7 +14,8 @@ const MAIN: NavItem[] = [
   { to: '/inbox', label: 'Inbox', Icon: Inbox, id: 'inbox' },
 ]
 const KNOWLEDGE: NavItem[] = [{ to: '/guidance', label: 'Guidance', Icon: BookOpen, id: 'guidance' }]
-const SETTINGS: NavItem = { to: '/settings', label: 'Settings', Icon: Settings, id: 'settings' }
+export const SETTINGS: NavItem = { to: '/settings', label: 'Settings', Icon: Settings, id: 'settings' }
+export const NAV: NavItem[] = [...MAIN, ...KNOWLEDGE]
 
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B08D57] focus-visible:ring-offset-2 focus-visible:ring-offset-white'
 
@@ -126,7 +127,7 @@ export function Sidebar() {
     <aside
       data-testid="sidebar"
       data-collapsed={collapsed}
-      className={cn('sticky top-0 z-40 flex h-screen shrink-0 flex-col border-r border-border bg-white transition-[width] duration-200', collapsed ? 'w-[72px]' : 'w-60')}
+      className={cn('sticky top-0 z-40 flex h-screen shrink-0 max-sm:hidden flex-col border-r border-border bg-white transition-[width] duration-200', collapsed ? 'w-[72px]' : 'w-60')}
     >
       <div className="flex h-16 shrink-0 items-center justify-center border-b border-border">
         <Wordmark compact={collapsed} />

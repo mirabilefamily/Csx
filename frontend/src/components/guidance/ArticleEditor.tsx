@@ -1,3 +1,4 @@
+import { useHideBottomTabBar } from '@/components/shell/BottomTabBar'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { ArrowLeft } from 'lucide-react'
@@ -30,6 +31,7 @@ export function ArticleEditor({ article, categories, onClose, onSaved }: Props) 
   const [saving, setSaving] = useState(false)
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
   const { confirmLeave } = useUnsavedGuard('article-editor', dirty)
+  useHideBottomTabBar(true)
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }))
 
   const save = async () => {

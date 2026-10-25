@@ -1,0 +1,18 @@
+{"passed":12,"failed":0,"retest_needed":false,"bugs":[],
+"action_items":[{"type":"note","detail":"No backend in this app (mock data); backend lane not applicable. Only console errors are the Vite HMR websocket (dev-server noise), 0 app errors."},
+{"type":"note","detail":"Updated stale checks p7-integrations-tiles-detail and p5-widget-settings-save-guard for the intentional move of Chat widget/Install under Settings > Integrations > Shopify."},
+{"type":"note","detail":"Inbox Shopify marks next to 'View in Shopify'/'Shopify orders' are decorative img (alt='') beside visible text; verified via img src shopify-bag. Tile/detail header use alt='Shopify'."}],
+"checks":[
+{"criterion":"Iteration 9 bug + JRN-111a fonts","name":"p8b-fonts-kpi-tabbar","lane":"browser","status":"passed","evidence":"KPI label scrollWidth 121 == clientWidth 121; no Fraunces/Instrument/Georgia on 8 routes; h1 Inter Variable 600; font picker 4 options, Geist switch changes h1; 390 tab bar hidden in article editor + CSV import"},
+{"criterion":"JRN-111b Clean login","name":"p8b-login-clean","lane":"browser","status":"passed","evidence":"Title/subline/footer correct, no EST. 1895, forgot on label row, eye toggle, full-width submit, error@goorin.com -> 'Incorrect email or password.', card border 0px at 390, login -> /dashboard"},
+{"criterion":"JRN-111b invite/expired/forgot flows","name":"auth-login-flows","lane":"browser","status":"passed","evidence":"rerun persisted passed"},
+{"criterion":"JRN-111c Chat widget under Shopify","name":"p8b-widget-under-shopify","lane":"browser","status":"passed","evidence":"tabs integrations/ai/users; tile 'Chat widget · Live on store'; subtabs; dirty switch dialog; 'Widget settings saved'; verify -> detected on goorin.myshopify.com; /settings/widget + #install redirects; te-helper-link href ok"},
+{"criterion":"JRN-110 + JRN-112 Inbox customer/Shopify/Loop","name":"p8b-inbox-customer-loop","lane":"browser","status":"passed","evidence":"conv width 872/928/720 at 1440/1280/1024; 3 orders $470.00 $156.67, newest first #GB20398; Loop 2/$58.00/12.3%, LR-48690 Cancelled, LR-48213 Closed; rail count 2 persists; GB-1068 67.2% High return rate; GB-1078 guest + no returns; GB-1064 fraud chip; 390 sheet incl Loop, no overflow"},
+{"criterion":"JRN-112 Shopify logo tile/header","name":"p8b-shopify-logo-tile-header","lane":"browser","status":"passed","evidence":"img alt=Shopify on tile and detail header"},
+{"criterion":"Regression: refunds/fraud + range","name":"p8-refunds-fraud-panels","lane":"browser","status":"passed","evidence":"range changes totals; Hold fa-101 -> Refund held"},
+{"criterion":"Regression: inbox approve","name":"inbox-ai-draft-actions","lane":"browser","status":"passed","evidence":"approve flow passed"},
+{"criterion":"Regression: Grokbot save + tile","name":"p7-integrations-tiles-detail","lane":"browser","status":"passed","evidence":"passed after updating stale install link to shopify-subtab-install"},
+{"criterion":"Regression: widget save guard","name":"p5-widget-settings-save-guard","lane":"browser","status":"passed","evidence":"passed after removing moved install section assertion"},
+{"criterion":"Regression: phone tab bar","name":"p7-phone-shell-dash-inbox","lane":"browser","status":"passed","evidence":"rerun passed"},
+{"criterion":"Regression: inbox fraud flag","name":"p8-inbox-fraud-flag","lane":"browser","status":"passed","evidence":"rerun passed: fraud chips on GB-1064/1068/1071/1077, banner, bell 7"}
+]}

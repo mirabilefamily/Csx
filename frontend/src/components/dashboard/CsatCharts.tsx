@@ -10,6 +10,7 @@ import { chartColors } from '@/theme/tokens'
 import { CHANNEL_LABELS, RESOLVER_LABELS } from '@/lib/labels'
 import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { Num } from '@/components/Num'
 import { ChartFigure, Responsive, axisProps, tooltipProps } from './chartTheme'
 import { Panel } from './Panel'
 
@@ -21,9 +22,8 @@ export function CsatTrend({ csat, loading }: Props) {
   return (
     <Panel title="Average score" description={`${csat?.totalResponses?.toLocaleString() ?? 0} responses`} loading={loading} empty={!csat?.totalResponses} testId="chart-csat-trend" className="lg:col-span-2" height={200}>
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-        <p className="shrink-0" data-testid="csat-average">
-          <span className="font-display text-5xl font-medium tracking-tight text-ink">{csat?.average?.toFixed(2) ?? '—'}</span>
-          <span className="ml-1 text-sm text-ink-muted">/ 5</span>
+        <p className="shrink-0 text-[44px] leading-none text-ink" data-testid="csat-average">
+          <Num value={`${csat?.average?.toFixed(2) ?? '—'} / 5`} />
         </p>
         <div className="min-w-0 flex-1">
           <ChartFigure summary={`CSAT average ${csat?.average?.toFixed(2) ?? 'n/a'}`} height={180}>

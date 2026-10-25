@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 export function SaveBar({ note, children }: { note?: ReactNode; children: ReactNode }) {
   return (
     <div
-      className="fixed bottom-16 left-1/2 z-40 flex w-[min(600px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-3 rounded-2xl bg-surface/95 px-4 py-3 shadow-popover ring-1 ring-black/5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2"
+      className="fixed bottom-16 max-sm:bottom-[calc(4.75rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex w-[min(600px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-3 rounded-2xl bg-surface/95 px-4 py-3 shadow-popover ring-1 ring-black/5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2"
       role="region"
       aria-label="Unsaved changes"
       data-testid="unsaved-bar"

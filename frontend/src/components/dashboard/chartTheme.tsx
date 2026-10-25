@@ -12,7 +12,7 @@ export function Responsive({ children }: { children: ReactElement }) {
 }
 
 export const axisProps = {
-  tick: { fill: chartColors.axis, fontSize: 12, fontFamily: 'Inter, sans-serif' },
+  tick: { fill: chartColors.axis, fontSize: 12, fontFamily: "'Inter Variable', Inter, sans-serif" },
   tickLine: false,
   axisLine: { stroke: chartColors.grid },
 } as const

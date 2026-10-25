@@ -1,16 +1,23 @@
-import type { Customer, OrderStatus, ShopifyOrder } from '@/types'
+import type { Customer, FinancialStatus, FulfillmentStatus, OrderStatus, ShippingAddress, ShopifyOrder } from '@/types'
 import { daysAgo } from './time'
 
 type ItemSeed = [title: string, variant: string, price: number, qty?: number]
+type OrderSeed = Omit<ShopifyOrder, 'shippingAddress'>
 
-function order(num: number, status: OrderStatus, ageDays: number, items: ItemSeed[], carrier = 'UPS'): ShopifyOrder {
+const IMAGES: [RegExp, string][] = [[/fedora/i, 'wool-fedora'], [/panama|straw/i, 'straw-panama'], [/trucker/i, 'trucker-hat'], [/flat cap|newsboy/i, 'flat-cap'], [/cowboy/i, 'cowboy-hat'], [/bucket/i, 'bucket-hat'], [/wide brim|cloche/i, 'cloche'], [/beanie/i, 'beanie']]
+const imageFor = (title: string) => `/images/products/${IMAGES.find(([r]) => r.test(title))?.[1] ?? 'wool-fedora'}.jpg`
+const FULFILL: Record<OrderStatus, FulfillmentStatus> = { unfulfilled: 'unfulfilled', in_transit: 'in_transit', delivered: 'delivered', returned: 'delivered', cancelled: 'unfulfilled' }
+
+function order(num: number, status: OrderStatus, ageDays: number, items: ItemSeed[], carrier = 'UPS', financial?: FinancialStatus): OrderSeed {
   const shipped = status === 'in_transit' || status === 'delivered' || status === 'returned'
   const tracking = shipped ? `1Z${num}${(num * 7919).toString(36).toUpperCase()}` : null
-  const lineItems = items.map(([title, variant, price, quantity = 1], i) => ({ sku: `GB-${num}-${i + 1}`, title, variant, price, quantity }))
+  const lineItems = items.map(([title, variant, price, quantity = 1], i) => ({ sku: `GB-${num}-${i + 1}`, title, variant, price, quantity, image: imageFor(title) }))
   return {
     id: `order-${num}`,
     number: `#GB${num}`,
     status,
+    financialStatus: financial ?? (status === 'returned' || status === 'cancelled' ? 'refunded' : status === 'unfulfilled' ? 'pending' : 'paid'),
+    fulfillmentStatus: FULFILL[status],
     total: Math.round(lineItems.reduce((s, li) => s + li.price * li.quantity, 0) * 100) / 100,
     currency: 'USD',
     createdAt: daysAgo(ageDays),
@@ -18,15 +25,17 @@ function order(num: number, status: OrderStatus, ageDays: number, items: ItemSee
     trackingNumber: tracking,
     trackingUrl: tracking ? `https://tracking.example.com/${carrier.toLowerCase()}/${tracking}` : null,
     lineItems,
+    adminUrl: `https://admin.shopify.com/store/goorin/orders/${num}`,
   }
 }
 
-type CustomerSeed = [id: string, name: string, email: string, location: string, sinceDays: number, orders: ShopifyOrder[], note?: string]
+type CustomerSeed = [id: string, name: string, email: string, location: string, sinceDays: number, orders: OrderSeed[], note?: string]
 
 const seeds: CustomerSeed[] = [
   ['c01', 'Margaret Okonkwo', 'margaret.okonkwo@example.com', 'Brooklyn, NY', 900, [
     order(20398, 'delivered', 4, [['Hampton Wool Fedora', 'Tobacco / M', 148]]),
     order(20211, 'delivered', 30, [['Watkins Straw Panama', 'Natural / M', 128]], 'USPS'),
+    order(19790, 'delivered', 160, [['Dulles Newsboy', 'Grey Tweed / M', 78], ['Sage Bucket Hat', 'Olive / M', 58, 2]], 'UPS', 'partially_refunded'),
   ], 'Long-time customer since 2023. Prefers email.'],
   ['c02', 'Lena Fischer', 'lena.fischer@example.com', 'Portland, OR', 210, [order(20190, 'delivered', 25, [['Mae Wide Brim', 'Charcoal / S', 138]])]],
   ['c03', 'Marcus Bell', 'marcus@bellandbrim.example.com', 'Austin, TX', 640, [
@@ -55,7 +64,7 @@ const seeds: CustomerSeed[] = [
   ]],
   ['c12', 'Samuel Adeyemi', 'samuel.adeyemi@example.com', 'Atlanta, GA', 330, [order(20355, 'returned', 18, [['Cuba Cowboy', 'Chocolate / L', 165]])]],
   ['c13', 'Clara Bianchi', 'clara.bianchi@example.com', 'San Francisco, CA', 520, [
-    order(20360, 'returned', 14, [['Ridgeway Felt Fedora', 'Black / M', 175], ['Hampton Wool Fedora', 'Grey / M', 148], ['Watkins Straw Panama', 'Natural / M', 128]]),
+    order(20360, 'returned', 14, [['Ridgeway Felt Fedora', 'Black / M', 175], ['Hampton Wool Fedora', 'Grey / M', 148], ['Watkins Straw Panama', 'Natural / M', 128]], 'UPS', 'partially_refunded'),
   ]],
   ['c14', 'Wesley Hart', 'wes@hartlinepictures.example.com', 'Los Angeles, CA', 75, [order(20240, 'delivered', 20, [['Dulles Newsboy', 'Grey Tweed / M', 62, 36]], 'FedEx')], 'Costume buyer, Hartline Pictures.'],
   ['c15', 'Nora Lindqvist', 'nora.lindqvist@example.com', 'Minneapolis, MN', 610, [order(20280, 'delivered', 22, [['Bushwick Flat Cap', 'Charcoal / L', 68]])]],
@@ -69,13 +78,41 @@ const seeds: CustomerSeed[] = [
   ['c20', 'Peter Vance', 'peter.vance@example.com', 'Phoenix, AZ', 200, [order(19870, 'delivered', 62, [['Hampton Wool Fedora', 'Tobacco / L', 148]])]],
 ]
 
-export const customers: Customer[] = seeds.map(([id, name, email, location, sinceDays, orders, note]) => ({
-  id,
-  name,
-  email,
-  location,
-  shopifyCustomerId: `gid://shopify/Customer/${7000 + Number(id.slice(1)) * 37}`,
-  customerSince: daysAgo(sinceDays),
-  note: note ?? null,
-  orders,
-}))
+const TAGS: Record<string, string[]> = {
+  c01: ['VIP', 'Repeat buyer', 'Hat Club', 'Newsletter'], c02: ['Newsletter'], c03: ['Wholesale', 'Net-30'], c04: ['Repeat buyer'], c05: ['Repeat buyer', 'Newsletter'],
+  c06: ['Repeat buyer'], c07: ['VIP', 'Collector', 'Hat Club'], c09: ['Newsletter'], c11: ['International'], c13: ['VIP'], c14: ['Wholesale', 'Press'],
+  c16: ['Hat Club'], c18: ['Repeat buyer'], c19: ['Press'],
+}
+const GUESTS = new Set(['c10'])
+const STREETS = ['Atlantic Ave', 'Hawthorne Blvd', 'Congress Ave', 'Ocean View Dr', 'Music Row', 'Milwaukee Ave', 'Canyon Rd', 'Bull St', 'Pike St', 'Queen St W', 'Marylebone High St', 'Peachtree St', 'Valencia St', 'Sunset Blvd', 'Nicollet Ave', 'Magazine St', 'Larimer St', 'Penn Ave', 'Newbury St', 'Camelback Rd']
+
+function phoneFor(n: number, region: string) {
+  if (region === 'UK') return `+44 20 7946 0${String(100 + n).slice(-3)}`
+  if (region === 'ON') return `+1 (416) 555-01${String(n).padStart(2, '0')}`
+  return `+1 (555) 01${String(n).padStart(2, '0')}-${String(4000 + n * 37).slice(-4)}`
+}
+
+function address(n: number, name: string, location: string): ShippingAddress {
+  const [city, region] = location.split(', ')
+  const country = region === 'UK' ? 'United Kingdom' : region === 'ON' ? 'Canada' : 'United States'
+  return { name, line1: `${120 + n * 41} ${STREETS[(n - 1) % STREETS.length]}`, city, region: region === 'UK' ? '' : region, zip: region === 'UK' ? 'W1U 4EA' : region === 'ON' ? 'M5V 2T6' : String(10000 + n * 2371).slice(0, 5), country }
+}
+
+export const customers: Customer[] = seeds.map(([id, name, email, location, sinceDays, orders, note]) => {
+  const n = Number(id.slice(1))
+  const guest = GUESTS.has(id)
+  const gid = 7000 + n * 37
+  return {
+    id,
+    name,
+    email,
+    phone: guest ? null : phoneFor(n, location.split(', ')[1]),
+    location,
+    tags: TAGS[id] ?? [],
+    shopifyCustomerId: guest ? null : `gid://shopify/Customer/${gid}`,
+    adminUrl: guest ? null : `https://admin.shopify.com/store/goorin/customers/${gid}`,
+    customerSince: daysAgo(sinceDays),
+    note: note ?? null,
+    orders: orders.map((o) => ({ ...o, shippingAddress: address(n, name, location) })),
+  }
+})

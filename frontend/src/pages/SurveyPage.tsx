@@ -27,7 +27,7 @@ function Message({ icon, title, body, testId }: { icon: React.ReactNode; title: 
   return (
     <div className="rounded-[14px] border border-border bg-surface px-6 py-10 text-center" data-testid={testId}>
       <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brass-50 text-brass-700">{icon}</span>
-      <h1 className="mt-5 font-display text-[26px] font-semibold leading-tight">{title}</h1>
+      <h1 className="mt-5 font-display text-[24px] text-ink">{title}</h1>
       <p className="mt-2 text-[15px] text-ink-muted">{body}</p>
     </div>
   )

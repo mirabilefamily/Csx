@@ -1,0 +1,37 @@
+360 dashboard              overflow:0 small:0 fonts<16:0
+360 inbox                  overflow:0 small:0 fonts<16:0
+360 conversation           overflow:0 small:0 fonts<16:0
+360 guidance-articles      overflow:0 small:0 fonts<16:0
+360 guidance-macros        overflow:0 small:0 fonts<16:0
+360 guidance-sandbox       overflow:0 small:0 fonts<16:0
+360 settings-integrations  overflow:0 small:0 fonts<16:0
+360 settings-ai            overflow:0 small:0 fonts<16:0
+360 settings-widget        overflow:0 small:ws-primary-picker(44x40), ws-accent-picker(44x40), ws-headerBackground-picker(44x40), ws-headerText-picker(44x40), ws-customerBubble-picker(44x40), ws-aiBubble-picker(44x40), ws-link-picker(44x40), ws-radius(288x16) fonts<16:0
+360 settings-users         overflow:0 small:0 fonts<16:0
+360 theme-editor           overflow:0 small:te-back(206x32), te-primary(24x24), te-accent(24x24) fonts<16:0
+360 styleguide             overflow:0 small:0 fonts<16:0
+390 dashboard              overflow:0 axe:0 small:0 fonts<16:0
+390 inbox                  overflow:0 axe:0 small:0 fonts<16:0
+390 conversation           overflow:0 axe:0 small:0 fonts<16:0
+390 guidance-articles      overflow:0 axe:0 small:0 fonts<16:0
+390 guidance-macros        overflow:0 axe:0 small:0 fonts<16:0
+390 guidance-sandbox       overflow:0 axe:0 small:0 fonts<16:0
+390 settings-integrations  overflow:0 axe:0 small:0 fonts<16:0
+390 settings-ai            overflow:0 axe:0 small:0 fonts<16:0
+390 settings-widget        overflow:0 axe:0 small:ws-primary-picker(44x40), ws-accent-picker(44x40), ws-headerBackground-picker(44x40), ws-headerText-picker(44x40), ws-customerBubble-picker(44x40), ws-aiBubble-picker(44x40), ws-link-picker(44x40), ws-radius(318x16) fonts<16:0
+390 settings-users         overflow:0 axe:0 small:0 fonts<16:0
+390 theme-editor           overflow:0 axe:0 small:te-back(206x32), te-primary(24x24), te-accent(24x24) fonts<16:0
+390 styleguide             overflow:0 axe:0 small:0 fonts<16:0
+430 dashboard              overflow:0 small:0 fonts<16:0
+430 inbox                  overflow:0 small:0 fonts<16:0
+430 conversation           overflow:0 small:0 fonts<16:0
+430 guidance-articles      overflow:0 small:0 fonts<16:0
+430 guidance-macros        overflow:0 small:0 fonts<16:0
+430 guidance-sandbox       overflow:0 small:0 fonts<16:0
+430 settings-integrations  overflow:0 small:0 fonts<16:0
+430 settings-ai            overflow:0 small:0 fonts<16:0
+430 settings-widget        overflow:0 small:ws-primary-picker(44x40), ws-accent-picker(44x40), ws-headerBackground-picker(44x40), ws-headerText-picker(44x40), ws-customerBubble-picker(44x40), ws-aiBubble-picker(44x40), ws-link-picker(44x40), ws-radius(358x16) fonts<16:0
+430 settings-users         overflow:0 small:0 fonts<16:0
+430 theme-editor           overflow:0 small:te-back(206x32), te-primary(24x24), te-accent(24x24) fonts<16:0
+430 styleguide             overflow:0 small:0 fonts<16:0
+TOTAL routes-with-overflow:0 small-targets:33 small-fonts:0 axe-serious-nodes@390:0

@@ -41,6 +41,8 @@ export default function App() {
                 <Route path="/guidance" element={<GuidancePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/:tab" element={<SettingsPage />} />
+                <Route path="/settings/integrations/:integrationId" element={<SettingsPage />} />
+                <Route path="/settings/integrations/:integrationId/:sub" element={<SettingsPage />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFoundRoute />} />

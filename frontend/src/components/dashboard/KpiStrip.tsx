@@ -3,6 +3,7 @@ import { formatKpiValue } from '@/lib/format'
 import { Skeleton } from '@/components/ui/skeleton'
 import { palette } from '@/theme/tokens'
 import { cn } from '@/lib/utils'
+import { Num } from '@/components/Num'
 
 function delta(m: KpiMetric) {
   if (m.value === null || m.previous === null) return null
@@ -17,33 +18,33 @@ function delta(m: KpiMetric) {
 }
 
 function Sparkline({ values }: { values?: number[] }) {
-  if (!values || values.length < 2) return <div className="h-7" aria-hidden />
+  if (!values || values.length < 2) return <div className="mt-auto h-8" aria-hidden />
   const min = Math.min(...values)
   const max = Math.max(...values)
   const span = max - min || 1
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100},${26 - ((v - min) / span) * 22}`).join(' ')
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100},${29 - ((v - min) / span) * 26}`).join(' ')
   return (
-    <svg viewBox="0 0 100 28" preserveAspectRatio="none" className="h-7 w-full" aria-hidden data-testid="kpi-sparkline">
-      <polyline points={pts} fill="none" stroke={palette.brass[500]} strokeWidth={1.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
+    <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="mt-auto h-8 w-full" aria-hidden data-testid="kpi-sparkline">
+      <polyline points={pts} fill="none" stroke={palette.brass[500]} strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   )
 }
 
-function Stat({ metric, comparisonLabel }: { metric: KpiMetric; comparisonLabel: string }) {
+function Stat({ metric, comparisonLabel, className }: { metric: KpiMetric; comparisonLabel: string; className?: string }) {
   const d = delta(metric)
   const chip = !d || d.good === null ? 'bg-surface-muted text-ink-muted' : d.good ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
   return (
-    <div className="flex min-w-0 flex-col gap-2 bg-surface px-5 py-5" data-testid={`kpi-card-${metric.key}`} title={metric.hint}>
-      <p className="truncate text-[13px] font-medium text-ink-muted">{metric.label}</p>
-      <p className="font-display text-[28px] font-medium leading-none tracking-tight text-ink" data-testid={`kpi-value-${metric.key}`}>{formatKpiValue(metric.value, metric.format)}</p>
-      <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs" data-testid={`kpi-delta-${metric.key}`} data-tone={d?.good === null ? 'neutral' : d?.good ? 'good' : 'bad'}>
+    <div className={cn('flex min-w-0 flex-col bg-surface px-5 py-5', className)} data-testid={`kpi-card-${metric.key}`} title={metric.hint}>
+      <p className="line-clamp-2 text-[13px] font-medium leading-5 text-ink-muted xl:min-h-10" title={metric.label}>{metric.label}</p>
+      <p className="mt-2 text-[28px] leading-8 text-ink" data-testid={`kpi-value-${metric.key}`}><Num value={formatKpiValue(metric.value, metric.format)} /></p>
+      <p className="mt-2 flex min-h-[22px] flex-wrap items-center gap-x-1.5 gap-y-1 text-xs" data-testid={`kpi-delta-${metric.key}`} data-tone={d?.good === null ? 'neutral' : d?.good ? 'good' : 'bad'}>
         {!d ? (
           <span className="text-ink-muted">{metric.value === null ? 'No data for this period' : 'No prior data'}</span>
         ) : d.flat ? (
           <span className="rounded-full bg-surface-muted px-1.5 py-0.5 font-medium text-ink-muted">No change {comparisonLabel}</span>
         ) : (
           <>
-            <span className={cn('rounded-full px-1.5 py-0.5 font-semibold tabular-nums', chip)}>
+            <span className={cn('rounded-full px-1.5 py-0.5 font-medium tabular-nums', chip)}>
               <span aria-hidden>{d.up ? '↑' : '↓'}</span> {d.text}
               <span className="sr-only"> {d.up ? 'up' : 'down'}{d.good === null ? '' : d.good ? ', an improvement' : ', a regression'}</span>
             </span>
@@ -51,7 +52,7 @@ function Stat({ metric, comparisonLabel }: { metric: KpiMetric; comparisonLabel:
           </>
         )}
       </p>
-      <Sparkline values={metric.series} />
+      <div className="mt-3 flex flex-1 flex-col"><Sparkline values={metric.series} /></div>
     </div>
   )
 }
@@ -63,14 +64,14 @@ export function KpiStrip({ kpis, comparisonLabel, loading }: { kpis?: KpiMetric[
     <section aria-label="Key metrics" className={GRID} data-testid="kpi-grid">
       {loading || !kpis
         ? Array.from({ length: 7 }, (_, i) => (
-            <div key={i} className="flex flex-col gap-3 bg-surface px-5 py-5" data-testid="kpi-card-skeleton">
+            <div key={i} className={cn('flex flex-col gap-3 bg-surface px-5 py-5', i === 6 && 'max-sm:col-span-2')} data-testid="kpi-card-skeleton">
               <Skeleton className="h-3.5 w-24" />
               <Skeleton className="h-7 w-16" />
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-6 w-full" />
             </div>
           ))
-        : kpis.map((k) => <Stat key={k.key} metric={k} comparisonLabel={comparisonLabel ?? ''} />)}
+        : kpis.map((k, i) => <Stat key={k.key} metric={k} comparisonLabel={comparisonLabel ?? ''} className={i === 6 ? 'max-sm:col-span-2' : undefined} />)}
       {!loading && kpis && <div className="hidden bg-surface sm:block xl:hidden" aria-hidden />}
     </section>
   )

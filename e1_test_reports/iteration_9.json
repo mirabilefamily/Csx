@@ -1,0 +1,27 @@
+{
+  "iteration": 9,
+  "phase": "7-8",
+  "passed": 9,
+  "failed": 1,
+  "retest_needed": true,
+  "bugs": [
+    {"severity": "low", "title": "7th KPI label 'CSAT response rate' is truncated at 1440px", "check": "p8-refunds-fraud-panels", "evidence": "At 1440x900 the <p class='truncate'> label in kpi-card for CSAT response rate has scrollWidth > clientWidth (ellipsized). KpiStrip.tsx line 38 uses 'truncate'. No backend (mock data) - frontend-only; screenshot p8-refunds-fraud-panels-typo.png. All other assertions in this check passed."}
+  ],
+  "action_items": [
+    {"type": "note", "detail": "No backend lane: app uses in-browser mock data (seed_facts: 'no backend'), so no pytest files were created."},
+    {"type": "note", "detail": "Ticket volume chart line reaches the right edge of the plot (pathRight 1380 vs grid 1384, axis ends Oct 25) - no early-stop issue."},
+    {"type": "note", "detail": "Article editor on phone keeps the bottom tab bar visible (only conversation hides it); not asserted as a bug since the criterion only says 'full-screen editor'."}
+  ],
+  "checks": [
+    {"criterion": "JRN-96..99 Phone shell, dashboard, inbox (390x844)", "name": "p7-phone-shell-dash-inbox", "lane": "browser", "status": "passed", "evidence": "No sidebar; tab bar with 4 tabs, inbox badge 7, Dashboard aria-current; mobile-page-title data-state=shown only after scroll; search 'Margaret' -> Margaret Okonkwo; bell 7 items; KPI 2-col with 7th spanning; CSAT full screen save toast; Needs human 7; filters Apply/Clear; Select mode bulk assign 2 -> '2 tickets assigned to Sam Okafor'; GB-1076 tab bar hidden, priority change -> system message, details sheet, escalation reason, Approve -> 'Approved by Ava Martinez', Send works, Back to list; Agent role hides Settings tab."},
+    {"criterion": "JRN-100..102 Phone guidance/settings + sweep", "name": "p7-phone-guidance-settings-sweep", "lane": "browser", "status": "passed", "evidence": "Articles as cards, editor Write/Preview, 'Article saved'; sandbox stacked; 'AI settings saved'; users cards + 'Role updated'; widget Preview full screen, 'Widget settings saved'. Sweep 360/390/430 x 9 routes: 0 overflow, no tap target <44px (sr-only/1px file inputs excluded), inputs >=16px."},
+    {"criterion": "JRN-104 Integrations tiles -> detail pages", "name": "p7-integrations-tiles-detail", "lane": "browser", "status": "passed", "evidence": "Summary '3 connected · 1 error · 1 not configured', 3 cols @1440 / 1 col @390; Grokbot '401 Unauthorized'; Enter opens /settings/integrations/grokbot; 'Connection failed:'; masked creds; unsaved bar + 'Discard unsaved changes?'; 'Grokbot settings saved' and tile shows new model; Resend 'bad' -> 'Enter a valid email address.'; Shopify -> /settings/widget#install; /nope -> 'Integration not found'."},
+    {"criterion": "JRN-105..107 Refunds/fraud panels + Typography @1440", "name": "p8-refunds-fraud-panels", "lane": "browser", "status": "failed", "evidence": "PASS: $826/14/30%/4 · $925, pipeline, trend, 'Auto-refund limit: $75', 7d/90d change, awaiting -> /inbox/GB-xxxx; fa-101..104, fa-101 91 High GB-1064; Hold -> 'Refund held', pending 3 · $757; Mark safe; Escalate + Undo; Reviewed '<action> by Ava Martinez'; all numerics Inter + tabular-nums; KPI baselines aligned; Fraunces only on h1; volume line reaches Oct 25. FAIL: 'CSAT response rate' label truncated."},
+    {"criterion": "JRN-106/107 Inbox fraud flag", "name": "p8-inbox-fraud-flag", "lane": "browser", "status": "passed", "evidence": "aria-label 'Fraud risk: *' on GB-1064/1068/1071/1077, none on GB-1076; GB-1064 banner 'Fraud risk 91 · High'; bell 7; View alert -> /dashboard#fraud."},
+    {"criterion": "JRN-108/109 Auto-refund limit + states", "name": "p8-autorefund-limit-states", "lane": "browser", "status": "passed", "evidence": "Default 75; 900 -> 'Enter an amount between $0 and $500.' and save blocked; 120 -> 'AI settings saved', dashboard 'Auto-refund limit: $120'; Error: stale notice + Mark safe -> \"Couldn't update the alert. Try again.\"; Empty: 'No refunds in this period', 'No open fraud alerts. All clear.'; Loading skeleton; 390 stacked, 0 overflow."},
+    {"criterion": "Desktop regression: CSAT drawer", "name": "csat-settings-drawer", "lane": "browser", "status": "passed", "evidence": "rerun passed"},
+    {"criterion": "Desktop regression: inbox 3-pane / tablet single pane", "name": "phase3-states-tablet-inbox-width", "lane": "browser", "status": "passed", "evidence": "rerun passed; conv width 872 @1440, no overflow"},
+    {"criterion": "Desktop regression: Chat Widget settings", "name": "p5-widget-settings-save-guard", "lane": "browser", "status": "passed", "evidence": "rerun passed"},
+    {"criterion": "Desktop regression: sidebar (covered in p8-refunds-fraud-panels screenshot + p8-inbox-fraud-flag sidebar nav)", "name": "p8-inbox-fraud-flag", "lane": "browser", "status": "passed", "evidence": "sidebar nav Inbox link used at 1440"}
+  ]
+}

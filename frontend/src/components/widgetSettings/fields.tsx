@@ -1,3 +1,4 @@
+import { ShopifyMark } from '@/components/brand/ShopifyMark'
 import { useId, useRef, type ReactNode } from 'react'
 import { ChevronDown, Upload, X, type LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -52,7 +53,8 @@ export const PRESETS = [
 
 export function SourceBadge({ source }: { source: SettingSource }) {
   return (
-    <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-medium', source === 'desk' ? 'bg-tobacco-50 text-tobacco-700' : 'bg-slate-50 text-slate-700')}>
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium', source === 'desk' ? 'bg-tobacco-50 text-tobacco-700' : 'bg-white text-slate-700 ring-1 ring-inset ring-border')}>
+      {source === 'theme' && <ShopifyMark size={12} decorative />}
       {source === 'desk' ? 'Goorin Support Desk' : 'Theme editor'}
     </span>
   )
@@ -73,10 +75,10 @@ export function ColorField({ id, label, value, onChange, contrast, source }: Col
   return (
     <div data-testid={`ws-color-${id}`}>
       <FieldLabel htmlFor={`ws-${id}`} hint={source && <SourceBadge source={source} />}>{label}</FieldLabel>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 max-sm:flex-wrap">
         <input type="color" aria-label={`${label} picker`} value={isHex(value) ? value : '#000000'} onChange={(e) => onChange(e.target.value.toUpperCase())} className="h-10 w-11 shrink-0 cursor-pointer rounded-md border border-border-strong bg-surface p-1" data-testid={`ws-${id}-picker`} />
         <input id={`ws-${id}`} value={value} onChange={(e) => onChange(e.target.value.trim())} aria-invalid={!!err} aria-describedby={err ? `ws-${id}-error` : undefined} spellCheck={false} className={cn('h-10 w-[120px] rounded-md border bg-surface px-3 font-mono text-sm uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', err ? 'border-red-500' : 'border-border-strong')} data-testid={`ws-${id}-hex`} />
-        <div className="flex flex-wrap gap-1" role="group" aria-label={`${label} presets`}>
+        <div className="flex flex-wrap gap-1 max-sm:w-full max-sm:gap-1.5" role="group" aria-label={`${label} presets`}>
           {PRESETS.map(([name, hex]) => (
             <button key={hex} type="button" onClick={() => onChange(hex)} title={name} aria-label={`${name} ${hex}`} className={cn('h-6 w-6 rounded-full border border-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1', value.toUpperCase() === hex && 'ring-2 ring-tobacco-600 ring-offset-1')} style={{ background: hex }} data-testid={`ws-${id}-preset-${name.toLowerCase()}`} />
           ))}
@@ -90,7 +92,7 @@ export function ColorField({ id, label, value, onChange, contrast, source }: Col
 
 const OK_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml']
 
-export function UploadField({ id, label, value, onChange, error, onError }: { id: string; label: string; value: string | null; onChange: (url: string | null) => void; error?: string; onError: (e?: string) => void }) {
+export function UploadField({ id, label, value, onChange, error, onError, thumbBg }: { id: string; label: string; value: string | null; onChange: (url: string | null) => void; error?: string; onError: (e?: string) => void; thumbBg?: string }) {
   const ref = useRef<HTMLInputElement>(null)
   const uid = useId()
   const pick = (f?: File) => {
@@ -103,8 +105,8 @@ export function UploadField({ id, label, value, onChange, error, onError }: { id
     <div>
       <FieldLabel htmlFor={uid}>{label}</FieldLabel>
       <div className="flex items-center gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-muted">
-          {value ? <img src={value} alt={`${label} preview`} className="h-full w-full object-cover" data-testid={`ws-${id}-thumb`} /> : <span className="text-xs text-ink-subtle">None</span>}
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-muted" style={thumbBg ? { background: thumbBg } : undefined} data-testid={`ws-${id}-thumb-bg`}>
+          {value ? <img src={value} alt={`${label} preview`} className={cn('h-full w-full', thumbBg ? 'object-contain p-1.5' : 'object-cover')} data-testid={`ws-${id}-thumb`} /> : <span className="text-xs text-ink-subtle">None</span>}
         </span>
         <input id={uid} ref={ref} type="file" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml,image/gif" className="sr-only" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = '' }} data-testid={`ws-${id}-input`} />
         <button type="button" onClick={() => ref.current?.click()} className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-sm font-medium hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`ws-${id}-upload`}>

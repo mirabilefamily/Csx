@@ -1,3 +1,4 @@
+import { useHideBottomTabBar } from '@/components/shell/BottomTabBar'
 import { useEffect, useRef, useState } from 'react'
 import { Braces, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -21,6 +22,7 @@ const fillSample = (s: string) => s.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (m, k: st
 
 function MacroEditor({ macro, onDone }: { macro: Macro | null; onDone: () => void }) {
   const initial = { name: macro?.name ?? '', body: macro?.body ?? '' }
+  useHideBottomTabBar(true)
   const [form, setForm] = useState(initial)
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)

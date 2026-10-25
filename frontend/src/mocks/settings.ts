@@ -35,6 +35,7 @@ const day = (d: string, open: boolean, from = '09:00', to = '18:00') => ({ day: 
 
 export const aiSettings: AiSettings = {
   threshold: 75,
+  autoRefund: { enabled: true, limit: 75 },
   autoSend: { email: { claude: true, grokbot: false }, chat: { claude: true, grokbot: true } },
   timezone: 'America/Los_Angeles',
   hours: [day('Monday', true), day('Tuesday', true), day('Wednesday', true), day('Thursday', true), day('Friday', true), day('Saturday', true, '10:00', '16:00'), day('Sunday', false, '10:00', '16:00')],

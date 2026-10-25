@@ -16,6 +16,7 @@ export const SG_INDEX: [string, string][] = [
   ['navigation', 'Sidebar nav'],
   ['controls', 'Segmented control'],
   ['settings', 'Settings patterns'],
+  ['phone', 'Phone patterns'],
 ]
 
 // One styleguide section with an anchor id used by the sticky index.
@@ -48,7 +49,7 @@ export function SgIndex() {
       <ul className="flex gap-1 text-sm lg:flex-col">
         {SG_INDEX.map(([id, label]) => (
           <li key={id}>
-            <a href={`#${id}`} className="block whitespace-nowrap rounded-md px-2 py-1 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`styleguide-index-${id}`}>{label}</a>
+            <a href={`#${id}`} className="block whitespace-nowrap rounded-md max-sm:flex max-sm:min-h-11 max-sm:items-center px-2 py-1 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`styleguide-index-${id}`}>{label}</a>
           </li>
         ))}
       </ul>

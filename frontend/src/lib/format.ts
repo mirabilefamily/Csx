@@ -24,6 +24,8 @@ export function formatKpiValue(value: number | null, format: KpiFormat) {
 
 export const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
 
+export const formatMoney = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
 export const initials = (name: string) =>
   name
     .split(' ')

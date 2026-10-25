@@ -160,7 +160,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSen
             </button>
           ))}
         </div>
-        <span className="hidden text-xs text-ink-subtle md:inline">Ctrl/⌘ + Enter to send</span>
+        <span className="hover-only hidden text-xs text-ink-subtle md:inline">Ctrl/⌘ + Enter to send</span>
         <Button className={cn('ml-auto', note && 'bg-amber-700 hover:bg-amber-900')} disabled={empty} loading={sending} onClick={send} data-testid="composer-send">
           {note ? 'Add note' : 'Send'}
         </Button>

@@ -1,4 +1,4 @@
-import type { AIAttempt, AIDraft, Customer, GuidanceArticle, Macro, Message, Ticket, User } from '@/types'
+import type { AIAttempt, AIDraft, Customer, FraudAlert, GuidanceArticle, LoopReturn, Macro, Message, RefundRecord, Ticket, User } from '@/types'
 import * as seed from '@/mocks'
 
 export const CSAT_QUESTIONS_KEY = 'goorin.csatQuestions'
@@ -34,4 +34,16 @@ export const db = {
   themeEmbed: structuredClone(seed.themeEmbed),
   storeProducts: seed.storeProducts,
   surveyTokens: structuredClone(seed.surveyTokens),
+  refunds: structuredClone(seed.refunds) as RefundRecord[],
+  fraudAlerts: structuredClone(seed.fraudAlerts) as FraudAlert[],
+  loopReturns: structuredClone(seed.loopReturns) as LoopReturn[],
 }
+
+// Keeps the ticket's fraud flag (Inbox shield + banner) in step with its open alert.
+export function syncFraudFlag(ticketId: string) {
+  const t = db.tickets.find((x) => x.id === ticketId)
+  if (!t) return
+  const a = db.fraudAlerts.find((x) => x.ticketId === ticketId && x.status === 'open')
+  t.fraud = a ? { alertId: a.id, level: a.level, score: a.riskScore } : null
+}
+db.fraudAlerts.forEach((a) => syncFraudFlag(a.ticketId))

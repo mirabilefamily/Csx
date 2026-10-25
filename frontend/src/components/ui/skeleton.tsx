@@ -6,7 +6,7 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 }
 
 export const Table = ({ className, ...p }: React.TableHTMLAttributes<HTMLTableElement>) => (
-  <div className="w-full overflow-x-auto">
+  <div className="w-full overflow-x-auto" tabIndex={0} role="region" aria-label="Scrollable table">
     <table className={cn('w-full caption-bottom text-sm', className)} {...p} />
   </div>
 )

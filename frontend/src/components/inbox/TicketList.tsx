@@ -25,6 +25,7 @@ interface Props {
   onTag: (tag: string) => void
   onBulkClose: () => void
   toolbar: React.ReactNode
+  selectable?: boolean
 }
 
 function SelectAll({ tickets, selected, onSelect }: Pick<Props, 'tickets' | 'selected' | 'onSelect'>) {
@@ -59,7 +60,7 @@ export function TicketList(p: Props) {
     body = (
       <ul aria-label={`${p.title} tickets`} data-testid="ticket-list">
         {p.tickets.map((t) => (
-          <TicketRow key={t.id} t={t} active={t.id === p.activeId} checked={p.selected.includes(t.id)} onCheck={(c) => p.onSelect(c ? [...p.selected, t.id] : p.selected.filter((x) => x !== t.id))} />
+          <TicketRow key={t.id} t={t} selectable={p.selectable !== false} active={t.id === p.activeId} checked={p.selected.includes(t.id)} onCheck={(c) => p.onSelect(c ? [...p.selected, t.id] : p.selected.filter((x) => x !== t.id))} />
         ))}
       </ul>
     )
@@ -70,7 +71,7 @@ export function TicketList(p: Props) {
         <BulkBar count={p.selected.length} users={p.users} tags={p.tags} onAssign={p.onAssign} onTag={p.onTag} onClose={p.onBulkClose} onClear={() => p.onSelect([])} />
       ) : null}
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <SelectAll tickets={p.tickets} selected={p.selected} onSelect={p.onSelect} />
+        {p.selectable !== false && <SelectAll tickets={p.tickets} selected={p.selected} onSelect={p.onSelect} />}
         {p.toolbar}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
