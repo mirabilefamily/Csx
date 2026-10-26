@@ -8,7 +8,7 @@ export function StoreHeader({ page, cartCount, onNavigate }: { page: StorePage; 
   return (
     <header className="sticky top-0 z-20 border-b border-[#E6DED2] bg-[#FBF8F3]/95 backdrop-blur" data-testid="store-header">
       <p className="bg-[#2E2219] px-4 py-2 text-center text-[12px] tracking-[0.12em] text-[#F1E6CF] uppercase">Free shipping over $100 · Hand-finished in San Francisco since 1895</p>
-      <div className="mx-auto flex h-[72px] max-w-[1280px] items-center gap-4 px-4 sm:px-8">
+      <div className="flex h-[72px] w-full items-center gap-4 px-4 sm:px-8 2xl:px-12">
         <button type="button" className="rounded-md p-2 text-[#2E2219] lg:hidden" aria-label="Open menu"><Menu className="h-5 w-5" /></button>
         <button type="button" onClick={() => onNavigate('collection')} className="flex flex-col leading-none" data-testid="store-logo">
           <GoorinWordmark width={150} alt="Goorin Bros." />
@@ -41,7 +41,7 @@ export function StoreFooter() {
   ] as const
   return (
     <footer className="mt-24 bg-[#2E2219] text-[#E9DFD1]" data-testid="store-footer">
-      <div className="mx-auto grid max-w-[1280px] gap-10 px-4 py-16 sm:px-8 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+      <div className="grid w-full gap-10 px-4 py-16 sm:px-8 2xl:px-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <p className="font-store text-[24px] font-semibold text-white">Goorin Bros.</p>
           <p className="mt-3 max-w-xs text-[14px] leading-relaxed text-[#CBBBA6]">Four generations of hat makers. Every piece is blocked, trimmed and finished by hand.</p>

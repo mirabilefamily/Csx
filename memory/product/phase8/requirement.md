@@ -117,3 +117,11 @@ Extends REQ-138..REQ-143 and supersedes REQ-151 (the hidden "Details" toggle at 
 - REQ-494 [state] While the customer has no Loop returns, the system shall show "No returns with Loop".
 - REQ-495 [always] The system shall show the Loop section in the phone/tablet Details sheet, and show the Loop mark with the return count in the collapsed rail.
 - REQ-496 [always] The system shall add the mock LoopReturn type {id, customerId, orderNumber, state, outcome, returnTotal, refund, exchangeTotal, storeCredit, items[], labelStatus, createdAt, adminUrl} via /src/api (getCustomerReturns), seeded for several customers and consistent with orders (e.g. Margaret's partially refunded #GB19790).
+
+## Full-width, fluid layouts (user request: "make sure all pages are full width and auto adjust")
+- REQ-497 [always] The system shall render every signed-in page (Dashboard, Inbox, Guidance, Settings incl. Integrations detail/Shopify sub-tabs, 404/placeholders) at the full available width beside the sidebar, with no centered max-width cap (the AppShell max-w-[1440px] is removed). Gutters stay fluid (16px phone → 32px desktop → up to ~48px on very wide screens).
+- REQ-498 [always] The system shall let grids auto-adjust to width: the KPI strip, dashboard panel rows, chart widths (ResponsiveContainer), the integration tile grid (auto-fill, min ~280px), guidance/user lists, and styleguide sections gain columns or stretch on wide screens and collapse on narrow ones.
+- REQ-499 [always] The system shall keep text-heavy controls readable on wide screens: form inputs, the article/markdown body and the message bubbles keep sensible max widths inside full-width sections (e.g. inputs ≤480px, prose ≤75ch).
+- REQ-500 [always] The system shall render /styleguide and the /widget-demo storefront (header, hero, grids, footer) full width and fluid (product grid auto-fill). /widget-demo/theme-editor fills the viewport.
+- REQ-501 [always] The system shall keep the login card, survey card, modals/sheets and the 404 message centered at a narrow width on a full-width background (by design).
+- REQ-502 [always] The system shall have no horizontal overflow and no awkward stretching at 390, 768, 1024, 1280, 1440, 1920 and 2560px widths.

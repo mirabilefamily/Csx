@@ -69,13 +69,13 @@ export default function StyleguidePage() {
   return (
     <div className="min-h-screen bg-background" data-testid="styleguide-page">
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 md:px-8">
+        <div className="flex h-16 w-full items-center gap-4 px-4 md:px-8 2xl:px-12">
           <Wordmark />
           <span className="hidden text-sm text-ink-muted sm:inline">Styleguide · current design</span>
           <Link to="/login" className={buttonVariants({ variant: 'outline', size: 'sm', className: 'ml-auto' })}>Open the desk</Link>
         </div>
       </header>
-      <main className="mx-auto grid max-w-6xl gap-10 px-4 pb-24 pt-10 md:px-8 lg:grid-cols-[160px_minmax(0,1fr)]">
+      <main className="grid w-full gap-10 px-4 pb-24 pt-10 md:px-8 2xl:px-12 lg:grid-cols-[160px_minmax(0,1fr)]">
         <SgIndex />
         <div className="min-w-0 space-y-14">
           <div>

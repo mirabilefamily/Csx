@@ -102,7 +102,7 @@ function summary(list: IntegrationStatus[]) {
   return `${n('connected')} connected · ${n('error')} error${n('error') === 1 ? '' : 's'} · ${n('not_configured')} not configured`
 }
 
-const GRID = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3'
+const GRID = 'grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))]'
 
 export function IntegrationsTab() {
   const { data, loading, error, reload } = useApi(() => settingsApi.listIntegrations(), [])

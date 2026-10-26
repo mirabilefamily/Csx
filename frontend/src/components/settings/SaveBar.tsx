@@ -20,12 +20,12 @@ export function SaveBar({ note, children }: { note?: ReactNode; children: ReactN
 // Label + help on the left (~1/3), controls on the right (~2/3); stacks below 1024px.
 export function FormSection({ title, description, children, testId }: { title: string; description?: ReactNode; children: ReactNode; testId?: string }) {
   return (
-    <section className="grid gap-4 py-8 first:pt-2 last:pb-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-10" data-testid={testId}>
+    <section className="grid gap-4 py-8 first:pt-2 last:pb-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-10 2xl:grid-cols-[minmax(240px,360px)_minmax(0,1fr)]" data-testid={testId}>
       <div>
         <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
-        {description && <p className="mt-1 text-sm leading-relaxed text-ink-muted">{description}</p>}
+        {description && <p className="mt-1 max-w-[60ch] text-sm leading-relaxed text-ink-muted">{description}</p>}
       </div>
-      <div className="min-w-0 space-y-4">{children}</div>
+      <div className="min-w-0 max-w-[880px] space-y-4">{children}</div>
     </section>
   )
 }

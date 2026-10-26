@@ -65,7 +65,7 @@ export default function WidgetDemoPage() {
       <StoreHeader page={page} cartCount={2} onNavigate={goto} />
       <main>
         {products.loading && (
-          <div className="mx-auto grid max-w-[1280px] gap-10 px-8 pt-10 lg:grid-cols-2">
+          <div className="grid w-full gap-10 px-8 pt-10 lg:grid-cols-2">
             <Skeleton className="aspect-square w-full" />
             <div className="space-y-4"><Skeleton className="h-10 w-2/3" /><Skeleton className="h-6 w-1/4" /><Skeleton className="h-24 w-full" /></div>
           </div>

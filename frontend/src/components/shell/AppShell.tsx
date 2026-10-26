@@ -31,7 +31,7 @@ export function AppShell({ children }: { children?: ReactNode }) {
           <main
             id="main"
             tabIndex={-1}
-            className={cn('w-full focus:outline-none', fullBleed ? 'h-[calc(100vh-4rem)] flex-none overflow-hidden max-sm:h-[calc(100dvh-3.5rem-3.5rem-env(safe-area-inset-bottom)-env(safe-area-inset-top))]' : 'mx-auto max-w-[1440px] flex-1 px-4 pb-24 pt-8 md:px-8 max-sm:pb-[calc(6rem+env(safe-area-inset-bottom))] max-sm:pt-5')}
+            className={cn('w-full focus:outline-none', fullBleed ? 'h-[calc(100vh-4rem)] flex-none overflow-hidden max-sm:h-[calc(100dvh-3.5rem-3.5rem-env(safe-area-inset-bottom)-env(safe-area-inset-top))]' : 'min-w-0 flex-1 px-4 pb-24 pt-8 md:px-8 2xl:px-12 max-sm:pb-[calc(6rem+env(safe-area-inset-bottom))] max-sm:pt-5')}
           >
             {children ?? <Outlet />}
           </main>

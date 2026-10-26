@@ -76,7 +76,7 @@ export default function SettingsPage() {
   if (!current) return <Navigate to="/settings/integrations" replace />
 
   return (
-    <div className="space-y-8" data-testid="settings-page">
+    <div className="space-y-8 [&_input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color])]:max-w-[480px] [&_button[role=combobox]]:max-w-[480px]" data-testid="settings-page">
       <div className="space-y-6">
         <PageHeader title="Settings" description={<span data-testid="settings-tab-description">{current.description}</span>} />
         <TabBar tab={current.id} />

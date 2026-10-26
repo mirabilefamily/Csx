@@ -97,7 +97,7 @@ function Loaded({ saved: initial, theme, view }: { saved: WidgetSettings; theme:
     )
 
   return (
-    <div className="grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)]" data-testid="widget-settings">
+    <div className="grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)] min-[1920px]:grid-cols-[minmax(0,1fr)_minmax(0,640px)]" data-testid="widget-settings">
       <div className="min-w-0 space-y-3" data-testid="widget-settings-form">
         {SECTIONS.map(([id, title, desc, Icon]) => (
           <Section key={id} id={id} title={title} description={desc} Icon={Icon} summary={sectionSummary(id, draft, theme)} open={open.has(id)} onToggle={() => toggle(id)}>

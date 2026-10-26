@@ -22,7 +22,7 @@ export function ProductPage({ products }: { products: StoreProduct[] }) {
   const [color, setColor] = useState(p.colors[0])
   const [size, setSize] = useState('M')
   return (
-    <div className="mx-auto max-w-[1280px] px-4 pt-8 sm:px-8" data-testid="store-page-product">
+    <div className="mx-auto max-w-[1600px] px-4 pt-8 sm:px-8 2xl:px-12" data-testid="store-page-product">
       <p className="text-[13px] text-[#6B5E50]">Home / Fedoras / <span className="text-[#2E2219]">{p.name}</span></p>
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_1fr]">
         <div className="grid gap-3 sm:grid-cols-[1fr_96px]">
@@ -63,7 +63,7 @@ export function ProductPage({ products }: { products: StoreProduct[] }) {
         </div>
       </div>
       <h2 className="mt-20 font-store text-[24px] font-semibold text-[#2E2219]">Complete the look</h2>
-      <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-4">{products.slice(1, 5).map((x) => <ProductTile key={x.id} p={x} />)}</div>
+      <div className="mt-6 grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))] sm:[grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">{products.slice(1, 5).map((x) => <ProductTile key={x.id} p={x} />)}</div>
     </div>
   )
 }
@@ -74,13 +74,13 @@ export function CollectionPage({ products }: { products: StoreProduct[] }) {
       <section className="relative h-[420px] overflow-hidden">
         <img src="/images/store/hero.jpg" alt="Inside the Goorin Bros. hat shop" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#2E2219]/80 via-[#2E2219]/40 to-transparent" />
-        <div className="relative mx-auto flex h-full max-w-[1280px] flex-col justify-center px-4 sm:px-8">
+        <div className="relative flex h-full w-full flex-col justify-center px-4 sm:px-8 2xl:px-12">
           <p className="text-[12px] uppercase tracking-[0.28em] text-[#E3CDA2]">The fall collection</p>
           <h1 className="mt-3 max-w-lg font-store text-[44px] font-semibold leading-[1.05] text-white">Felt, tweed and straw, made to be worn in.</h1>
           <a href="#grid" className="mt-6 inline-flex h-12 w-fit items-center rounded-md bg-[#FBF8F3] px-6 text-[14px] font-semibold text-[#2E2219]">Shop the collection</a>
         </div>
       </section>
-      <div id="grid" className="mx-auto max-w-[1280px] px-4 pt-12 sm:px-8">
+      <div id="grid" className="w-full px-4 pt-12 sm:px-8 2xl:px-12">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="font-store text-[28px] font-semibold text-[#2E2219]">All hats <span className="font-sans text-[15px] font-normal text-[#6B5E50]">({products.length})</span></h2>
           <div className="flex flex-wrap gap-2">
@@ -89,7 +89,7 @@ export function CollectionPage({ products }: { products: StoreProduct[] }) {
             ))}
           </div>
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-10 md:grid-cols-3 lg:grid-cols-4">{products.map((p) => <ProductTile key={p.id} p={p} />)}</div>
+        <div className="mt-8 grid gap-x-5 gap-y-10 [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))] sm:[grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">{products.map((p) => <ProductTile key={p.id} p={p} />)}</div>
         <section className="mt-20 grid items-center gap-8 overflow-hidden rounded-[10px] bg-[#EFE7DB] md:grid-cols-2">
           <img src="/images/store/lifestyle.jpg" alt="A customer wearing a Hampton fedora on an autumn street" className="h-full max-h-[380px] w-full object-cover" />
           <div className="p-8">
