@@ -76,6 +76,20 @@ Overrides the original rule "serif for KPI numbers" (user feedback). Fraunces is
 - REQ-462 [always] The system shall render /login as a clean, modern form: plain off-white background (no radial glow), a minimal card (1px border, no brass top line, no heavy shadow; no card on phones), the GOORIN wordmark (~120px), the heading "Sign in to Support Desk" in Inter semibold ~24px, a muted subline, inputs without leading icons (the eye toggle stays), "Forgot password?" aligned on the Password label row, and a full-width 44–48px Sign in button.
 - REQ-463 [always] The system shall remove the "EST. 1895" rule and the castle footer from /login, keeping only a small muted footer "© Goorin Bros.".
 - REQ-463a [always] The system shall show the GOORIN wordmark larger on /login (~180px desktop, ~160px phone), with no subline under the heading and no Styleguide link (user request; /styleguide stays reachable by URL).
+
+## Login matches the Goorin SYNC reference, branded "Support Desk": REVERTED (user: "go back to previous login")
+REQ-503..REQ-512 below are CANCELLED. The active login spec is REQ-330..REQ-333, REQ-462, REQ-463 and REQ-463a (minimal card, 180px wordmark, "Sign in to Support Desk", no subline, footer "© Goorin Bros.").
+Supersedes REQ-330/332/462/463/463a visuals and the "Sign in" copy. Flows, validation copy, testids and mobile rules are unchanged.
+- REQ-503 [always] The system shall render /login as one centered white card (~440px wide, radius ~24px, large soft shadow) on a plain very light neutral background (#F8F8F8), with no gradient.
+- REQ-504 [always] The system shall show a solid black (#111) header band (~200px tall) on the card with a centered lockup: the WHITE GOORIN wordmark, a coral (#E2574C) rounded bar under it, and "SUPPORT DESK" in coral bold geometric caps right-aligned beneath the flag (the bar ends before the text).
+- REQ-505 [always] The system shall show in the card body: heading "Welcome back" (bold, ~26px, centered), subline "Sign in to your Support Desk dashboard" (gray, centered), labels "Email" / "Password" (semibold), "Forgot password?" right-aligned on the Password row, and inputs with a light gray fill, 1px light border, radius ~12px, ~48px tall, placeholders "you@company.com" / "Enter password", plus the eye toggle.
+- REQ-506 [state] While either field is empty, the system shall show the full-width "Log in" button (radius ~12px, ~48px) in an inactive gray (#7F807F), still submittable so validation messages show (interpreted).
+- REQ-507 [state] While both fields are filled, the system shall show the button near-black (#111) with a darker hover. Loading shows "Logging in…".
+- REQ-508 [always] The system shall show below the button "Need access? Contact your administrator.", a divider, a green status line "● ALL SYSTEMS OPERATIONAL" (letter-spaced caps, dot with soft halo) and "© <year> Goorin Bros., Inc.".
+- REQ-509 [always] The system shall use DM Sans on the login screen to match the reference (interpreted; the app stays Inter).
+- REQ-510 [always] The system shall give the forgot / invite / expired variants the same card and header with their own heading + subline (e.g. "Reset your password", "Set up your account", "This invite has expired").
+- REQ-511 [always] The system shall title the browser tab "Goorin | Support Desk" (interpreted).
+- REQ-512 [state] While on a phone, the system shall keep the card with 16px side margins, the black header scaled down (~160px), 16px input text and ≥44px targets.
 - REQ-464 [always] The system shall keep all login flows, copy, validation, testids, mobile rules (16px inputs, 44px targets, safe areas) and the loading state.
 - REQ-465 [always] The system shall show KPI labels in full at 1440 (wrap to 2 lines or shorten to "CSAT response" with a full title tooltip). No ellipsis (bug from iteration 9).
 - REQ-466 [state] While a full-screen editor (article/macro editor, CSV import) is open on a phone, the system shall hide the bottom tab bar like the conversation view does.
