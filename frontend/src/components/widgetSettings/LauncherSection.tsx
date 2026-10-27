@@ -1,15 +1,21 @@
-import type { LauncherIcon, WidgetSettings } from '@/types'
+import { Upload } from 'lucide-react'
+import type { LauncherIcon, LauncherPosition, WidgetSettings } from '@/types'
 import { LauncherGlyph } from '@/components/widget/icons'
 import { cn } from '@/lib/utils'
 import { ColorField, FieldError, FieldLabel, RangeField, Segmented, SourceBadge, TextField, UploadField } from './fields'
 import type { Update, WidgetErrors } from './validate'
 
 const ICONS: { id: LauncherIcon; label: string }[] = [
-  { id: 'chat', label: 'Chat bubble' },
+  { id: 'chat', label: 'Message' },
+  { id: 'question', label: 'Help' },
   { id: 'hat', label: 'Hat' },
-  { id: 'question', label: 'Question mark' },
-  { id: 'envelope', label: 'Envelope' },
-  { id: 'headset', label: 'Headset' },
+  { id: 'custom', label: 'Custom' },
+]
+const POSITIONS: { id: LauncherPosition; label: string }[] = [
+  { id: 'top-left', label: 'Top left' },
+  { id: 'top-right', label: 'Top right' },
+  { id: 'bottom-left', label: 'Bottom left' },
+  { id: 'bottom-right', label: 'Bottom right' },
 ]
 
 interface Props {
@@ -24,17 +30,20 @@ export function LauncherSection({ draft, update, errors, setUploadError }: Props
   return (
     <>
       <div>
-        <p className="mb-1.5 text-sm font-medium text-ink" id="ws-icon-label">Icon</p>
-        <div role="radiogroup" aria-labelledby="ws-icon-label" className="flex flex-wrap gap-2">
+        <p className="mb-1.5 text-sm font-medium text-ink" id="ws-icon-label">Launcher icon</p>
+        <div role="radiogroup" aria-labelledby="ws-icon-label" className="inline-flex flex-wrap gap-1 rounded-xl bg-surface-muted p-1" data-testid="ws-icon">
           {ICONS.map((i) => (
-            <button key={i.id} type="button" role="radio" aria-checked={l.icon === i.id} aria-label={i.label} title={i.label} onClick={() => update((d) => { d.launcher.icon = i.id })} className={cn('flex h-12 w-12 items-center justify-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', l.icon === i.id ? 'border-tobacco-600 bg-tobacco-50 text-tobacco-700' : 'border-border-strong text-ink-muted hover:bg-surface-muted')} data-testid={`ws-icon-${i.id}`}>
-              <LauncherGlyph icon={i.id} customUrl={null} size={22} />
+            <button key={i.id} type="button" role="radio" aria-checked={l.icon === i.id} onClick={() => update((d) => { d.launcher.icon = i.id })} className={cn('inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', l.icon === i.id ? 'bg-surface font-medium text-ink shadow-card' : 'text-ink-muted hover:text-ink')} data-testid={`ws-icon-${i.id}`}>
+              {i.id === 'custom' && !l.customIconUrl ? <Upload className="h-4 w-4" aria-hidden /> : <LauncherGlyph icon={i.id} customUrl={l.customIconUrl} size={18} />}
+              {i.label}
             </button>
           ))}
         </div>
-        <div className="mt-3">
-          <UploadField id="custom-icon" label="Custom icon (SVG or PNG)" value={l.customIconUrl} error={errors['custom-icon']} onError={(e) => setUploadError('custom-icon', e)} onChange={(v) => update((d) => { d.launcher.customIconUrl = v; d.launcher.icon = v ? 'custom' : 'hat' })} />
-        </div>
+        {l.icon === 'custom' && (
+          <div className="mt-3">
+            <UploadField id="custom-icon" label="Custom icon (SVG or PNG)" value={l.customIconUrl} error={errors['custom-icon']} onError={(e) => setUploadError('custom-icon', e)} onChange={(v) => update((d) => { d.launcher.customIconUrl = v; d.launcher.icon = v ? 'custom' : 'chat' })} />
+          </div>
+        )}
       </div>
       <div className="grid gap-5 xl:grid-cols-2">
         <ColorField id="iconColor" label="Icon color" value={l.iconColor} onChange={(v) => update((d) => { d.launcher.iconColor = v })} />
@@ -53,7 +62,15 @@ export function LauncherSection({ draft, update, errors, setUploadError }: Props
       <div>
         <div className="flex items-center gap-2"><SourceBadge source={draft.sources.launcherPosition} /></div>
         <div className="mt-2">
-          <Segmented label="Position" testId="ws-position" value={l.position} onChange={(v) => update((d) => { d.launcher.position = v; d.sources.launcherPosition = 'desk' })} options={[{ id: 'bottom-right', label: 'Bottom right' }, { id: 'bottom-left', label: 'Bottom left' }]} />
+          <p className="mb-1.5 text-sm font-medium text-ink" id="ws-position-label">Position</p>
+          <div role="radiogroup" aria-labelledby="ws-position-label" className="grid w-full max-w-[320px] grid-cols-2 gap-2" data-testid="ws-position">
+            {POSITIONS.map((p) => (
+              <button key={p.id} type="button" role="radio" aria-checked={l.position === p.id} onClick={() => update((d) => { d.launcher.position = p.id; d.sources.launcherPosition = 'desk' })} className={cn('relative h-14 rounded-xl border text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', l.position === p.id ? 'border-tobacco-600 bg-tobacco-50 font-medium text-tobacco-800' : 'border-border-strong text-ink-muted hover:bg-surface-muted')} data-testid={`ws-position-${p.id}`}>
+                <span className={cn('absolute h-2 w-2 rounded-full', l.position === p.id ? 'bg-tobacco-600' : 'bg-ink-subtle', p.id.startsWith('top') ? 'top-2' : 'bottom-2', p.id.endsWith('left') ? 'left-2' : 'right-2')} aria-hidden />
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">

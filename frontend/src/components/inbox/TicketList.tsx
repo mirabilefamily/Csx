@@ -26,6 +26,8 @@ interface Props {
   onBulkClose: () => void
   toolbar: React.ReactNode
   selectable?: boolean
+  rowActions?: (t: Ticket) => React.ReactNode
+  footer?: React.ReactNode
 }
 
 function SelectAll({ tickets, selected, onSelect }: Pick<Props, 'tickets' | 'selected' | 'onSelect'>) {
@@ -60,7 +62,7 @@ export function TicketList(p: Props) {
     body = (
       <ul aria-label={`${p.title} tickets`} data-testid="ticket-list">
         {p.tickets.map((t) => (
-          <TicketRow key={t.id} t={t} selectable={p.selectable !== false} active={t.id === p.activeId} checked={p.selected.includes(t.id)} onCheck={(c) => p.onSelect(c ? [...p.selected, t.id] : p.selected.filter((x) => x !== t.id))} />
+          <TicketRow key={t.id} t={t} selectable={p.selectable !== false} active={t.id === p.activeId} checked={p.selected.includes(t.id)} onCheck={(c) => p.onSelect(c ? [...p.selected, t.id] : p.selected.filter((x) => x !== t.id))} actions={p.rowActions?.(t)} />
         ))}
       </ul>
     )
@@ -83,6 +85,7 @@ export function TicketList(p: Props) {
         )}
         {body}
       </div>
+      {p.footer}
     </>
   )
 }

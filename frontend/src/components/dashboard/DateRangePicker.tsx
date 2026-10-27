@@ -10,7 +10,7 @@ import { earliestAvailableDate, formatRangeLabel, rangeForPreset, toKey } from '
 import { cn } from '@/lib/utils'
 
 const PRESETS: { id: Exclude<RangePreset, 'custom'>; label: string }[] = [
-  { id: 'today', label: 'Today' },
+  { id: 'today', label: 'Last 24 hours' },
   { id: '7d', label: '7d' },
   { id: '30d', label: '30d' },
   { id: '90d', label: '90d' },

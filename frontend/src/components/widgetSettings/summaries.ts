@@ -15,7 +15,7 @@ export function sectionSummary(id: string, d: WidgetSettings, theme: ThemeEmbedS
     case 'branding':
       return `${colorName(b.colors.primary)} & ${colorName(b.colors.accent)} · ${b.radius}px radius · ${b.font === 'inter' ? 'Inter' : 'Store font'}`
     case 'launcher':
-      return `${l.style === 'pill' ? `Pill "${l.label || '…'}"` : 'Circle'} · ${SIZE[l.size]} · ${l.position === 'bottom-left' ? 'Bottom left' : 'Bottom right'}`
+      return `${l.style === 'pill' ? `Pill "${l.label || '…'}"` : 'Circle'} · ${SIZE[l.size]} · ${l.position.replace('-', ' ').replace(/^./, (c) => c.toUpperCase())}`
     case 'messaging':
       return `"${m.headerTitle}" · ${m.quickReplies.filter(Boolean).length} quick replies · Greeting bubble ${m.proactive.enabled ? `after ${m.proactive.delaySec}s` : 'off'}`
     case 'display': {

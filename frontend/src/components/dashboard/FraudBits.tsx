@@ -87,6 +87,7 @@ export function FraudAlertRow({ a, onAction, busy }: { a: FraudAlert; onAction?:
       ) : (
         <p className="text-xs text-ink-muted" data-testid={`fraud-reviewed-${a.id}`}>
           <span className="font-medium text-ink">{DONE[a.status]} by {a.reviewedBy}</span>{a.reviewedAt && <> · {timeAgo(a.reviewedAt)}</>}
+          {a.reviewNote && <span className="mt-1 block rounded-lg bg-surface-muted px-2.5 py-1.5 text-ink" data-testid={`fraud-note-${a.id}`}>Note: {a.reviewNote}</span>}
         </p>
       )}
     </li>

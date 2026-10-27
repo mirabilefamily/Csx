@@ -2,8 +2,8 @@
 import { chromium } from 'playwright-core'
 
 const BASE = process.argv[2] ?? 'http://localhost:4173'
-const ROUTES = ['/dashboard', '/inbox/GB-1076', '/guidance', '/guidance?tab=macros', '/guidance?tab=sandbox', '/settings/integrations', '/settings/integrations/shopify', '/settings/integrations/shopify/widget', '/settings/ai', '/settings/users', '/styleguide', '/widget-demo', '/widget-demo/theme-editor', '/survey/tok_GB1066', '/nope']
-const SHOTS = { 1920: ['/dashboard', '/settings/integrations', '/guidance', '/widget-demo', '/inbox/GB-1076'], 2560: ['/dashboard', '/settings/integrations/shopify/widget'] }
+const ROUTES = ['/dashboard', '/inbox/GB-1076', '/guidance', '/guidance?tab=macros', '/ai/testing', '/ai/voice', '/channels/email', '/channels/chat?kind=form', '/settings/account', '/settings/csat', '/settings/integrations', '/settings/integrations/shopify', '/channels/chat', '/ai/replies', '/settings/users', '/styleguide', '/widget-demo', '/widget-demo/theme-editor', '/survey/tok_GB1066', '/nope']
+const SHOTS = { 1920: ['/dashboard', '/settings/integrations', '/guidance', '/widget-demo', '/inbox/GB-1076'], 2560: ['/dashboard', '/channels/chat'] }
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome', args: ['--no-sandbox'] })
 const errors = []
 for (const w of [1280, 1440, 1920, 2560]) {

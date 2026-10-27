@@ -15,6 +15,15 @@ import NotFoundPage from '@/pages/NotFoundPage'
 import WidgetDemoPage from '@/pages/WidgetDemoPage'
 import SurveyPage from '@/pages/SurveyPage'
 import ThemeEditorPage from '@/pages/ThemeEditorPage'
+import AiPage from '@/pages/AiPage'
+import ChannelsPage from '@/pages/ChannelsPage'
+import { useSearchParams } from 'react-router-dom'
+
+// The old Guidance sandbox tab now lives in AI & Workflows → Conversation testing.
+function GuidanceRoute() {
+  const [params] = useSearchParams()
+  return params.get('tab') === 'sandbox' ? <Navigate to="/ai/testing" replace /> : <GuidancePage />
+}
 
 function NotFoundRoute() {
   const { user } = useAuth()
@@ -38,8 +47,12 @@ export default function App() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/inbox/:ticketId?" element={<InboxPage />} />
-                <Route path="/guidance" element={<GuidancePage />} />
-                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/guidance" element={<GuidanceRoute />} />
+                <Route path="/ai" element={<Navigate to="/ai/voice" replace />} />
+                <Route path="/ai/:tab" element={<AiPage />} />
+                <Route path="/channels" element={<Navigate to="/channels/chat" replace />} />
+                <Route path="/channels/:tab" element={<ChannelsPage />} />
+                <Route path="/settings" element={<Navigate to="/settings/integrations" replace />} />
                 <Route path="/settings/:tab" element={<SettingsPage />} />
                 <Route path="/settings/integrations/:integrationId" element={<SettingsPage />} />
                 <Route path="/settings/integrations/:integrationId/:sub" element={<SettingsPage />} />

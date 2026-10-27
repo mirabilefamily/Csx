@@ -130,6 +130,7 @@ export interface Ticket {
   escalationReason: EscalationReason | null
   orderNumber: string | null
   fraud?: TicketFraudFlag | null
+  setAside?: 'spam' | 'trash' | null
 }
 
 export interface Message {
@@ -176,6 +177,8 @@ export interface GuidanceArticle {
   active: boolean
   updatedAt: string
   updatedBy: string
+  version: number
+  history: { version: number; editor: string; at: string }[]
 }
 
 export interface Macro {
@@ -286,6 +289,7 @@ export interface FraudAlert {
   status: FraudStatus
   createdAt: string
   reviewedBy: string | null
+  reviewNote?: string | null
   reviewedAt: string | null
   refundId: string | null
 }
@@ -373,7 +377,8 @@ export interface SearchResults {
   articles: Pick<GuidanceArticle, 'id' | 'title' | 'category'>[]
 }
 
-export type InboxViewId = 'all_open' | 'needs_human' | 'ai_handling' | 'mine' | 'unassigned' | 'resolved' | 'closed'
+export type InboxViewId = 'all_open' | 'needs_human' | 'ai_handling' | 'mine' | 'unassigned' | 'resolved' | 'closed' | 'all' | 'spam' | 'trash'
+export interface NewTicketInput { email: string; name?: string; subject: string; channel: Channel; body: string; isInternal: boolean }
 
 export interface TicketDetail {
   ticket: Ticket
@@ -421,7 +426,7 @@ export interface Invite {
 }
 
 // ---- Phase 3: guidance + settings ----
-export type IntegrationId = 'outlook' | 'shopify' | 'claude' | 'grokbot' | 'resend'
+export type IntegrationId = 'outlook' | 'shopify' | 'claude' | 'grokbot' | 'resend' | 'loop'
 export type IntegrationState = 'connected' | 'error' | 'not_configured'
 
 export interface IntegrationStatus {
@@ -438,6 +443,9 @@ export interface IntegrationStatus {
   model?: string
   checklist?: { label: string; ok: boolean }[]
   widget?: { embedEnabled: boolean; lastSeenAt: string | null }
+  // Saved setup exists; independent of the live connection check.
+  configured: boolean
+  attention?: string | null
 }
 
 export interface TestResult { ok: boolean; ms: number; message: string }
@@ -456,6 +464,7 @@ export interface AiSettings {
   rules: EscalationRule[]
   prompts: { claude: string; grokbot: string }
   autoRefund: AutoRefundSettings
+  assignment: 'round_robin' | 'manual'
 }
 
 export interface SandboxResult {
@@ -468,7 +477,7 @@ export interface SandboxResult {
   orderNotFound: string | null
 }
 
-export type ArticleInput = Omit<GuidanceArticle, 'id' | 'updatedAt' | 'updatedBy'> & { id?: string }
+export type ArticleInput = Omit<GuidanceArticle, 'id' | 'updatedAt' | 'updatedBy' | 'version' | 'history'> & { id?: string }
 export type MacroInput = Pick<Macro, 'name' | 'body'> & { id?: string }
 export interface ImportRow { title?: string; body?: string; category?: string; tags?: string; active?: string }
 
@@ -486,6 +495,7 @@ export type WidgetState =
   | 'offline'
   | 'csat'
   | 'transcript_sent'
+export type LauncherPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 export type CsatStyle = 'stars' | 'emoji' | 'numeric'
 export type FieldMode = 'required' | 'optional' | 'off'
 export interface Offset { x: number; y: number }
@@ -516,7 +526,7 @@ export interface WidgetSettings {
     style: 'circle' | 'pill'
     label: string
     size: 's' | 'm' | 'l'
-    position: 'bottom-right' | 'bottom-left'
+    position: LauncherPosition
     offset: Offset
     mobileOffset: Offset
     badgeColor: string
@@ -601,3 +611,35 @@ export type SurveyLookup =
   | { status: 'invalid' }
   | { status: 'completed'; ticketSubject: string }
 
+
+
+// ---- Phase 9: AI & Workflows, Channels, Account ----
+export interface BrandVoice {
+  enabled: boolean
+  brandName: string
+  tone: string
+  howToRespond: string
+  phrasesToUse: string
+  phrasesToAvoid: string
+  examples: string
+  updatedAt: string
+}
+export const BRAND_VOICE_LIMITS = { brandName: 100, tone: 2000, howToRespond: 2000, phrasesToUse: 2000, phrasesToAvoid: 2000, examples: 4000 } as const
+
+export interface TestTurn { role: 'customer' | 'ai'; text: string; result?: SandboxResult }
+export interface ConversationTestInput { history: TestTurn[]; message: string; channel: 'email' | 'chat'; orderNumber?: string; voice?: BrandVoice }
+
+export type ContactFieldType = 'name' | 'email' | 'order' | 'topic' | 'message' | 'attachments'
+export interface ContactField { id: ContactFieldType; label: string; enabled: boolean; required: boolean; options?: string[] }
+export interface ContactFormSettings { heading: string; intro: string; fields: ContactField[]; buttonLabel: string; successMessage: string }
+
+export interface EmailChannelSettings {
+  mailbox: string
+  fromName: string
+  replyTo: string
+  signature: string
+  autoAck: { enabled: boolean; message: string }
+}
+
+export interface NotificationPrefs { needsHuman: boolean; lowCsat: boolean; fraudAlerts: boolean }
+export interface ChangePasswordInput { current: string; next: string; confirm: string }

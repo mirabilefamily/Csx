@@ -85,7 +85,7 @@ export function RefundsPanel({ range, refreshKey }: { range: DateRange; refreshK
   return (
     <Panel
       title="Refunds"
-      description="Automated refund tracker"
+      description="Recorded in range"
       loading={!error && (demo === 'loading' || (loading && !shown))}
       height={420}
       testId="refunds-panel"

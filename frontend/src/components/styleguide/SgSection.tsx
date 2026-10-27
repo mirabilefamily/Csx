@@ -14,6 +14,7 @@ export const SG_INDEX: [string, string][] = [
   ['widget', 'Chat widget'],
   ['dashboard', 'Dashboard pieces'],
   ['navigation', 'Sidebar nav'],
+  ['phase9', 'Workspace patterns'],
   ['controls', 'Segmented control'],
   ['settings', 'Settings patterns'],
   ['phone', 'Phone patterns'],

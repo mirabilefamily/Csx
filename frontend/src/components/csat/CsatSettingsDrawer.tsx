@@ -17,7 +17,7 @@ import { RecipientsInput } from './RecipientsInput'
 import { SurveyPreview } from './SurveyPreview'
 import type { QuestionErrors } from './QuestionItem'
 
-function validate(s: CsatSurvey) {
+export function validate(s: CsatSurvey) {
   const errors: Record<string, QuestionErrors> = {}
   s.questions.forEach((q) => {
     const e: QuestionErrors = {}
@@ -28,7 +28,7 @@ function validate(s: CsatSurvey) {
   return errors
 }
 
-function Delivery({ draft, set }: { draft: CsatSurvey; set: (s: CsatSurvey) => void }) {
+export function Delivery({ draft, set }: { draft: CsatSurvey; set: (s: CsatSurvey) => void }) {
   const paused = !draft.channels.email && !draft.channels.inlineChat
   const delayInvalid = !Number.isFinite(draft.sendDelay.value) || draft.sendDelay.value < 0
   return (

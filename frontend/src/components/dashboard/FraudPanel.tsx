@@ -9,6 +9,8 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useShellData } from '@/components/shell/ShellData'
 import { EmptyState, ErrorState } from '@/components/States'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/input'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { Panel } from './Panel'
 import { FraudAlertRow } from './FraudBits'
@@ -25,6 +27,8 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
   const [alerts, setAlerts] = useState<FraudAlert[] | null>(null)
   const [tab, setTab] = useState<'open' | 'reviewed'>('open')
   const [busy, setBusy] = useState<string | null>(null)
+  const [pending, setPending] = useState<{ a: FraudAlert; action: FraudAction } | null>(null)
+  const [note, setNote] = useState('')
   useEffect(() => { if (data) setAlerts(data) }, [data])
   useEffect(() => { if (hash === '#fraud' && alerts) document.getElementById('fraud')?.scrollIntoView({ block: 'start' }) }, [hash, alerts === null])
 
@@ -33,13 +37,17 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
   const undo = async (a: FraudAlert) => {
     try { replace(await refundsApi.undoFraudReview(a.id)); synced(a.ticketId); toast('Alert moved back to Open') } catch { toast.error(FAIL) }
   }
-  const act = async (a: FraudAlert, action: FraudAction) => {
+  const act = (a: FraudAlert, action: FraudAction) => { setNote(''); setPending({ a, action }) }
+  const confirm = async () => {
+    if (!pending) return
+    const { a, action } = pending
+    setPending(null)
     setBusy(a.id)
     try {
-      const r = await refundsApi.reviewFraudAlert(a.id, action, user!)
+      const r = await refundsApi.reviewFraudAlert(a.id, action, user!, note)
       replace(r.alert)
       synced(a.ticketId)
-      toast.success(TOAST[action], { action: { label: 'Undo', onClick: () => void undo(a) } })
+      toast.success(note.trim() ? `${TOAST[action]} · note saved` : TOAST[action], { action: { label: 'Undo', onClick: () => void undo(a) } })
     } catch { toast.error(FAIL) }
     setBusy(null)
   }
@@ -51,14 +59,15 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
     <div id="fraud" className="min-w-0 scroll-mt-24">
       <Panel
         title="Fraud alerts"
-        description="Risk-scored refund and order signals"
+        description="Unreviewed flags across all dates"
         loading={demo === 'loading' || (loading && !alerts)}
         height={420}
         testId="fraud-panel"
-        action={alerts && <span className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700" data-testid="fraud-open-count">{open.length} open</span>}
+        action={alerts && <span className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700" data-testid="fraud-open-count">{open.length} open (all time)</span>}
       >
         {!alerts ? (error && <ErrorState title="Fraud alerts didn't load" description="We couldn't fetch alerts just now." onRetry={reload} testId="fraud-error" />) : (
           <div className="space-y-4">
+            <p className="text-xs text-ink-muted" data-testid="fraud-helper">Risk flags are signals, not proof of fraud.</p>
             {error && (
               <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" data-testid="fraud-stale-error">
                 <span className="flex-1">Couldn't refresh fraud alerts. Showing the last loaded list.</span>
@@ -88,6 +97,17 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
           </div>
         )}
       </Panel>
+      <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
+        <AlertDialogContent data-testid="fraud-note-dialog">
+          <AlertDialogTitle>{pending ? `${TOAST[pending.action]}: ${pending.a.customer}` : ''}</AlertDialogTitle>
+          <AlertDialogDescription>Add an optional note for the team. It's saved with the review.</AlertDialogDescription>
+          <Textarea aria-label="Review note (optional)" className="mt-3" placeholder="e.g. Called the customer, address confirmed." value={note} onChange={(e) => setNote(e.target.value)} data-testid="fraud-note-input" />
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="fraud-note-cancel">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirm} data-testid="fraud-note-confirm">Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

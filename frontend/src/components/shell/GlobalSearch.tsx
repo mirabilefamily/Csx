@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Loader2, Search, Ticket as TicketIcon, UserRound } from 'lucide-react'
+import { BookOpen, Loader2, Search, SlidersHorizontal, Ticket as TicketIcon, UserRound } from 'lucide-react'
+import { useAuth } from '@/components/auth/AuthContext'
 import type { SearchResults } from '@/types'
 import { directoryApi } from '@/api'
 import { useDemoState } from '@/hooks/useApi'
@@ -9,9 +10,34 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useUnsavedGuard } from '@/components/UnsavedGuard'
 
-interface Item { id: string; group: 'Tickets' | 'Customers' | 'Articles'; to: string; title: string; meta: string; node?: React.ReactNode }
+interface Item { id: string; group: 'Tickets' | 'Customers' | 'Articles' | 'Settings'; to: string; title: string; meta: string; node?: React.ReactNode }
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
+
+// Static index of admin pages/sections, matched client-side.
+const SETTINGS_INDEX: [string, string, string][] = [
+  ['brand-voice', 'Brand voice', 'AI & Workflows · /ai/voice'],
+  ['ai-replies', 'AI replies & confidence threshold', 'AI & Workflows · /ai/replies'],
+  ['auto-refunds', 'Auto-refunds', 'AI & Workflows · /ai/replies'],
+  ['workflows', 'Escalation rules, business hours & assignment', 'AI & Workflows · /ai/workflows'],
+  ['testing', 'Conversation testing', 'AI & Workflows · /ai/testing'],
+  ['chat-widget', 'Chat widget appearance', 'Channels · /channels/chat'],
+  ['launcher-position', 'Launcher position', 'Channels · /channels/chat'],
+  ['contact-form', 'Contact form', 'Channels · /channels/chat?kind=form'],
+  ['email', 'Email signature & auto-acknowledgement', 'Channels · /channels/email'],
+  ['install', 'Install the widget', 'Channels · /channels/install'],
+  ['account', 'Account & password', 'Settings · /settings/account'],
+  ['users', 'Users', 'Settings · /settings/users'],
+  ['integrations', 'Integrations', 'Settings · /settings/integrations'],
+  ['office365', 'Office 365 mailbox', 'Settings · /settings/integrations/outlook'],
+  ['loop', 'Loop Returns', 'Settings · /settings/integrations/loop'],
+  ['csat', 'CSAT survey', 'Settings · /settings/csat'],
+]
+const settingsItems = (q: string, admin: boolean): Item[] => {
+  const t = q.trim().toLowerCase()
+  if (!admin || t.length < 2) return []
+  return SETTINGS_INDEX.filter(([, title, meta]) => `${title} ${meta}`.toLowerCase().includes(t)).slice(0, 5).map(([id, title, meta]) => ({ id: `s-${id}`, group: 'Settings' as const, to: meta.split(' · ')[1], title, meta: meta.split(' · ')[0] }))
+}
 
 function toItems(r: SearchResults): Item[] {
   return [
@@ -21,7 +47,7 @@ function toItems(r: SearchResults): Item[] {
   ]
 }
 
-const ICONS = { Tickets: TicketIcon, Customers: UserRound, Articles: BookOpen }
+const ICONS = { Tickets: TicketIcon, Customers: UserRound, Articles: BookOpen, Settings: SlidersHorizontal }
 
 export function GlobalSearch() {
   const navigate = useNavigate()
@@ -66,7 +92,8 @@ export function GlobalSearch() {
     }
   }, [query, demo, nonce])
 
-  const items = useMemo(() => (results ? toItems(results) : []), [results])
+  const { user } = useAuth()
+  const items = useMemo(() => (results ? [...toItems(results), ...settingsItems(results.query, user?.role === 'admin')] : []), [results, user?.role])
   const pick = (item: Item) => {
     setOpen(false)
     setQuery('')
@@ -107,7 +134,7 @@ export function GlobalSearch() {
         aria-activedescendant={showPanel && items[active] ? `sr-${items[active].id}` : undefined}
         autoComplete="off"
         value={query}
-        placeholder="Search tickets, customers, articles"
+        placeholder="Search tickets, guidance, settings..."
         onChange={(e) => {
           setQuery(e.target.value)
           setOpen(true)
@@ -138,7 +165,7 @@ export function GlobalSearch() {
           ) : items.length === 0 && results ? (
             <p className="px-4 py-3 text-sm text-ink-muted" data-testid="global-search-no-results">No results for "{results.query}"</p>
           ) : (
-            (['Tickets', 'Customers', 'Articles'] as const).map((group) => {
+            (['Tickets', 'Customers', 'Articles', 'Settings'] as const).map((group) => {
               const groupItems = items.filter((i) => i.group === group)
               if (!groupItems.length) return null
               const Icon = ICONS[group]

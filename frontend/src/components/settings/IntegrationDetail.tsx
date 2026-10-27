@@ -14,13 +14,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState, ErrorState } from '@/components/States'
 import { isValidEmail, timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import { WidgetSettingsTab } from '@/components/widgetSettings/WidgetSettingsTab'
 import { useIsPhone } from '@/hooks/useIsPhone'
 import { Credentials, LogoTile, META, Result, StatusPill, lastSync } from './IntegrationsTab'
 import { FormSection, SaveBar } from './SaveBar'
 
 const BACK = 'inline-flex min-h-11 min-w-11 items-center gap-1.5 rounded-md text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:justify-center'
-const SUBS = [['overview', 'Overview', ''], ['widget', 'Chat widget', '/widget'], ['install', 'Install', '/install']] as const
 
 function PromptTester({ i, model }: { i: IntegrationStatus; model: string }) {
   const [prompt, setPrompt] = useState('What size is a 22.5 inch head?')
@@ -112,33 +110,6 @@ function Panel({ children }: { children: ReactNode }) {
   return <div className="divide-y divide-border/70 rounded-2xl bg-surface px-6 py-6 shadow-card ring-1 ring-black/[0.04] max-sm:px-4">{children}</div>
 }
 
-function ShopifyTabs({ sub }: { sub: string }) {
-  return (
-    <nav aria-label="Shopify sections" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0" data-testid="shopify-subtabs">
-      <div className="flex min-w-max gap-1 border-b border-border">
-        {SUBS.map(([id, label, path]) => (
-          <Link key={id} to={`/settings/integrations/shopify${path}`} aria-current={sub === id ? 'page' : undefined} className={cn('-mb-px inline-flex h-10 items-center whitespace-nowrap border-b-2 px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:h-11', sub === id ? 'border-tobacco-600 text-ink' : 'border-transparent text-ink-muted hover:text-ink')} data-testid={`shopify-subtab-${id}`}>
-            {label}
-          </Link>
-        ))}
-      </div>
-    </nav>
-  )
-}
-
-function CompactHeader({ i }: { i: IntegrationStatus }) {
-  const isPhone = useIsPhone()
-  return (
-    <header className="flex flex-wrap items-center gap-3" data-testid={`integration-${i.id}`}>
-      <Link to="/settings/integrations" className={BACK} aria-label="Back to Integrations" data-testid="integration-back"><ArrowLeft className="h-4 w-4" aria-hidden /></Link>
-      <LogoTile id={i.id} />
-      <h2 className="text-base font-semibold text-ink" data-testid="integration-detail-name">{i.name}</h2>
-      {!isPhone && <StatusPill i={i} />}
-      {!isPhone && <span className="text-sm text-ink-muted" data-testid={`integration-last-sync-${i.id}`}>{lastSync(i)}</span>}
-    </header>
-  )
-}
-
 function WidgetSummary({ w }: { w: NonNullable<IntegrationStatus['widget']> }) {
   return (
     <div className="flex flex-wrap items-center gap-4 rounded-2xl bg-surface p-6 shadow-card ring-1 ring-black/[0.04] max-sm:px-4" data-testid="shopify-widget-summary">
@@ -151,12 +122,12 @@ function WidgetSummary({ w }: { w: NonNullable<IntegrationStatus['widget']> }) {
           <span data-testid="shopify-widget-last-load">{w.lastSeenAt ? `Last widget load ${timeAgo(w.lastSeenAt)}` : 'No widget load yet'}</span>
         </p>
       </div>
-      <Link to="/settings/integrations/shopify/widget" className={cn(buttonVariants({ variant: 'outline' }), 'max-sm:w-full')} data-testid="shopify-customize-widget">Customize widget</Link>
+      <Link to="/channels/chat" className={cn(buttonVariants({ variant: 'outline' }), 'max-sm:w-full')} data-testid="shopify-customize-widget">Customize chat widget →</Link>
     </div>
   )
 }
 
-function Body({ i, onSaved, sub }: { i: IntegrationStatus; onSaved: (n: IntegrationStatus) => void; sub: string }) {
+function Body({ i, onSaved }: { i: IntegrationStatus; onSaved: (n: IntegrationStatus) => void }) {
   const [model, setModel] = useState(i.model ?? '')
   const [saving, setSaving] = useState(false)
   const dirty = !!i.models && model !== i.model
@@ -167,18 +138,15 @@ function Body({ i, onSaved, sub }: { i: IntegrationStatus; onSaved: (n: Integrat
     setSaving(false)
   }
   const details = Object.entries(i.details)
-  if (sub !== 'overview')
-    return (
-      <div className="space-y-5" data-testid={`integration-detail-${i.id}`}>
-        <CompactHeader i={i} />
-        <ShopifyTabs sub={sub} />
-        <WidgetSettingsTab key={sub} view={sub === 'install' ? 'install' : 'editor'} />
-      </div>
-    )
   return (
     <div className="space-y-6 pb-24" data-testid={`integration-detail-${i.id}`}>
       <Header i={i} />
-      {i.id === 'shopify' && <ShopifyTabs sub="overview" />}
+      {i.attention && i.status === 'connected' && (
+        <div className="flex items-start gap-2.5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900" role="status" data-testid={`integration-attention-${i.id}`}>
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <p><span className="font-semibold">Needs attention.</span> {i.attention}</p>
+        </div>
+      )}
       {i.status === 'error' && i.error && (
         <div className="flex items-start gap-2.5 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800" role="alert" data-testid={`integration-error-${i.id}`}>
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
@@ -192,7 +160,8 @@ function Body({ i, onSaved, sub }: { i: IntegrationStatus; onSaved: (n: Integrat
               {details.map(([k, v]) => <div key={k} className="contents"><dt className="text-ink-muted">{k}</dt><dd className="text-ink">{v}</dd></div>)}
             </dl>
           ) : <p className="text-sm text-ink-muted">Calls are made with the API key below.</p>}
-          {i.id === 'shopify' && <Link to="/settings/integrations/shopify/install" className="inline-flex min-h-11 items-center rounded text-sm font-medium text-tobacco-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="shopify-widget-install-link">Install the chat widget</Link>}
+          {i.id === 'shopify' && <Link to="/channels/install" className="inline-flex min-h-11 items-center rounded text-sm font-medium text-tobacco-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="shopify-widget-install-link">Install the chat widget (Channels)</Link>}
+          {i.id === 'loop' && <a href="https://returns.goorin.com" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center rounded text-sm font-medium text-tobacco-700 underline underline-offset-2" data-testid="loop-portal-link">Open return portal (MOCKED)</a>}
           {i.checklist && (
             <ul className="space-y-1.5" data-testid="resend-checklist">
               <li className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Domain verification</li>
@@ -231,7 +200,7 @@ export function IntegrationDetail({ id, sub }: { id: string; sub?: string }) {
   const { data, loading, error, reload } = useApi(() => settingsApi.getIntegration(id), [id])
   const [item, setItem] = useState<IntegrationStatus | null>(null)
   useEffect(() => setItem(data ?? null), [data])
-  if (sub && !(id === 'shopify' && (sub === 'widget' || sub === 'install'))) return <Navigate to={`/settings/integrations/${id}`} replace />
+  if (sub) return <Navigate to={`/settings/integrations/${id}`} replace />
   if (loading && !item) return <div className="space-y-4" data-testid="integration-detail-loading"><Skeleton className="h-5 w-28" /><Skeleton className="h-16 w-full rounded-2xl" /><Skeleton className="h-80 w-full rounded-2xl" /></div>
   if (error) return <Card><ErrorState title="This integration didn't load" onRetry={reload} testId="integration-detail-error" /></Card>
   if (!item)
@@ -240,5 +209,5 @@ export function IntegrationDetail({ id, sub }: { id: string; sub?: string }) {
         <EmptyState title="Integration not found" description="It may have been removed, or the link is wrong." action={<Link to="/settings/integrations" className={BACK} data-testid="integration-not-found-back"><ArrowLeft className="h-4 w-4" aria-hidden /> Back to Integrations</Link>} testId="integration-not-found" />
       </Card>
     )
-  return <Body key={item.id} i={item} onSaved={setItem} sub={sub ?? 'overview'} />
+  return <Body key={item.id} i={item} onSaved={setItem} />
 }

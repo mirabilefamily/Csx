@@ -53,7 +53,7 @@ export function ArticleEditor({ article, categories, onClose, onSaved }: Props) 
     <div className="space-y-5" data-testid="article-editor">
       <div className="flex flex-wrap items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => confirmLeave(onClose)} data-testid="article-back"><ArrowLeft aria-hidden /> All articles</Button>
-        <p className="text-sm text-ink-muted">{article ? 'Editing article' : 'New article'}{dirty && ' · Unsaved changes'}</p>
+        <p className="text-sm text-ink-muted">{article ? <span data-testid="article-version">Editing · v{article.version}</span> : 'New article'}{dirty && ' · Unsaved changes'}</p>
         <div className="ml-auto flex gap-2">
           <Button variant="outline" onClick={() => confirmLeave(onClose)}>Cancel</Button>
           <Button onClick={save} loading={saving} data-testid="article-save">Save</Button>
@@ -94,6 +94,20 @@ export function ArticleEditor({ article, categories, onClose, onSaved }: Props) 
           </Card>
         </div>
       </div>
+      {article && (
+        <section className="rounded-2xl bg-surface p-5 shadow-card ring-1 ring-black/[0.04]" data-testid="article-history">
+          <h3 className="text-sm font-semibold text-ink">Version history</h3>
+          <ol className="mt-2 divide-y divide-border">
+            {article.history.map((h) => (
+              <li key={h.version} className="flex flex-wrap items-center gap-x-3 py-2 text-sm" data-testid={`article-history-v${h.version}`}>
+                <span className="w-10 font-semibold tabular-nums text-ink">v{h.version}</span>
+                <span className="text-ink">{h.editor}</span>
+                <span className="ml-auto text-xs text-ink-muted">{new Date(h.at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
     </div>
   )
 }

@@ -1,0 +1,6 @@
+{"iteration":12,"mode":"retest","passed":2,"failed":0,"bugs":[],"action_items":[],"retest_needed":false,
+"checks":[
+{"criterion":"Phone Inbox '+ New' does not overlap the view chips","name":"p9-inbox-conversation-customer","lane":"browser","status":"passed","evidence":"Ran on the preview URL. At 360px the + New button is at x=251 and the chips end at 12+231=243. At 390px the button is at x=281 and the chips end at 273. At 430px the button is at x=321 and the chips end at 313. None overlap. The chips scroll inside their own area (overflow-x auto, scrollWidth 1202 vs clientWidth 231/261/301). The page scrollWidth equals the viewport width, so nothing overflows. All the earlier GB-1076 and GB-1064 assertions and the integrations assertions still pass."},
+{"criterion":"Open tickets KPI is a snapshot","name":"p9-dashboard-fraud-timing","lane":"browser","status":"passed","evidence":"At 1440px, kpi-delta-open reads exactly 'Current snapshot', with no delta, for Last 24 hours, 7d, 30d and 90d. The fraud and chat timing assertions still pass. The only console errors are about the Vite HMR websocket, which is dev-server noise."}
+],
+"notes":"Frontend-only mocked app, so there is no backend lane."}

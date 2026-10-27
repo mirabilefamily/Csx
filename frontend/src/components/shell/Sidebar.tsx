@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, Inbox, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Settings, type LucideIcon } from 'lucide-react'
+import { BookOpen, Inbox, LayoutDashboard, PanelLeftClose, PanelLeftOpen, RadioTower, Settings, Sparkles, type LucideIcon } from 'lucide-react'
 import { useUnsavedGuard } from '@/components/UnsavedGuard'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/overlay'
 import { Wordmark } from '@/components/Wordmark'
@@ -8,13 +8,17 @@ import { useAuth } from '@/components/auth/AuthContext'
 import { useShellData } from './ShellData'
 import { cn } from '@/lib/utils'
 
-interface NavItem { to: string; label: string; Icon: LucideIcon; id: string }
+export interface NavItem { to: string; label: string; Icon: LucideIcon; id: string; admin?: boolean }
 const MAIN: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard, id: 'dashboard' },
   { to: '/inbox', label: 'Inbox', Icon: Inbox, id: 'inbox' },
 ]
-const KNOWLEDGE: NavItem[] = [{ to: '/guidance', label: 'Guidance', Icon: BookOpen, id: 'guidance' }]
-export const SETTINGS: NavItem = { to: '/settings', label: 'Settings', Icon: Settings, id: 'settings' }
+const KNOWLEDGE: NavItem[] = [
+  { to: '/ai', label: 'AI & Workflows', Icon: Sparkles, id: 'ai', admin: true },
+  { to: '/guidance', label: 'Guidance', Icon: BookOpen, id: 'guidance' },
+  { to: '/channels', label: 'Channels', Icon: RadioTower, id: 'channels', admin: true },
+]
+export const SETTINGS: NavItem = { to: '/settings', label: 'Settings', Icon: Settings, id: 'settings', admin: true }
 export const NAV: NavItem[] = [...MAIN, ...KNOWLEDGE]
 
 const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B08D57] focus-visible:ring-offset-2 focus-visible:ring-offset-white'
@@ -135,7 +139,7 @@ export function Sidebar() {
       <nav aria-label="Main" className="flex flex-1 flex-col px-3 py-4">
         <div className="space-y-1.5">{MAIN.map((i) => <Item key={i.id} item={i} collapsed={collapsed} />)}</div>
         <Divider collapsed={collapsed} />
-        <div className="space-y-1.5">{KNOWLEDGE.map((i) => <Item key={i.id} item={i} collapsed={collapsed} />)}</div>
+        <div className="space-y-1.5">{KNOWLEDGE.filter((i) => !i.admin || user?.role === 'admin').map((i) => <Item key={i.id} item={i} collapsed={collapsed} />)}</div>
         <div className={cn('-mx-3 mt-auto flex border-t border-border px-3 pt-3', collapsed ? 'flex-col items-center gap-1.5' : 'items-center gap-2')} data-testid="sidebar-bottom">
           {user?.role === 'admin' && (
             <div className={collapsed ? 'w-full' : 'min-w-0 flex-1'}>

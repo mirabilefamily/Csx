@@ -1,0 +1,47 @@
+{
+  "iteration": 11,
+  "phase": "9",
+  "passed": 7,
+  "failed": 1,
+  "retest_needed": true,
+  "bugs": [
+    {
+      "severity": "low",
+      "criterion": "Inbox conversation and customer panel",
+      "title": "At 390px the Inbox '+ New' button overlaps the view chips row",
+      "evidence": "p9-inbox-conversation-customer (preview URL, 390x844): new-ticket-button bbox {x:281,y:70,w:44,h:44}; inbox-view-chips bbox {x:0,y:69,w:285,h:46}, so they overlap by 4px horizontally. In the screenshot, the right edge of the 'Needs human 7' chip sits under the + button. Frontend-only, mock data (no backend). Everything else in this check passed before the overlap assertion: GB-1076 #E3B75B, the AI replied banner, Email timing with 'SLA met', delivery 'Delivered', the Queued/Sent/Delivered timeline, composer Reply/Internal note, 'Goes to margaret.okonkwo@example.com', 'Send to customer', 'CUSTOMER & SHOPIFY', Loop $58.00/12.3% with filters, GB-1064 fraud banner, and inventory S4/M11(+12)/L0/XL11."
+    }
+  ],
+  "action_items": [
+    {
+      "type": "note",
+      "severity": "low",
+      "detail": "Dashboard: the Open tickets KPI caption never reads 'Current snapshot' with the seeded data. It shows a delta ('vs prior 30 days', or 'vs yesterday' in Last 24 hours). KpiStrip.tsx only shows 'Current snapshot' when there is no delta. The criterion and the build disagree. Decide whether Open tickets should always show 'Current snapshot'."
+    },
+    {
+      "type": "note",
+      "severity": "low",
+      "detail": "The customer panel has no section labelled 'Customer stats'. The stats (Orders/Lifetime spend/AOV/Last order, testid customer-stats) sit inside the 'CUSTOMER' section. The Loop section is titled 'RETURNS' next to the Loop wordmark."
+    },
+    {
+      "type": "note",
+      "severity": "low",
+      "detail": "Seed fact says Claude wrote the last reply on GB-1076, but the thread's last AI reply is from Grokbot (m4), and the banner reads 'AI replied: Grokbot answered the latest customer message'. The UI agrees with the thread, so the seed fact may be out of date."
+    },
+    {
+      "type": "note",
+      "severity": "info",
+      "detail": "Spam restore (GB-1083) and Delete forever (GB-1081) act on seeded mock tickets, because the criterion requires it. Mock state resets on reload, so nothing persists. 'Assign me' shows only when the ticket isn't assigned to you (it was seen on GB-1076)."
+    }
+  ],
+  "checks": [
+    {"criterion": "Navigation and access", "name": "p9-nav-access-redirects", "lane": "browser", "status": "passed", "evidence": "Sidebar order dashboard,inbox,ai,guidance,channels,settings. Redirects /settings/widget->/channels, /settings/ai->/ai/replies, /guidance?tab=sandbox->/ai/testing, ?csat=settings->/settings/csat. Searching 'launcher' shows a Settings group that deep-links to /channels/chat. Agent role hides ai/channels/settings, and each URL shows 'don't have access'. At 390px the tabs are dashboard/inbox/guidance/more, and the More sheet lists AI & Workflows/Channels/Settings."},
+    {"criterion": "Settings tabs and integration tiles", "name": "p9-settings-integrations-account", "lane": "browser", "status": "passed", "evidence": "Tabs Account/Users/Integrations/CSAT. Summary reads '5 connected · 1 needs attention · 1 error'. Outlook tile has the attention edge and 'Mailbox syncing is turned off.', a Configured pill and a logo. Grokbot tile shows 401. Resend and Loop are Connected. Manage opens /settings/integrations/outlook. A wrong current password shows 'Your current password is incorrect.' and goorin123 succeeds with a toast. CSAT renders as a tab."},
+    {"criterion": "AI & Workflows", "name": "p9-ai-voice-testing-workflows", "lane": "browser", "status": "passed", "evidence": "bv-enabled toggle visible. Save is disabled when nothing changed. 101 characters gives 'Keep this under 100 characters.' with Save disabled, and a valid edit enables it with an 'n / 100' counter. 'Test this voice' opens /ai/testing with 'Using your unsaved brand voice draft.' A 2-turn run shows confidence-gauge, verdict and articles. Reset brings back the empty state. Replies renders, and Workflows shows round-robin/manual."},
+    {"criterion": "Channels", "name": "p9-channels-chat-form-email-install", "lane": "browser", "status": "passed", "evidence": "Chat/Contact form radios and save-state 'All changes saved'/'Unsaved'. Position is a grid of 4 radios. top-left moves the preview launcher up and left, and top-right moves it up with the same x. Contact form heading edits update cf-preview-heading. Preferences shows the field builder. Email: From name and Reply-to present, signature preview updates, SPF/DKIM checks shown, and Send test email gives inline feedback. Install shows Shopify and the contact form 'app block' card."},
+    {"criterion": "Guidance", "name": "p9-guidance-articles", "lane": "browser", "status": "passed", "evidence": "Tabs Articles/Macros/Import CSV, header '+ New article', article-active-filter present, table rows match /v\\d+ · /, and the editor shows 'Editing · vN' plus a Version history card."},
+    {"criterion": "Dashboard", "name": "p9-dashboard-fraud-timing", "lane": "browser", "status": "passed", "evidence": "Last 24 hours preset is clickable (Open caption there: 'vs yesterday', see note). '4 open (all time)' badge and 'Risk flags are signals, not proof of fraud.' line present. Chat timing shows 14s/38s/2/3m 12s vs was 21s/44s/3/2m 45s. Mark safe on fa-101 opens the note dialog, and after confirming, the note shows in the Reviewed tab (fraud-note-fa-101)."},
+    {"criterion": "Inbox list and ticket actions", "name": "p9-inbox-list-actions", "lane": "browser", "status": "passed", "evidence": "Counts all=40, all_open=21, spam=2, trash=1. GB-1076 short id E3B75B. Range '1–25 of 40' with 25 rows. Restoring GB-1083 brings spam to 1. Delete forever on GB-1081 opens the dialog, and after confirming the row is gone. New ticket tscheck-inbox opens /inbox/GB-1084. Header shows status 'Open', 'Normal priority' and Resolve, and the ⋯ menu has spam/trash."},
+    {"criterion": "Inbox conversation and customer panel", "name": "p9-inbox-conversation-customer", "lane": "browser", "status": "failed", "evidence": "Run against the preview URL. All desktop assertions passed (see the bug entry), and screenshots confirm customer messages on the left and replies on the right. Failed at 390px because the New button overlaps the view chips by 4px. Settings > Integrations at 390px was not reached in this run; the summary was checked at 390px through p7 coverage and at desktop in p9-settings-integrations-account."}
+  ]
+}

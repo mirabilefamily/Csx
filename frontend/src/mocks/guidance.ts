@@ -38,6 +38,8 @@ const articleSeeds: ArticleSeed[] = [
 
 export const guidanceArticles: GuidanceArticle[] = articleSeeds.map(([id, title, category, tags, ageDays, updatedBy, body, active = true]) => ({
   id, title, category, tags, body, active, updatedAt: daysAgo(ageDays), updatedBy,
+  version: 1 + ((id.charCodeAt(id.length - 1) + title.length) % 6),
+  history: Array.from({ length: Math.min(3, 1 + ((id.charCodeAt(id.length - 1) + title.length) % 6)) }, (_, i) => ({ version: 1 + ((id.charCodeAt(id.length - 1) + title.length) % 6) - i, editor: i === 0 ? updatedBy : 'Ava Martinez', at: daysAgo(ageDays + i * 23) })),
 }))
 
 type MacroSeed = [name: string, shortcut: string, tags: string[], body: string]

@@ -69,7 +69,7 @@ export function InboxSamples() {
       </div>
       <Specimen label="Composer · reply / internal note, formatting, macros">
         <Card className="overflow-hidden p-4">
-          <Composer macros={[]} fill={(t) => t} onSend={async () => true} onDraftChange={noop} />
+          <Composer macros={[]} fill={(t) => t} onSend={async () => true} onDraftChange={noop} to="grace@example.com" />
         </Card>
       </Specimen>
     </div>

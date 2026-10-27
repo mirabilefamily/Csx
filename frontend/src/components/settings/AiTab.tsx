@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import * as SliderPrimitive from '@radix-ui/react-slider'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { ArrowRight, ChevronDown, Copy, Mail, MessageCircle, Plus, Trash2 } from 'lucide-react'
@@ -198,7 +199,35 @@ function AiSkeleton() {
   )
 }
 
-export function AiTab() {
+function Fallback() {
+  const { data } = useApi(() => settingsApi.getIntegration('grokbot'), [])
+  return (
+    <div className="flex flex-wrap items-center gap-3 text-sm" data-testid="ai-fallback">
+      <span className="rounded-md bg-surface-muted px-2 py-1 font-mono text-xs text-ink">{data?.model ?? '…'}</span>
+      {data?.status === 'error' && <span className="text-xs font-medium text-red-700" data-testid="ai-fallback-error">Not answering: {data.attention}</span>}
+      <Link to="/settings/integrations/grokbot" className="inline-flex min-h-11 items-center font-medium text-tobacco-700 underline underline-offset-2" data-testid="ai-fallback-manage">Change model in Integrations</Link>
+    </div>
+  )
+}
+
+function Assignment({ form, set }: { form: AiSettings; set: SetFn }) {
+  const opts = [
+    { id: 'round_robin', label: 'Round-robin', hint: 'Spread new needs-human tickets evenly across agents who are in.' },
+    { id: 'manual', label: 'Manual', hint: 'Tickets wait in Unassigned until someone takes them.' },
+  ] as const
+  return (
+    <div role="radiogroup" aria-label="Assignment rule" className="grid max-w-[560px] gap-2 sm:grid-cols-2" data-testid="ai-assignment">
+      {opts.map((o) => (
+        <button key={o.id} type="button" role="radio" aria-checked={form.assignment === o.id} onClick={() => set({ assignment: o.id })} className={cn('rounded-xl border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', form.assignment === o.id ? 'border-tobacco-600 bg-tobacco-50' : 'border-border-strong hover:bg-surface-muted')} data-testid={`ai-assignment-${o.id}`}>
+          <span className="block text-sm font-semibold text-ink">{o.label}</span>
+          <span className="mt-0.5 block text-xs text-ink-muted">{o.hint}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function AiTab({ part = 'replies' }: { part?: 'replies' | 'workflows' }) {
   const { data, loading, error, reload } = useApi(() => settingsApi.getAiSettings(), [])
   const [saved, setSaved] = useState<AiSettings | null>(null)
   const [form, setForm] = useState<AiSettings | null>(null)
@@ -221,16 +250,25 @@ export function AiTab() {
   }
 
   return (
-    <div className="pb-24" data-testid="ai-tab">
-      <div className="divide-y divide-border/70 rounded-2xl bg-surface px-6 py-6 shadow-card ring-1 ring-black/[0.04]">
-        <FormSection title="Confidence threshold" description="Claude only answers on its own when it's at least this confident." testId="ai-section-threshold"><Threshold value={form.threshold} set={set} /></FormSection>
-        <FormSection title="Auto-send" description="When off, the AI drafts a reply for an agent to approve." testId="ai-section-auto-send"><Matrix form={form} set={set} /></FormSection>
-        <FormSection title="Business hours" description="Outside these hours AI replies mention when the team is back." testId="ai-section-hours"><Hours form={form} set={set} hourErr={hourErr} /></FormSection>
-        <FormSection title="Escalation rules" description="Send matching tickets straight to Grokbot or a human." testId="ai-section-rules"><Rules form={form} set={set} /></FormSection>
-        <FormSection title="Auto-refunds" description="Small refunds the AI can issue without a person." testId="ai-section-auto-refunds"><AutoRefunds form={form} set={set} /></FormSection>
-        <FormSection title="System prompts" description="Managed in code. Read only." testId="ai-section-prompts">
-          {(['claude', 'grokbot'] as const).map((k) => <PromptViewer key={k} id={k} text={form.prompts[k]} />)}
-        </FormSection>
+    <div className="pb-24" data-testid={part === 'replies' ? 'ai-tab' : 'workflows-tab'}>
+      <div className="divide-y divide-border/70 rounded-2xl bg-surface px-6 py-6 shadow-card ring-1 ring-black/[0.04] max-sm:px-4">
+        {part === 'replies' ? (
+          <>
+            <FormSection title="Confidence threshold" description="Claude only answers on its own when it's at least this confident." testId="ai-section-threshold"><Threshold value={form.threshold} set={set} /></FormSection>
+            <FormSection title="Auto-send" description="When off, the AI drafts a reply for an agent to approve." testId="ai-section-auto-send"><Matrix form={form} set={set} /></FormSection>
+            <FormSection title="Auto-refunds" description="Small refunds the AI can issue without a person." testId="ai-section-auto-refunds"><AutoRefunds form={form} set={set} /></FormSection>
+            <FormSection title="Grokbot fallback" description="Answers what Claude can't, before a person steps in." testId="ai-section-fallback"><Fallback /></FormSection>
+            <FormSection title="System prompts" description="Managed in code. Read only." testId="ai-section-prompts">
+              {(['claude', 'grokbot'] as const).map((k) => <PromptViewer key={k} id={k} text={form.prompts[k]} />)}
+            </FormSection>
+          </>
+        ) : (
+          <>
+            <FormSection title="Escalation rules" description="Send matching tickets straight to Grokbot or a human." testId="ai-section-rules"><Rules form={form} set={set} /></FormSection>
+            <FormSection title="Business hours" description="Outside these hours AI replies mention when the team is back." testId="ai-section-hours"><Hours form={form} set={set} hourErr={hourErr} /></FormSection>
+            <FormSection title="Assignment" description="Who picks up tickets that need a human." testId="ai-section-assignment"><Assignment form={form} set={set} /></FormSection>
+          </>
+        )}
       </div>
       {dirty && (
         <SaveBar>

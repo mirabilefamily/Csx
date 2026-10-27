@@ -88,14 +88,15 @@ frontend/
 |---|---|---|
 | `/login` (`?invite=<token>`) | public | sign in, forgot password, accept invite, expired invite |
 | `/` | signed-in | redirects to `/dashboard` |
-| `/dashboard` (`?csat=settings` opens the CSAT drawer) | signed-in | KPIs, volume, resolved by, escalation reasons, tags, CSAT section + CSAT Settings drawer |
-| `/inbox`, `/inbox/:ticketId` (`?view=`) | signed-in | views, ticket list, conversation, AI drafts, composer, details sidebar |
-| `/guidance` (`?tab=articles\|macros\|sandbox`, `?article=<id>`) | signed-in | Articles, Macros, Test Sandbox |
-| `/settings` → `/settings/integrations` | admin | Agents see "You don't have access to Settings" |
-| `/settings/integrations`, `/settings/ai`, `/settings/users` | admin | the three Settings tabs (Integrations = tile grid). The Shopify tile shows "Chat widget · Live on store / Embed off" |
-| `/settings/integrations/shopify` (Overview), `/settings/integrations/shopify/widget` (Chat widget editor + live preview), `/settings/integrations/shopify/install` (Install) | admin | Shopify sub-tabs `shopify-subtab-overview|widget|install`. Overview has the `shopify-widget-summary` card. Sub-tab switches with unsaved widget changes ask "Discard unsaved changes?" |
-| `/settings/widget`, `/settings/widget#install` | admin | Redirect to `/settings/integrations/shopify/widget` or `/install` |
-| `/settings/integrations/:id` (`outlook` \| `shopify` \| `claude` \| `grokbot` \| `resend`) | admin | one integration: header + Test connection, error callout, Connection details / Configuration / Credentials. An unknown id shows "Integration not found" |
+| `/dashboard` (`?csat=settings` redirects to `/settings/csat`) | signed-in | KPIs (Last 24 hours/7d/30d/90d/Custom), volume, Chat reply timing (last 30 min vs previous 30, independent of the range), refunds, fraud alerts (optional review note), CSAT section |
+| `/inbox`, `/inbox/:ticketId` (`?view=all_open\|needs_human\|ai_handling\|mine\|unassigned\|resolved\|closed\|all\|spam\|trash`) | signed-in | VIEWS + SET ASIDE (Spam, Trash with Restore / Delete forever), "+ New" ticket, short ids (`#E3B75B`), 25-per-page pagination, conversation with Assign me / ⋯ / Resolve, AI replied banner, Email timing, delivery status + timeline, Reply / Internal note composer, CUSTOMER & SHOPIFY panel |
+| `/guidance` (`?tab=articles\|macros\|import`, `?article=<id>\|new`) | signed-in | Articles / Macros / Import CSV. `?tab=sandbox` redirects to `/ai/testing` |
+| `/ai` → `/ai/voice`; `/ai/voice`, `/ai/replies`, `/ai/workflows`, `/ai/testing` | admin | AI & Workflows: Brand voice, AI replies (threshold, auto-send, auto-refunds, Grokbot fallback, prompts), Workflows (escalation rules, business hours, assignment), Conversation testing (multi-turn) |
+| `/channels` → `/channels/chat`; `/channels/chat` (`?kind=chat\|form`, `?panel=appearance\|preferences`), `/channels/email`, `/channels/install` | admin | Channels: Chat & form (widget editor + live preview, contact form builder + preview), Email (Office 365 mailbox, sender, signature, auto-ack, Resend domain, test email), Installation |
+| `/settings` → `/settings/integrations` | admin | Agents see "You don't have access to Settings" (same for AI & Workflows and Channels) |
+| `/settings/account`, `/settings/users`, `/settings/integrations`, `/settings/csat` | admin | Account (profile, password, notifications, sign out everywhere), Users, Integrations tile grid (Configured pill, Connected dot, Manage, amber "Needs attention" edge), CSAT survey settings |
+| `/settings/ai`, `/settings/widget`, `/settings/widget#install`, `/settings/integrations/shopify/widget`, `/settings/integrations/shopify/install` | admin | Redirect to `/ai/replies`, `/channels/chat`, `/channels/install`, `/channels/chat`, `/channels/install` |
+| `/settings/integrations/:id` (`outlook` (Office 365) \| `shopify` \| `claude` \| `grokbot` \| `resend` \| `loop`) | admin | one integration: header + Test connection, attention/error callout, Connection details / Configuration / Credentials. Shopify links to Channels. An unknown id shows "Integration not found" |
 | `/styleguide` | public | living styleguide with a sticky index |
 | `/widget-demo` (`?page=product\|collection\|cart`, `?desk_preview=1`) | public | mock Goorin storefront + live widget + demo controls |
 | `/widget-demo/theme-editor` | public | mock Shopify theme editor "App embeds" block |
@@ -121,6 +122,17 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | file | exports | purpose |
 |---|---|---|
 | `components/AuthorBadge.tsx` | `AuthorBadge` | Customer / Claude / Grokbot / Agent / System badge with icon and color |
+| `components/PageTabs.tsx` | `PageTabs`, `SubTabs`, `SaveState` | Route-backed segmented page tabs (respect the unsaved guard), underline sub-tabs, "All changes saved / Unsaved changes" indicator |
+| `components/NoAccess.tsx` | `NoAccess` | Agent no-access state for Settings, AI & Workflows, Channels |
+| `components/ai/BrandVoiceTab.tsx` | `BrandVoiceTab` | Voice on, brand name /100, five style fields /2,000 (examples /4,000) with counters, over-limit errors, sticky "Save brand voice" (enabled only when dirty and valid), rail with "Test this voice" |
+| `components/ai/ConversationTesting.tsx` | `ConversationTesting` | Multi-turn customer chat with Claude: per-turn verdict, confidence gauge, order context, articles + scores; channel, order number, examples, Reset; uses the unsaved voice draft from router state |
+| `components/channels/ContactFormEditor.tsx` | `ContactFormEditor` | Contact form Appearance (heading, intro, button, success) / Preferences (field builder: show, required, reorder, topic options) + live form preview |
+| `components/channels/EmailTab.tsx` | `EmailTab` | Office 365 mailbox status, From name, Reply-to, signature + preview, auto-acknowledgement, Resend domain checks, Send test email |
+| `components/dashboard/ChatTimingPanel.tsx` | `ChatTimingPanel` | Chat reply timing, last 30 complete minutes vs the 30 before |
+| `components/inbox/NewTicketDialog.tsx` | `NewTicketDialog` | "+ New" ticket composer (email, subject, channel, reply/note, message) |
+| `components/inbox/TicketBanners.tsx` | `AiRepliedBanner`, `EmailTiming` | "AI replied" banner while AI sent the latest reply; collapsible received / first AI / first human / SLA timing |
+| `components/settings/AccountTab.tsx` | `AccountTab` | Profile, change password (mock current: goorin123), notification switches, sign out of all devices |
+| `components/settings/CsatTab.tsx` | `CsatTab` | The CSAT settings drawer content as a full Settings tab with live survey preview |
 | `components/ChartCard.tsx` | `ChartCard`, `Legend` | Titled card for a chart, plus a color legend |
 | `components/DemoStateSwitcher.tsx` | `DemoStateSwitcher`, `demoToolsEnabled` | Floating Live / Loading / Empty / Error switcher for the mock API |
 | `components/KpiCard.tsx` | `KpiCard`, `KpiCardSkeleton` | Single KPI card with delta (styleguide / legacy) |
@@ -282,8 +294,10 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `pages/LoginPage.tsx` | `/login` | Sign in, forgot password, invite accept/expired |
 | `pages/DashboardPage.tsx` | `/dashboard` | Range control, KPI strip, overview, CSAT |
 | `pages/InboxPage.tsx` | `/inbox/:ticketId?` | Three-pane inbox |
-| `pages/GuidancePage.tsx` | `/guidance` | Articles / Macros / Test Sandbox tabs |
-| `pages/SettingsPage.tsx` | `/settings/:tab` | Segmented tab bar + four tabs, no-access state |
+| `pages/GuidancePage.tsx` | `/guidance` | Articles / Macros / Import CSV tabs, "+ New article", link to AI & Workflows |
+| `pages/SettingsPage.tsx` | `/settings/:tab` | Account / Users / Integrations / CSAT, old-route redirects, no-access state |
+| `pages/AiPage.tsx` | `/ai/:tab` | AI & Workflows: Brand voice / AI replies / Workflows / Conversation testing |
+| `pages/ChannelsPage.tsx` | `/channels/:tab` | Channels: Chat & form / Email / Installation (+ contact form app-block card) |
 | `pages/StyleguidePage.tsx` | `/styleguide` | Living styleguide |
 | `pages/WidgetDemoPage.tsx` | `/widget-demo` | Storefront + live widget + demo controls |
 | `pages/ThemeEditorPage.tsx` | `/widget-demo/theme-editor` | Shopify theme editor mock |
@@ -324,6 +338,9 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 | function | method + path | request | response | errors |
 |---|---|---|---|---|
 | `inboxApi.getTicketDetail(id)` | `GET /api/tickets/:id/detail` | — | `TicketDetail \| null` `{ ticket, messages, drafts, attempts, customer, pastTickets, guidanceTitles }` | — |
+| `inboxApi.setAside(id, where, actor)` | `POST /api/tickets/:id/set-aside` | `{ where: 'spam' \| 'trash' \| null }` (null = Restore) | `Ticket` with `setAside`; set-aside tickets leave every VIEW and appear only in Spam / Trash | 404 |
+| `inboxApi.deleteForever(id)` | `DELETE /api/tickets/:id` | — | `{ id }` (ticket + messages removed) | 409 "Move the ticket to Trash first." |
+| `inboxApi.createTicket(input, actor)` | `POST /api/tickets` | `NewTicketInput` `{ email, name?, subject, channel, body, isInternal }` | `Ticket` (next id, e.g. `GB-1084`, status open, assigned to the actor) | 422 "Enter a valid email address.", "Add a subject." |
 | `inboxApi.updateTicket(id, patch, actor)` | `PATCH /api/tickets/:id` | `TicketPatch { status?, priority?, assignee? }` | `TicketDetail` (adds System messages) | 404 |
 | `inboxApi.bulkUpdate(ids, patch, actor)` | `POST /api/tickets/bulk` | `{ ids: string[], patch: BulkPatch }` | `Ticket[]` | — |
 | `inboxApi.sendMessage(id, msg, actor)` | `POST /api/tickets/:id/messages` | `NewMessage { html, isInternal, draftId? }` | `TicketDetail` (removes the draft when `draftId` is sent) | 404 |
@@ -335,6 +352,38 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 | function | method + path | request | response | errors |
 |---|---|---|---|---|
 | `dashboardApi.getDashboardSummary(range)` | `GET /api/dashboard/summary?from=YYYY-MM-DD&to=YYYY-MM-DD` | query `DateRange` | `DashboardSummary` (KPIs with prior-period values + series, charts, `CsatSummary`) | — |
+| `dashboardApi.getChatReplyTiming()` | `GET /api/dashboard/chat-timing` | — | `ChatReplyTiming` (`windowLabel`, `current` / `previous` `ChatTimingWindow`: median first reply, median reply, waiting now, longest wait, seconds). Seed: 14s/38s/2/192s vs 21s/44s/3/165s | — |
+
+### AI & Workflows (`aiApi`, `api/ai.ts`), MOCKED
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `aiApi.getBrandVoice()` | `GET /api/ai/brand-voice` | — | `BrandVoice` | — |
+| `aiApi.saveBrandVoice(v)` | `PUT /api/ai/brand-voice` | `BrandVoice` (limits in `BRAND_VOICE_LIMITS`: brand name 100, tone / how to respond / phrases 2,000, examples 4,000) | `BrandVoice` with new `updatedAt` | 422 "Keep this under N characters." |
+| `aiApi.testConversation(input)` | `POST /api/ai/test-conversation` | `ConversationTestInput` (`history: TestTurn[]`, `message`, `channel`, `orderNumber?`, `voice?` unsaved draft) | `TestTurn` (`role: 'ai'`, text, `result: SandboxResult`) | — |
+| `aiApi.styleWithVoice(draft, voice, channel)` | (client helper) | — | string: opener phrase, avoided phrases removed, chat ≤ 3 sentences, email signed | — |
+
+### Channels (`channelsApi`, `api/channels.ts`), MOCKED
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `channelsApi.getContactForm()` | `GET /api/channels/contact-form` | — | `ContactFormSettings` (`fields: ContactField[]`, `ContactFieldType`) | — |
+| `channelsApi.saveContactForm(s)` | `PUT /api/channels/contact-form` | `ContactFormSettings` | same | 422 "Add a button label.", "Add at least one topic." |
+| `channelsApi.getEmailChannel()` | `GET /api/channels/email` | — | `EmailChannelSettings` | — |
+| `channelsApi.saveEmailChannel(s)` | `PUT /api/channels/email` | `EmailChannelSettings` | same | 422 "Add a from name.", "Enter a valid email address." |
+
+### Account (`accountApi`, `api/account.ts`), MOCKED
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `accountApi.getNotificationPrefs(userId)` / `accountApi.saveNotificationPrefs(userId, prefs)` | `GET` / `PUT /api/account/notifications` | `NotificationPrefs` | `NotificationPrefs` | — |
+| `accountApi.changePassword(input)` | `POST /api/account/password` | `ChangePasswordInput` (mock current password `goorin123`) | `{ ok: true }` | 403 "Your current password is incorrect.", 422 |
+| `accountApi.signOutAllDevices()` | `POST /api/account/sign-out-all` | — | `{ sessions: 3 }` | — |
+
+### Customer & Shopify tools (`customerToolsApi`, `api/customerTools.ts`), MOCKED
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `customerToolsApi.findOrder(query)` | `GET /api/shopify/orders/search?q=` | order # or customer email | `{ order, customerName, email } \| null` | — |
+| `customerToolsApi.checkInventory(sku)` | `GET /api/shopify/inventory?sku=` | SKU | `InventoryResult` (S/M/L/XL available + incoming, deterministic per SKU) | 422 "Enter a SKU.", 404 "No product with SKU X." |
+| `customerToolsApi.lookupOrderDetails(number)` | `GET /api/shopify/orders/:number` | — | `ShopifyOrder` | 404 "Order not found." |
+| `customerToolsApi.getCustomerCsat(customerId)` | `GET /api/customers/:id/csat` | — | `CsatResponse[]` newest first | — |
 
 ### Loop Returns (`loopApi`, `api/loop.ts`), MOCKED (Loop is a Shopify returns app)
 | function | method + path | request | response | errors |
@@ -346,7 +395,7 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 |---|---|---|---|---|
 | `refundsApi.getRefunds(range)` | `GET /api/refunds/summary?from=YYYY-MM-DD&to=YYYY-MM-DD` | query `DateRange` | `RefundSummary` (totals, prior-period total, auto %, pending, stage counts, trend, awaiting list, current `AutoRefundSettings`) | — |
 | `refundsApi.getFraudAlerts()` | `GET /api/fraud-alerts` | — | `FraudAlert[]` newest first | — |
-| `refundsApi.reviewFraudAlert(id, action, actor)` | `POST /api/fraud-alerts/:id/review` | `{ action: FraudAction }` (actor from the session) | `FraudReviewResult` (`held` also sets the linked requested/approved refund to `on_hold`) | 404 "Alert not found.", 409 "This alert was already reviewed." |
+| `refundsApi.reviewFraudAlert(id, action, actor, note?)` | `POST /api/fraud-alerts/:id/review` | `{ action: FraudAction, note?: string }` (actor from the session; note stored as `reviewNote`, shown on the Reviewed tab and the inbox banner) | `FraudReviewResult` (`held` also sets the linked requested/approved refund to `on_hold`) | 404 "Alert not found.", 409 "This alert was already reviewed." |
 | `refundsApi.undoFraudReview(id)` | `POST /api/fraud-alerts/:id/undo` | — | `FraudAlert` back to `open` (a held refund returns to its earlier stage) | 404 |
 
 Tickets carry `fraud: TicketFraudFlag \| null` and `TicketDetail.fraudAlert` is the open alert. Both are derived by the server, and the bell and Inbox badge still count needs_human only. `PUT /api/settings/ai` also validates `autoRefund.limit` (422 "Enter an amount between $0 and $500.").
@@ -430,6 +479,10 @@ Tickets carry `fraud: TicketFraudFlag \| null` and `TicketDetail.fraudAlert` is 
 All of these live in `src/types/index.ts`.
 
 **Enums / unions:**
+- `LauncherPosition` (`top-left` | `top-right` | `bottom-left` | `bottom-right`, the 2x2 position grid)
+- `ContactField` (one contact-form field: `id: ContactFieldType`, label, enabled, required, topic `options`)
+- `NewTicketInput` (the "+ New" ticket composer payload)
+- Phase 9 also adds `BrandVoice`, `TestTurn`, `ConversationTestInput`, `ContactFormSettings`, `EmailChannelSettings`, `NotificationPrefs`, `ChangePasswordInput`; `Ticket.setAside`, `IntegrationStatus.configured` / `attention`, `GuidanceArticle.version` / `history`, `FraudAlert.reviewNote`, `AiSettings.assignment`
 - `Channel` (`email` | `chat`)
 - `TicketStatus` (`open`, `ai_handling`, `grok_handling`, `needs_human`, `resolved`, `closed`)
 - `Priority`

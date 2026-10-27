@@ -23,6 +23,7 @@ interface Props {
   macros: Macro[]
   fill: (text: string) => string
   onSend: (html: string, isInternal: boolean, draftId?: string) => Promise<boolean>
+  to: string
   onDraftChange: (draftId: string | null) => void
 }
 
@@ -56,8 +57,10 @@ function LinkButton({ editor }: { editor: Editor }) {
   )
 }
 
-export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSend, onDraftChange }, ref) => {
+export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSend, onDraftChange, to }, ref) => {
   const [mode, setMode] = useState<ComposerMode>('reply')
+  const [saved, setSaved] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const [picker, setPicker] = useState<{ source: 'slash' | 'button'; query: string } | null>(null)
   const [sending, setSending] = useState(false)
   const draftId = useRef<string | null>(null)
@@ -92,6 +95,10 @@ export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSen
       const m = /^\/(\S*)$/.exec(ed.getText())
       if (m) setPicker({ source: 'slash', query: m[1] })
       else if (pickerRef.current?.source === 'slash') setPicker(null)
+      clearTimeout(saveTimer.current)
+      if (!ed.getText().trim()) return setSaved('idle')
+      setSaved('saving')
+      saveTimer.current = setTimeout(() => setSaved('saved'), 700)
     },
   })
 
@@ -128,6 +135,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSen
     setSending(false)
     if (ok) {
       editor.commands.clearContent()
+      setSaved('idle')
       draftId.current = null
       onDraftChange(null)
     }
@@ -137,6 +145,19 @@ export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSen
 
   return (
     <div className={cn('border-t border-border bg-surface px-4 pt-3', demoToolsEnabled ? 'pb-16' : 'pb-4')}>
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div role="tablist" aria-label="Composer mode" className="inline-flex gap-1">
+          {(['reply', 'note'] as const).map((m) => (
+            <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)} data-testid={`composer-mode-${m}`}
+              className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors max-sm:h-11', mode === m ? (m === 'note' ? 'bg-amber-100 text-amber-900' : 'bg-[#F3EEE7] text-tobacco-800') : 'text-ink-muted hover:text-ink', focusRing)}>
+              {m === 'reply' ? <Send className="h-3.5 w-3.5" aria-hidden /> : <StickyNote className="h-3.5 w-3.5" aria-hidden />}
+              {m === 'reply' ? 'Reply' : 'Internal note'}
+            </button>
+          ))}
+        </div>
+        <span className="min-w-0 truncate text-xs text-ink-muted" data-testid="composer-goes-to">{note ? 'Only your team sees this' : <>Goes to <span className="font-medium text-ink">{to}</span></>}</span>
+        <span className="ml-auto text-xs text-ink-muted" role="status" data-testid="composer-draft-state">{saved === 'saving' ? 'Saving draft…' : saved === 'saved' ? 'Draft saved' : ''}</span>
+      </div>
       <div className={cn('relative rounded-xl border transition-colors', note ? 'border-amber-300 bg-amber-50' : 'border-border-strong bg-surface')} data-testid="composer" data-mode={mode}>
         {picker && <MacroPicker macros={macros} source={picker.source} query={picker.query} onQuery={(q) => setPicker({ ...picker, query: q })} onPick={insert} onClose={() => setPicker(null)} keyHandler={pickerKeys} />}
         <div className="flex flex-wrap items-center gap-0.5 border-b border-border/70 px-2 py-1">
@@ -146,23 +167,14 @@ export const Composer = forwardRef<ComposerHandle, Props>(({ macros, fill, onSen
           <ToolButton label="Bulleted list" active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()}><List className="h-4 w-4" aria-hidden /></ToolButton>
           <span className="mx-1 h-5 w-px bg-border" aria-hidden />
           <ToolButton label="Macros" active={picker?.source === 'button'} onClick={() => setPicker(picker ? null : { source: 'button', query: '' })}><MessageSquareText className="h-4 w-4" aria-hidden /></ToolButton>
-          {note && <span className="ml-auto pr-1 text-xs font-semibold text-amber-900">Internal note · only your team sees this</span>}
+          {note && <span className="ml-auto pr-1 text-xs font-semibold text-amber-900">Internal note</span>}
         </div>
         <EditorContent editor={editor} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <div role="group" aria-label="Composer mode" className="inline-flex rounded-lg border border-border p-0.5">
-          {(['reply', 'note'] as const).map((m) => (
-            <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)} data-testid={`composer-mode-${m}`}
-              className={cn('inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium', mode === m ? (m === 'note' ? 'bg-amber-100 text-amber-900' : 'bg-tobacco-50 text-tobacco-800') : 'text-ink-muted hover:text-ink', focusRing)}>
-              {m === 'reply' ? <Send className="h-3.5 w-3.5" aria-hidden /> : <StickyNote className="h-3.5 w-3.5" aria-hidden />}
-              {m === 'reply' ? 'Reply' : 'Internal note'}
-            </button>
-          ))}
-        </div>
-        <span className="hover-only hidden text-xs text-ink-subtle md:inline">Ctrl/⌘ + Enter to send</span>
+        <span className="hover-only hidden text-xs text-ink-subtle md:inline">Type / for macros · Ctrl/⌘ + Enter to send</span>
         <Button className={cn('ml-auto', note && 'bg-amber-700 hover:bg-amber-900')} disabled={empty} loading={sending} onClick={send} data-testid="composer-send">
-          {note ? 'Add note' : 'Send'}
+          {note ? 'Add note' : 'Send to customer'}
         </Button>
       </div>
     </div>

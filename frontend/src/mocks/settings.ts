@@ -4,30 +4,35 @@ import { hoursAgo, daysAgo } from './time'
 // Secrets are never stored in full, only the masked preview a real backend would return.
 export const integrations: IntegrationStatus[] = [
   {
-    id: 'outlook', name: 'Outlook', description: 'Shared support mailbox via Microsoft Graph', status: 'connected', lastSyncAt: hoursAgo(0.05), error: null,
+    id: 'outlook', name: 'Office 365', description: 'Shared support mailbox via Microsoft Graph', status: 'connected', lastSyncAt: hoursAgo(0.05), error: null, configured: true, attention: 'Mailbox syncing is turned off.',
     envVar: 'OUTLOOK_CLIENT_SECRET', secretPreview: 'gph-••••8c21',
-    details: { Mailbox: 'support@goorin.com', 'Subscription status': 'Active · renews in 2 days', 'Last poll': '3 minutes ago', 'Processed folder': 'Inbox/Processed by Desk' },
+    details: { Mailbox: 'support@goorin.com', 'Subscription status': 'Active · renews in 2 days', 'Mailbox sync': 'Off since yesterday', 'Last poll': '3 minutes ago', 'Processed folder': 'Inbox/Processed by Desk' },
   },
   {
-    id: 'shopify', name: 'Shopify', description: 'Orders, customers and the chat widget app embed', status: 'connected', lastSyncAt: hoursAgo(0.2), error: null,
+    id: 'shopify', name: 'Shopify', description: 'Orders, customers and the chat widget app embed', status: 'connected', lastSyncAt: hoursAgo(0.2), error: null, configured: true,
     envVar: 'SHOPIFY_ADMIN_API_TOKEN', secretPreview: 'shpat_••••41d0',
     details: { 'Shop domain': 'goorin-bros.myshopify.com', 'App embed': 'Enabled on the live theme' },
   },
   {
-    id: 'claude', name: 'Claude', description: 'First-line AI replies (Anthropic)', status: 'connected', lastSyncAt: hoursAgo(0.01), error: null,
+    id: 'claude', name: 'Claude', description: 'First-line AI replies (Anthropic)', status: 'connected', lastSyncAt: hoursAgo(0.01), error: null, configured: true,
     envVar: 'ANTHROPIC_API_KEY', secretPreview: 'sk-ant-••••3f9a',
     details: {}, models: ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-4-5'], model: 'claude-sonnet-5-5',
   },
   {
-    id: 'grokbot', name: 'Grokbot', description: 'Second-tier AI for escalations (xAI)', status: 'error', lastSyncAt: hoursAgo(6), error: '401 Unauthorized: API key was rejected',
+    id: 'grokbot', name: 'Grokbot', description: 'Second-tier AI for escalations (xAI)', status: 'error', lastSyncAt: hoursAgo(6), error: '401 Unauthorized: API key was rejected', configured: true, attention: '401 Unauthorized',
     envVar: 'XAI_API_KEY', secretPreview: 'xai-••••b77e',
     details: {}, models: ['grok-4.7', 'grok-4.7-fast'], model: 'grok-4.7',
   },
   {
-    id: 'resend', name: 'Resend', description: 'Outbound email and CSAT surveys', status: 'not_configured', lastSyncAt: null, error: 'API key not set',
-    envVar: 'RESEND_API_KEY', secretPreview: null,
-    details: { 'From address': 'support@goorin.com', Webhook: 'Not configured' },
-    checklist: [{ label: 'SPF record', ok: true }, { label: 'DKIM record', ok: false }, { label: 'Return-path (MX)', ok: false }],
+    id: 'resend', name: 'Resend', description: 'Outbound email and CSAT surveys', status: 'connected', lastSyncAt: hoursAgo(0.5), error: null, configured: true,
+    envVar: 'RESEND_API_KEY', secretPreview: 're_••••9k2m',
+    details: { 'Sending domain': 'mail.goorin.com', 'From address': 'support@goorin.com', Webhook: 'Delivery events on' },
+    checklist: [{ label: 'SPF record', ok: true }, { label: 'DKIM record', ok: true }, { label: 'Return-path (MX)', ok: true }],
+  },
+  {
+    id: 'loop', name: 'Loop Returns', description: 'Returns, exchanges and store credit (Loop API)', status: 'connected', lastSyncAt: hoursAgo(0.3), error: null, configured: true,
+    envVar: 'LOOP_API_KEY', secretPreview: 'loop_••••a61c',
+    details: { 'Store domain': 'goorin-bros.myshopify.com', 'Return portal': 'returns.goorin.com', 'Return window': '30 days from delivery', Webhooks: 'Active · return.created, return.closed' },
   },
 ]
 
@@ -36,6 +41,7 @@ const day = (d: string, open: boolean, from = '09:00', to = '18:00') => ({ day: 
 export const aiSettings: AiSettings = {
   threshold: 75,
   autoRefund: { enabled: true, limit: 75 },
+  assignment: 'round_robin',
   autoSend: { email: { claude: true, grokbot: false }, chat: { claude: true, grokbot: true } },
   timezone: 'America/Los_Angeles',
   hours: [day('Monday', true), day('Tuesday', true), day('Wednesday', true), day('Thursday', true), day('Friday', true), day('Saturday', true, '10:00', '16:00'), day('Sunday', false, '10:00', '16:00')],

@@ -26,14 +26,14 @@ export function downloadCsv(name: string, csv: string) {
 
 const TEMPLATE = 'title,body,category,tags,active\n"Sizing guide: kids","Little Goorin hats fit 19–21 in.",Sizing & Fit,sizing;kids,true\n'
 
-export function CsvImportDialog({ open, onOpenChange, onImported }: { open: boolean; onOpenChange: (o: boolean) => void; onImported: () => void }) {
+export function CsvImportDialog({ open, onOpenChange, onImported, inline = false }: { open: boolean; onOpenChange: (o: boolean) => void; onImported: () => void; inline?: boolean }) {
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [drag, setDrag] = useState(false)
   const [csv, setCsv] = useState<{ headers: string[]; rows: Record<string, string>[] } | null>(null)
   const [map, setMap] = useState<Record<Field, string>>({ title: NONE, body: NONE, category: NONE, tags: NONE, active: NONE })
   const [busy, setBusy] = useState(false)
-  useHideBottomTabBar(open)
+  useHideBottomTabBar(open && !inline)
 
   const reset = () => { setCsv(null); setError(null) }
   const accept = (file?: File) => {
@@ -68,11 +68,12 @@ export function CsvImportDialog({ open, onOpenChange, onImported }: { open: bool
     }
   }
 
-  return (
-    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset() }}>
-      <DialogContent className="max-w-3xl" data-testid="csv-import-dialog">
-        <DialogTitle className="text-base font-semibold text-ink">Import articles from CSV</DialogTitle>
-        <DialogDescription className="mt-1 text-sm text-ink-muted">Map your columns to article fields. Rows without a title are skipped.</DialogDescription>
+  const Title = inline ? 'h2' : DialogTitle
+  const Desc = inline ? 'p' : DialogDescription
+  const content = (
+    <>
+        <Title className="text-base font-semibold text-ink">Import articles from CSV</Title>
+        <Desc className="mt-1 text-sm text-ink-muted">Map your columns to article fields. Rows without a title are skipped.</Desc>
         {!csv ? (
           <div className="mt-5 space-y-3">
             <div
@@ -124,7 +125,12 @@ export function CsvImportDialog({ open, onOpenChange, onImported }: { open: bool
             </div>
           </div>
         )}
-      </DialogContent>
+    </>
+  )
+  if (inline) return <div className="max-w-4xl rounded-2xl bg-surface p-6 shadow-card ring-1 ring-black/[0.04] max-sm:px-4" data-testid="csv-import-dialog">{content}</div>
+  return (
+    <Dialog open={open} onOpenChange={(o) => { onOpenChange(o); if (!o) reset() }}>
+      <DialogContent className="max-w-3xl" data-testid="csv-import-dialog">{content}</DialogContent>
     </Dialog>
   )
 }

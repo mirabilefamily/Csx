@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/States'
 import { useUnsavedGuard } from '@/components/UnsavedGuard'
 import { SaveBar } from '@/components/settings/SaveBar'
+import { SaveState } from '@/components/PageTabs'
 import { mergeEffective } from '@/lib/widgetRules'
 import { Section } from './fields'
 import { sectionSummary } from './summaries'
@@ -31,7 +32,9 @@ const SECTIONS: [string, string, string, LucideIcon][] = [
   ['csat', 'CSAT in chat', 'Inline survey style and questions', Star],
 ]
 
-function Loaded({ saved: initial, theme, view }: { saved: WidgetSettings; theme: ThemeEmbedSettings; view: 'editor' | 'install' }) {
+const GROUPS = { appearance: ['branding', 'launcher', 'messaging'], preferences: ['display', 'csat'] } as const
+
+function Loaded({ saved: initial, theme, view, group }: { saved: WidgetSettings; theme: ThemeEmbedSettings; view: 'editor' | 'install'; group?: keyof typeof GROUPS }) {
   const [saved, setSaved] = useState(initial)
   const [draft, setDraft] = useState(initial)
   const [uploadErrors, setUploadErrors] = useState<WidgetErrors>({})
@@ -99,7 +102,8 @@ function Loaded({ saved: initial, theme, view }: { saved: WidgetSettings; theme:
   return (
     <div className="grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)] min-[1920px]:grid-cols-[minmax(0,1fr)_minmax(0,640px)]" data-testid="widget-settings">
       <div className="min-w-0 space-y-3" data-testid="widget-settings-form">
-        {SECTIONS.map(([id, title, desc, Icon]) => (
+        <div className="flex justify-end"><SaveState dirty={dirty} testId="ws-save-state" /></div>
+        {SECTIONS.filter(([id]) => !group || (GROUPS[group] as readonly string[]).includes(id)).map(([id, title, desc, Icon]) => (
           <Section key={id} id={id} title={title} description={desc} Icon={Icon} summary={sectionSummary(id, draft, theme)} open={open.has(id)} onToggle={() => toggle(id)}>
             {id === 'branding' && <BrandingSection draft={draft} update={update} uploadErrors={uploadErrors} setUploadError={setUploadError} />}
             {id === 'launcher' && <LauncherSection draft={draft} update={update} errors={errors} setUploadError={setUploadError} />}
@@ -143,8 +147,8 @@ function Loaded({ saved: initial, theme, view }: { saved: WidgetSettings; theme:
   )
 }
 
-// Shopify → Chat widget (editor + live preview) and Shopify → Install. Both share one draft per mount.
-export function WidgetSettingsTab({ view = 'editor' }: { view?: 'editor' | 'install' }) {
+// Channels → Chat (editor + live preview, split into Appearance / Preferences) and Channels → Installation.
+export function WidgetSettingsTab({ view = 'editor', group }: { view?: 'editor' | 'install'; group?: keyof typeof GROUPS }) {
   const settings = useApi(() => widgetApi.getWidgetSettings(), [])
   const theme = useApi(() => widgetApi.getThemeEmbed(), [])
   if (settings.error || theme.error) return <ErrorState title="Widget settings didn't load" onRetry={() => { settings.reload(); theme.reload() }} />
@@ -155,5 +159,5 @@ export function WidgetSettingsTab({ view = 'editor' }: { view?: 'editor' | 'inst
         <Skeleton className="h-[640px] w-full rounded-2xl" />
       </div>
     )
-  return <Loaded saved={settings.data} theme={theme.data} view={view} />
+  return <Loaded saved={settings.data} theme={theme.data} view={view} group={group} />
 }

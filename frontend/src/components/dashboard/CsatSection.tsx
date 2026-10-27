@@ -1,21 +1,14 @@
-import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { Settings2 } from 'lucide-react'
 import type { CsatSummary } from '@/types'
-import { Button } from '@/components/ui/button'
-import { CsatSettingsDrawer } from '@/components/csat/CsatSettingsDrawer'
+import { buttonVariants } from '@/components/ui/button'
+import { useAuth } from '@/components/auth/AuthContext'
 import { CsatDistribution, CsatFeedback, CsatSplits, CsatTrend } from './CsatCharts'
 
 export function CsatSection({ csat, loading }: { csat?: CsatSummary; loading: boolean }) {
-  const [params, setParams] = useSearchParams()
-  const navigate = useNavigate()
-  const [open, setOpenState] = useState(() => params.get('csat') === 'settings')
-  const setOpen = (o: boolean) => {
-    setOpenState(o)
-    const back = params.get('return')
-    if (!o && back?.startsWith('/settings/')) navigate(back)
-    else if (!o && params.has('csat')) setParams((p) => { p.delete('csat'); return p }, { replace: true })
-  }
+  const [params] = useSearchParams()
+  const { user } = useAuth()
+  if (params.get('csat') === 'settings') return <Navigate to="/settings/csat" replace />
   return (
     <section aria-labelledby="csat-heading" className="space-y-4" data-testid="csat-section">
       <div className="flex flex-wrap items-end justify-between gap-4 pt-4">
@@ -25,9 +18,11 @@ export function CsatSection({ csat, loading }: { csat?: CsatSummary; loading: bo
             {loading ? 'Loading responses…' : csat?.totalResponses ? `${csat.totalResponses.toLocaleString()} responses · ${csat.average?.toFixed(2)} average` : 'No responses in this period'}
           </p>
         </div>
-        <Button variant="outline" onClick={() => setOpen(true)} data-testid="csat-settings-button">
-          <Settings2 aria-hidden /> CSAT settings
-        </Button>
+        {user?.role === 'admin' && (
+          <Link to="/settings/csat" className={buttonVariants({ variant: 'outline' })} data-testid="csat-settings-button">
+            <Settings2 aria-hidden /> CSAT settings
+          </Link>
+        )}
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <CsatTrend csat={csat} loading={loading} />
@@ -37,7 +32,6 @@ export function CsatSection({ csat, loading }: { csat?: CsatSummary; loading: bo
           <CsatFeedback csat={csat} loading={loading} />
         </div>
       </div>
-      <CsatSettingsDrawer open={open} onOpenChange={setOpen} />
     </section>
   )
 }

@@ -31,15 +31,15 @@ function Sparkline({ values }: { values?: number[] }) {
 }
 
 function Stat({ metric, comparisonLabel, className }: { metric: KpiMetric; comparisonLabel: string; className?: string }) {
-  const d = delta(metric)
+  const d = metric.key === 'open' ? null : delta(metric)
   const chip = !d || d.good === null ? 'bg-surface-muted text-ink-muted' : d.good ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
   return (
     <div className={cn('flex min-w-0 flex-col bg-surface px-5 py-5', className)} data-testid={`kpi-card-${metric.key}`} title={metric.hint}>
       <p className="line-clamp-2 text-[13px] font-medium leading-5 text-ink-muted xl:min-h-10" title={metric.label}>{metric.label}</p>
       <p className="mt-2 text-[28px] leading-8 text-ink" data-testid={`kpi-value-${metric.key}`}><Num value={formatKpiValue(metric.value, metric.format)} /></p>
-      <p className="mt-2 flex min-h-[22px] flex-wrap items-center gap-x-1.5 gap-y-1 text-xs" data-testid={`kpi-delta-${metric.key}`} data-tone={d?.good === null ? 'neutral' : d?.good ? 'good' : 'bad'}>
+      <p className="mt-2 flex min-h-[22px] flex-wrap items-center gap-x-1.5 gap-y-1 text-xs" data-testid={`kpi-delta-${metric.key}`} data-tone={!d || d.good === null ? 'neutral' : d.good ? 'good' : 'bad'}>
         {!d ? (
-          <span className="text-ink-muted">{metric.value === null ? 'No data for this period' : 'No prior data'}</span>
+          <span className="text-ink-muted">{metric.key === 'open' ? 'Current snapshot' : metric.value === null ? 'No data for this period' : 'No prior data'}</span>
         ) : d.flat ? (
           <span className="rounded-full bg-surface-muted px-1.5 py-0.5 font-medium text-ink-muted">No change {comparisonLabel}</span>
         ) : (

@@ -1,6 +1,9 @@
-import { ExternalLink, Truck } from 'lucide-react'
+import { useState } from 'react'
+import { ExternalLink, RefreshCw, Truck } from 'lucide-react'
 import type { LoopLabelStatus, LoopOutcome, LoopReturn, LoopState } from '@/types'
 import { Num } from '@/components/Num'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
@@ -61,20 +64,46 @@ export function LoopReturnCard({ r }: { r: LoopReturn }) {
   )
 }
 
-export function LoopReturnsSection({ returns, lifetimeSpend, error, onRetry }: { returns?: LoopReturn[]; lifetimeSpend: number; error?: unknown; onRetry?: () => void }) {
+const STATE_FILTERS = [
+  ['all', 'Open, closed and expired', () => true],
+  ['open', 'Open & in review', (r: LoopReturn) => r.state === 'open' || r.state === 'in_review'],
+  ['closed', 'Closed', (r: LoopReturn) => r.state === 'closed'],
+  ['inactive', 'Cancelled & expired', (r: LoopReturn) => r.state === 'cancelled' || r.state === 'expired'],
+] as const
+const RANGES = [['all', 'All time', Infinity], ['90', 'Last 90 days', 90], ['365', 'Last 12 months', 365]] as const
+
+export function LoopReturnsSection({ returns: all, lifetimeSpend, error, onRetry }: { returns?: LoopReturn[]; lifetimeSpend: number; error?: unknown; onRetry?: () => void }) {
+  const [state, setState] = useState<string>('all')
+  const [range, setRange] = useState<string>('all')
+  const [looking, setLooking] = useState(false)
+  const days = RANGES.find((r) => r[0] === range)![2]
+  const match = STATE_FILTERS.find((f) => f[0] === state)![2]
+  const returns = all?.filter((r) => match(r) && (Date.now() - new Date(r.createdAt).getTime()) / 864e5 <= days)
+  const refresh = (fn?: () => void) => { setLooking(true); fn?.(); setTimeout(() => setLooking(false), 700) }
   const s = returns && loopStats(returns, lifetimeSpend)
   return (
     <section className="space-y-3 border-b border-border px-5 py-5" aria-label="Loop Returns" data-testid="loop-returns-section">
       <h3 className="flex items-center gap-2">
         <img src="/images/brand/loop-wordmark.svg" alt="Loop Returns" width={56} height={18} style={{ width: 56, height: 18 }} data-testid="loop-wordmark" />
         <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted" aria-hidden>Returns</span>
+        <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label="Refresh Loop returns" onClick={() => refresh(onRetry)} data-testid="loop-refresh"><RefreshCw className={cn(looking && 'animate-spin')} aria-hidden /></Button>
       </h3>
+      <div className="grid grid-cols-2 gap-2" data-testid="loop-filters">
+        <Select value={range} onValueChange={(v) => { setRange(v); refresh() }}>
+          <SelectTrigger className="h-9 text-xs max-sm:h-11" aria-label="Return date range" data-testid="loop-range"><SelectValue /></SelectTrigger>
+          <SelectContent>{RANGES.map(([id, l]) => <SelectItem key={id} value={id}>{l}</SelectItem>)}</SelectContent>
+        </Select>
+        <Select value={state} onValueChange={(v) => { setState(v); refresh() }}>
+          <SelectTrigger className="h-9 text-xs max-sm:h-11" aria-label="Return state" data-testid="loop-state-filter"><SelectValue /></SelectTrigger>
+          <SelectContent>{STATE_FILTERS.map(([id, l]) => <SelectItem key={id} value={id} data-testid={`loop-state-${id}`}>{l}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
       {error ? (
         <p className="text-xs text-red-700" data-testid="loop-error">Couldn't load Loop returns. <button type="button" onClick={onRetry} className="font-medium underline max-sm:min-h-11">Try again</button></p>
-      ) : !returns || !s ? (
-        <Skeleton className="h-24 w-full rounded-xl" />
+      ) : looking || !returns || !s ? (
+        <div className="space-y-2"><p className="text-xs text-ink-muted" role="status" data-testid="loop-looking">Looking up Loop returns…</p><Skeleton className="h-24 w-full rounded-xl" /></div>
       ) : returns.length === 0 ? (
-        <p className="text-sm text-ink-muted" data-testid="loop-empty">No returns with Loop</p>
+        <p className="text-sm text-ink-muted" data-testid="loop-empty">{all?.length ? 'No returns match these filters' : 'No returns with Loop'}</p>
       ) : (
         <>
           <dl className="grid grid-cols-3 gap-2" data-testid="loop-stats">

@@ -79,3 +79,9 @@ Admin (support lead), Agent (support rep), Customer (later phases), Backend deve
 
 ## Backlog
 - P2: real widget.js bundle (Vite IIFE entry), real backend swap per README section 7.
+
+## Phase 9 (Sep 2026): production IA restructure
+- New IA: Dashboard, Inbox | AI & Workflows (/ai: voice, replies, workflows, testing), Guidance, Channels (/channels: chat & form, email, install) | Settings (account, users, integrations, csat). Phone More sheet.
+- Inbox: Spam/Trash, + New ticket, short ids, pagination, Assign me / Resolve, AI replied banner, Email timing, delivery timeline, Reply/Internal note tabs, collapsible Customer & Shopify panel with order tools and Loop filters.
+- Integrations: Office 365 (id outlook), Loop Returns added, Configured/Connected/attention states. Fraud review notes.
+- Checks: scripts/phase9-check.mjs; shots in /app/memory/shots/phase9/.

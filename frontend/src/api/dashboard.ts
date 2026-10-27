@@ -134,3 +134,22 @@ function emptySummary(range: DateRange): DashboardSummary {
 export function getDashboardSummary(range: DateRange): Promise<DashboardSummary> {
   return request(() => compute(range), { empty: () => emptySummary(range) })
 }
+
+export interface ChatTimingWindow { medianFirstReplySec: number; medianReplySec: number; waitingNow: number; longestWaitSec: number }
+export interface ChatReplyTiming { windowLabel: string; current: ChatTimingWindow; previous: ChatTimingWindow }
+
+// GET /api/dashboard/chat-timing  — last 30 complete minutes vs the preceding 30
+export function getChatReplyTiming(): Promise<ChatReplyTiming> {
+  return request(() => {
+    const end = new Date()
+    end.setSeconds(0, 0)
+    end.setMinutes(end.getMinutes() - (end.getMinutes() % 30))
+    const start = new Date(end.getTime() - 30 * 60_000)
+    const t = (d: Date) => format(d, 'h:mm a')
+    return {
+      windowLabel: `${t(start)}–${t(end)}`,
+      current: { medianFirstReplySec: 14, medianReplySec: 38, waitingNow: 2, longestWaitSec: 192 },
+      previous: { medianFirstReplySec: 21, medianReplySec: 44, waitingNow: 3, longestWaitSec: 165 },
+    }
+  })
+}

@@ -48,7 +48,7 @@ export default function WidgetDemoPage() {
     if (k !== 'hostile') setJump((j) => ({ n: j.n + 1 }))
   }
   const list = products.data ?? []
-  const side = settings.data?.launcher.position === 'bottom-left' ? 'right' : 'left'
+  const side = settings.data?.launcher.position.endsWith('left') ? 'right' : 'left'
 
   return (
     <div id="top" className="min-h-screen bg-[#FBF8F3] font-sans text-[#2E2219]" data-testid="widget-demo-page">

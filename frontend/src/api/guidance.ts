@@ -10,7 +10,9 @@ export function saveArticle(input: ArticleInput, actor: SessionUser): Promise<Gu
     if (!input.title.trim()) throw new ApiError('Title is required.', 422)
     if (!input.body.trim()) throw new ApiError('Article body is required.', 422)
     const existing = db.guidanceArticles.find((a) => a.id === input.id)
-    const article: GuidanceArticle = { ...input, id: existing?.id ?? `ga-${Date.now()}`, title: input.title.trim(), updatedAt: now(), updatedBy: actor.name }
+    const version = (existing?.version ?? 0) + 1
+    const at = now()
+    const article: GuidanceArticle = { ...input, id: existing?.id ?? `ga-${Date.now()}`, title: input.title.trim(), updatedAt: at, updatedBy: actor.name, version, history: [{ version, editor: actor.name, at }, ...(existing?.history ?? [])].slice(0, 5) }
     db.guidanceArticles = existing ? db.guidanceArticles.map((a) => (a.id === article.id ? article : a)) : [article, ...db.guidanceArticles]
     return article
   })
@@ -41,6 +43,8 @@ export function importArticles(rows: ImportRow[], actor: SessionUser): Promise<{
         active: !/^(false|no|0|inactive)$/i.test(r.active?.trim() ?? ''),
         updatedAt: now(),
         updatedBy: actor.name,
+        version: 1,
+        history: [{ version: 1, editor: actor.name, at: now() }],
       }),
     )
     return { imported: valid.length, skipped: rows.length - valid.length }

@@ -37,6 +37,10 @@ export const db = {
   refunds: structuredClone(seed.refunds) as RefundRecord[],
   fraudAlerts: structuredClone(seed.fraudAlerts) as FraudAlert[],
   loopReturns: structuredClone(seed.loopReturns) as LoopReturn[],
+  brandVoice: structuredClone(seed.brandVoice),
+  contactForm: structuredClone(seed.contactForm),
+  emailChannel: structuredClone(seed.emailChannel),
+  notificationPrefs: structuredClone(seed.notificationPrefs),
 }
 
 // Keeps the ticket's fraud flag (Inbox shield + banner) in step with its open alert.

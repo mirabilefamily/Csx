@@ -1,6 +1,7 @@
-import type { AIDraft, BulkPatch, Message, NewMessage, SessionUser, Ticket, TicketDetail, TicketPatch } from '@/types'
+import type { AIDraft, BulkPatch, Message, NewMessage, NewTicketInput, SessionUser, Ticket, TicketDetail, TicketPatch } from '@/types'
 import { STATUS_LABELS } from '@/lib/labels'
-import { request } from './client'
+import { isValidEmail } from '@/lib/format'
+import { ApiError, request } from './client'
 import { db } from './db'
 
 const PRIORITY_LABELS = { low: 'Low', normal: 'Normal', high: 'High', urgent: 'Urgent' } as const
@@ -21,7 +22,7 @@ function detail(id: string): TicketDetail | null {
     customer: db.customers.find((c) => c.id === ticket.customer.id) ?? null,
     pastTickets: db.tickets.filter((t) => t.customer.id === ticket.customer.id && t.id !== id).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     guidanceTitles: Object.fromEntries(db.guidanceArticles.filter((a) => ids.has(a.id)).map((a) => [a.id, a.title])),
-    fraudAlert: db.fraudAlerts.find((a) => a.ticketId === id && a.status === 'open') ?? null,
+    fraudAlert: db.fraudAlerts.find((a) => a.ticketId === id && a.status === 'open') ?? db.fraudAlerts.find((a) => a.ticketId === id && a.reviewNote) ?? null,
   }
 }
 
@@ -117,5 +118,49 @@ export function restoreDraft(draft: AIDraft): Promise<TicketDetail> {
   return request(() => {
     if (!db.aiDrafts.some((d) => d.id === draft.id)) db.aiDrafts.push(draft)
     return mustDetail(draft.ticketId)
+  })
+}
+
+
+// POST /api/tickets/:id/set-aside  { where: 'spam' | 'trash' | null }
+export function setAside(id: string, where: 'spam' | 'trash' | null, actor: SessionUser): Promise<Ticket> {
+  return request(() => {
+    const t = mustDetail(id).ticket
+    t.setAside = where
+    t.updatedAt = now()
+    system(id, where ? `${actor.name} moved the ticket to ${where === 'spam' ? 'Spam' : 'Trash'}` : `${actor.name} restored the ticket`)
+    return t
+  })
+}
+
+// DELETE /api/tickets/:id  (only from Trash or Spam)
+export function deleteForever(id: string): Promise<{ id: string }> {
+  return request(() => {
+    const t = mustDetail(id).ticket
+    if (!t.setAside) throw new ApiError('Move the ticket to Trash first.', 409)
+    db.tickets = db.tickets.filter((x) => x.id !== id)
+    db.messages = db.messages.filter((m) => m.ticketId !== id)
+    return { id }
+  })
+}
+
+// POST /api/tickets  { email, name?, subject, channel, body, isInternal }
+export function createTicket(input: NewTicketInput, actor: SessionUser): Promise<Ticket> {
+  return request(() => {
+    if (!isValidEmail(input.email)) throw new ApiError('Enter a valid email address.', 422)
+    if (!input.subject.trim()) throw new ApiError('Add a subject.', 422)
+    const c = db.customers.find((x) => x.email.toLowerCase() === input.email.trim().toLowerCase())
+    const num = Math.max(...db.tickets.map((t) => Number(t.id.slice(3)) || 0)) + 1
+    const id = `GB-${num}`
+    const name = c?.name ?? (input.name?.trim() || input.email.split('@')[0])
+    const ticket: Ticket = {
+      id, subject: input.subject.trim(), preview: input.body.slice(0, 117), channel: input.channel, status: 'open', priority: 'normal', tags: [],
+      assignee: actor.id, resolvedBy: null, customer: { id: c?.id ?? `new-${num}`, name, email: input.email.trim() },
+      createdAt: now(), updatedAt: now(), escalationReason: null, orderNumber: null, setAside: null,
+    }
+    db.tickets.unshift(ticket)
+    system(id, `${actor.name} created the ticket`)
+    if (input.body.trim()) addMessage(id, { authorType: 'agent', authorName: actor.name, body: input.body.trim(), isInternal: input.isInternal })
+    return ticket
   })
 }

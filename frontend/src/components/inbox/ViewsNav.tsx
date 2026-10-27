@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { InboxViewId } from '@/types'
 import { INBOX_VIEWS } from '@/lib/inboxViews'
@@ -25,9 +26,10 @@ export function ViewsNav({ active, counts, loading }: Props) {
   return (
     <nav aria-label="Inbox views" className="hidden w-44 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border bg-surface p-3 wide:flex" data-testid="inbox-views">
       <p className="px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-wider text-ink-muted">Views</p>
-      {INBOX_VIEWS.map((v) => (
+      {INBOX_VIEWS.map((v, i) => (
+        <Fragment key={v.id}>
+        {v.group === 'set_aside' && INBOX_VIEWS[i - 1]?.group === 'views' && <p className="px-2 pb-2 pt-4 text-xs font-semibold uppercase tracking-wider text-ink-muted" data-testid="views-set-aside-heading">Set aside</p>}
         <button
-          key={v.id}
           type="button"
           onClick={() => setView(v.id)}
           aria-current={active === v.id ? 'page' : undefined}
@@ -49,6 +51,7 @@ export function ViewsNav({ active, counts, loading }: Props) {
             </span>
           )}
         </button>
+        </Fragment>
       ))}
     </nav>
   )
@@ -77,7 +80,7 @@ export function ViewsDropdown({ active, counts }: Props) {
 export function ViewsChips({ active, counts }: Props) {
   const setView = useSetView()
   return (
-    <nav aria-label="Inbox views" className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none]" data-testid="inbox-view-chips">
+    <nav aria-label="Inbox views" className="flex min-w-0 gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none]" data-testid="inbox-view-chips">
       {INBOX_VIEWS.map((v) => (
         <button
           key={v.id}

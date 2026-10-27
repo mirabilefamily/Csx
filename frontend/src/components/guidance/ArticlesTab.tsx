@@ -37,7 +37,7 @@ export function ArticlesTab({ articleId, openArticle }: { articleId: string | nu
   const [q, setQ] = useState('')
   const [category, setCategory] = useState('all')
   const [tag, setTag] = useState('all')
-  const [importing, setImporting] = useState(false)
+  const [active, setActive] = useState('all')
   useEffect(() => {
     setArticles(data ?? [])
   }, [data])
@@ -46,9 +46,9 @@ export function ArticlesTab({ articleId, openArticle }: { articleId: string | nu
   const tags = useMemo(() => [...new Set(articles.flatMap((a) => a.tags))].sort(), [articles])
   const rows = articles.filter((a) => {
     const s = q.trim().toLowerCase()
-    return (!s || a.title.toLowerCase().includes(s) || a.body.toLowerCase().includes(s)) && (category === 'all' || a.category === category) && (tag === 'all' || a.tags.includes(tag))
+    return (!s || a.title.toLowerCase().includes(s) || a.body.toLowerCase().includes(s)) && (category === 'all' || a.category === category) && (tag === 'all' || a.tags.includes(tag)) && (active === 'all' || a.active === (active === 'active'))
   })
-  const clear = () => { setQ(''); setCategory('all'); setTag('all') }
+  const clear = () => { setQ(''); setCategory('all'); setTag('all'); setActive('all') }
 
   const toggle = async (a: GuidanceArticle, active: boolean) => {
     try {
@@ -68,11 +68,18 @@ export function ArticlesTab({ articleId, openArticle }: { articleId: string | nu
   return (
     <div className="space-y-4" data-testid="articles-tab">
       <div className="flex flex-wrap items-center gap-2">
-        <Input type="search" placeholder="Search articles" aria-label="Search articles" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-64" data-testid="article-search" />
+        <Input type="search" placeholder="Search titles and text" aria-label="Search articles" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-64" data-testid="article-search" />
         <FilterSelect label="Categories" value={category} options={categories} onChange={setCategory} testId="article-category-filter" />
         <FilterSelect label="Tags" value={tag} options={tags} onChange={setTag} testId="article-tag-filter" />
+        <Select value={active} onValueChange={setActive}>
+          <SelectTrigger className="h-10 w-full sm:w-36" aria-label="Active status" data-testid="article-active-filter"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Active & inactive</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
         <div className="ml-auto flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setImporting(true)} data-testid="import-csv"><Upload aria-hidden /> Import CSV</Button>
           <Button variant="outline" data-testid="export-csv" onClick={() => downloadCsv('guidance-articles.csv', Papa.unparse(articles.map((a) => ({ title: a.title, body: a.body, category: a.category, tags: a.tags.join(';'), active: a.active, updatedAt: a.updatedAt }))))}><Download aria-hidden /> Export CSV</Button>
           <Button onClick={() => openArticle('new')} data-testid="new-article"><FilePlus2 aria-hidden /> New article</Button>
         </div>
@@ -86,37 +93,27 @@ export function ArticlesTab({ articleId, openArticle }: { articleId: string | nu
           <EmptyState compact title="No articles yet" description="Write your first article or import a CSV." testId="articles-empty" />
         ) : !rows.length ? (
           <EmptyState compact title="No articles match your search" icon={<SearchX className="h-5 w-5" aria-hidden />} action={<Button size="sm" variant="outline" onClick={clear} data-testid="articles-clear-filters">Clear filters</Button>} testId="articles-no-match" />
-        ) : isPhone ? (
+        ) : (
           <ul className="divide-y divide-border" data-testid="articles-table">
             {rows.map((a) => (
-              <li key={a.id} className="flex items-start gap-3 px-4 py-3" data-testid={`article-row-${a.id}`}>
+              <li key={a.id} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-surface-sunken max-sm:items-start max-sm:px-4" data-testid={`article-row-${a.id}`}>
                 <button type="button" onClick={() => openArticle(a.id)} className="min-h-11 min-w-0 flex-1 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`article-open-${a.id}`}>
                   <span className="block font-medium text-ink">{a.title}</span>
-                  <span className="mt-0.5 block text-xs text-ink-muted">{a.category} · {timeAgo(a.updatedAt)}</span>
-                  {a.tags.length > 0 && <span className="mt-1.5 flex flex-wrap gap-1">{a.tags.map((t) => <span key={t} className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink">{t}</span>)}</span>}
+                  <span className="mt-1.5 flex flex-wrap gap-1">
+                    <span className="rounded-full bg-tobacco-50 px-2 py-0.5 text-xs font-medium text-tobacco-800">{a.category}</span>
+                    {a.tags.map((t) => <span key={t} className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink">{t}</span>)}
+                  </span>
+                  {isPhone && <span className="mt-1 block text-xs text-ink-muted">v{a.version} · {stamp(a.updatedAt)}</span>}
                 </button>
+                {!isPhone && <span className="whitespace-nowrap text-xs tabular-nums text-ink-muted" data-testid={`article-version-${a.id}`}>v{a.version} · {stamp(a.updatedAt)}</span>}
                 <label className="flex min-h-11 items-center"><Switch checked={a.active} onCheckedChange={(v) => toggle(a, v)} aria-label={`${a.title} active`} data-testid={`article-active-${a.id}`} /></label>
               </li>
             ))}
           </ul>
-        ) : (
-          <Table data-testid="articles-table">
-            <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Category</TableHead><TableHead>Tags</TableHead><TableHead>Active</TableHead><TableHead>Last updated</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {rows.map((a) => (
-                <TableRow key={a.id} data-testid={`article-row-${a.id}`}>
-                  <TableCell className="min-w-[220px]"><button type="button" onClick={() => openArticle(a.id)} className="rounded text-left font-medium text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`article-open-${a.id}`}>{a.title}</button></TableCell>
-                  <TableCell className="whitespace-nowrap text-ink-muted">{a.category}</TableCell>
-                  <TableCell><span className="flex flex-wrap gap-1">{a.tags.map((t) => <span key={t} className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-ink">{t}</span>)}</span></TableCell>
-                  <TableCell><Switch checked={a.active} onCheckedChange={(v) => toggle(a, v)} aria-label={`${a.title} active`} data-testid={`article-active-${a.id}`} /></TableCell>
-                  <TableCell className="whitespace-nowrap text-ink-muted">{timeAgo(a.updatedAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         )}
       </Card>
-      <CsvImportDialog open={importing} onOpenChange={setImporting} onImported={() => setRev((r) => r + 1)} />
     </div>
   )
 }
+
+const stamp = (iso: string) => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })

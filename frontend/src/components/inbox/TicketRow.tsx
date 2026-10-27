@@ -6,6 +6,7 @@ import { AuthorBadge } from '@/components/AuthorBadge'
 import { FraudShield } from '@/components/dashboard/FraudBits'
 import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { shortId } from '@/lib/inboxViews'
 
 const RESOLVER_BADGE = { claude: 'claude', grokbot: 'grokbot', human: 'agent' } as const
 
@@ -15,9 +16,10 @@ interface Props {
   checked: boolean
   onCheck: (checked: boolean) => void
   selectable?: boolean
+  actions?: React.ReactNode
 }
 
-export function TicketRow({ t, active, checked, onCheck, selectable = true }: Props) {
+export function TicketRow({ t, active, checked, onCheck, selectable = true, actions }: Props) {
   const { search } = useLocation()
   const ChannelIcon = t.channel === 'email' ? Mail : MessageCircle
   return (
@@ -48,9 +50,10 @@ export function TicketRow({ t, active, checked, onCheck, selectable = true }: Pr
           {t.fraud && <FraudShield level={t.fraud.level} testId={`ticket-fraud-${t.id}`} />}
           {t.resolvedBy && (t.status === 'resolved' || t.status === 'closed') && <AuthorBadge type={RESOLVER_BADGE[t.resolvedBy]} />}
           {(t.priority === 'high' || t.priority === 'urgent') && <span className="text-[11px] font-semibold uppercase tracking-wide text-red-700">{t.priority}</span>}
-          <span className="ml-auto text-[11px] text-ink-subtle">{t.id}</span>
+          <span className="ml-auto text-[11px] font-medium text-ink-muted" title={t.id} data-testid={`ticket-short-id-${t.id}`}>{shortId(t.id)}</span>
         </span>
       </Link>
+      {actions && <div className="flex shrink-0 flex-col gap-1.5">{actions}</div>}
     </li>
   )
 }

@@ -252,7 +252,8 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   const shared = [ctx.loggedInCustomer && 'your account', ctx.currentProduct && 'the product you are viewing', ctx.cartContents && 'your cart'].filter(Boolean)
   const contextNote = shared.length ? `The assistant can see ${shared.join(', ')}.` : "The assistant doesn't see your account or cart."
 
-  const side = s.launcher.position === 'bottom-left' ? 'left' : 'right'
+  const side = s.launcher.position.endsWith('left') ? 'left' : 'right'
+  const vert = s.launcher.position.startsWith('top') ? 'top' : 'bottom'
   const off = isMobile ? s.launcher.mobileOffset : s.launcher.offset
   const size = launcherSize(s.launcher)
   const vars = {
@@ -274,7 +275,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   } as CSSProperties
   const panelStyle: CSSProperties = isSheet
     ? {}
-    : { [side]: off.x, bottom: off.y + size + 16, height: `min(640px, calc(100% - ${off.y + size + 32}px))`, maxWidth: `calc(100% - ${off.x * 2}px)` }
+    : { [side]: off.x, [vert]: off.y + size + 16, height: `min(640px, calc(100% - ${off.y + size + 32}px))`, maxWidth: `calc(100% - ${off.x * 2}px)` }
   const animation = bounce ? 'anim-bounce' : s.launcher.animation === 'pulse_once' && !open ? 'anim-pulse' : ''
 
   return (
@@ -342,7 +343,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
         </div>
       )}
       {!hidden && !isSheet && (
-        <div className={`gw-dock is-${side}`} style={{ [side]: off.x, bottom: off.y }} onKeyDown={(e) => e.key === 'Escape' && open && closePanel()}>
+        <div className={`gw-dock is-${side}${vert === 'top' ? ' is-top' : ''}`} style={{ [side]: off.x, [vert]: off.y }} onKeyDown={(e) => e.key === 'Escape' && open && closePanel()}>
           {!open && bubble === 'shown' && bubbleAllowed && <GreetingBubble text={greetingFor(s, firstName)} avatar={s.branding.aiAvatarUrl} onOpen={openPanel} onDismiss={() => setBubble('dismissed')} />}
           <Launcher settings={s.launcher} open={open} unread={unread} animation={animation} buttonRef={launcherRef} onToggle={open ? closePanel : openPanel} />
         </div>

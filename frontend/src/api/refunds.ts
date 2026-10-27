@@ -56,11 +56,11 @@ const find = (id: string) => {
 }
 
 // POST /api/fraud-alerts/:id/review  { action }
-export function reviewFraudAlert(id: string, action: FraudAction, actor: SessionUser): Promise<FraudReviewResult> {
+export function reviewFraudAlert(id: string, action: FraudAction, actor: SessionUser, note?: string): Promise<FraudReviewResult> {
   return request(() => {
     const a = find(id)
     if (a.status !== 'open') throw new ApiError('This alert was already reviewed.', 409)
-    Object.assign(a, { status: action, reviewedBy: actor.name, reviewedAt: new Date().toISOString() })
+    Object.assign(a, { status: action, reviewedBy: actor.name, reviewedAt: new Date().toISOString(), reviewNote: note?.trim() || null })
     let refund: RefundRecord | null = null
     if (action === 'held') {
       refund = db.refunds.find((r) => r.id === a.refundId && (r.stage === 'requested' || r.stage === 'approved')) ?? null

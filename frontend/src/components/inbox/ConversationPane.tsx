@@ -1,7 +1,10 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { ArrowLeft, Mail, MessageCircle, MoreHorizontal, PanelRight, SearchX } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Mail, MessageCircle, MoreHorizontal, PanelRight, SearchX } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { shortId } from '@/lib/inboxViews'
+import { AiRepliedBanner, EmailTiming } from './TicketBanners'
 import { DialogTrigger } from '@radix-ui/react-dialog'
 import { Dialog, DialogContent, DialogTitle, SheetGrabber } from '@/components/ui/dialog'
 import { useIsPhone, useVisualViewportHeight } from '@/hooks/useIsPhone'
@@ -114,6 +117,37 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
   }
   const fill = (s: string) => s.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (m, k: string) => vars[k] ?? m)
   const update = (patch: Parameters<typeof inboxApi.updateTicket>[1]) => user && run(() => inboxApi.updateTicket(ticketId, patch, user))
+  const aside = async (where: 'spam' | 'trash' | null) => {
+    if (!user) return
+    try {
+      const t = await inboxApi.setAside(ticketId, where, user)
+      upsert([t])
+      if (where) {
+        toast.success(`Moved to ${where === 'spam' ? 'Spam' : 'Trash'}`, { action: { label: 'Undo', onClick: () => void inboxApi.setAside(ticketId, null, user).then((r) => upsert([r])) } })
+        onBack()
+      } else {
+        setDetail(await inboxApi.getTicketDetail(ticketId))
+        toast.success('Ticket restored')
+      }
+    } catch { toast.error("Couldn't update ticket. Try again.") }
+  }
+  const resolved = ticket.status === 'resolved' || ticket.status === 'closed'
+  const resolve = (
+    <Button size="sm" onClick={() => update({ status: resolved ? 'open' : 'resolved' })} variant={resolved ? 'outline' : 'primary'} data-testid="ticket-resolve">
+      {resolved ? 'Reopen' : <><CheckCircle2 aria-hidden /> Resolve</>}
+    </Button>
+  )
+  const more = (
+    <DropdownMenu>
+      <DropdownMenuTrigger className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })} aria-label="More ticket actions" data-testid="ticket-more"><MoreHorizontal className="h-4 w-4" aria-hidden /></DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => aside('spam')} data-testid="ticket-move-spam">Move to spam</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => aside('trash')} data-testid="ticket-move-trash">Move to trash</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled data-testid="ticket-merge">Merge… <span className="ml-auto pl-3 text-xs text-ink-muted">Coming soon</span></DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
   const selects = (
     <>
       <HeaderSelect label="Status" value={ticket.status} onChange={(v) => update({ status: v as TicketStatus })} testId="header-status">
@@ -137,7 +171,7 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
             <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back to inbox" data-testid="conversation-back"><ArrowLeft aria-hidden /></Button>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-ink" data-testid="conversation-customer">{ticket.customer.name}</p>
-              <div className="flex items-center gap-1.5"><StatusPill status={ticket.status} /><span className="truncate text-xs text-ink-muted">{ticket.id}</span></div>
+              <div className="flex items-center gap-1.5"><StatusPill status={ticket.status} /><span className="truncate text-xs text-ink-muted">{shortId(ticket.id)}</span></div>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setDetailsOpen(true)} data-testid="details-toggle"><PanelRight aria-hidden /> Details</Button>
             <Dialog>
@@ -145,7 +179,14 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
               <DialogContent className="space-y-4 pt-3" aria-describedby={undefined} data-testid="ticket-actions-sheet">
                 <SheetGrabber />
                 <DialogTitle className="text-base font-semibold text-ink">{ticket.subject}</DialogTitle>
+                <p className="text-xs text-ink-muted">{ticket.customer.email} · {shortId(ticket.id)}</p>
                 {selects}
+                {ticket.assignee !== user?.id && <Button variant="outline" className="w-full" onClick={() => update({ assignee: user!.id })} data-testid="assign-me">Assign me</Button>}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={() => aside('spam')} data-testid="ticket-move-spam">Move to spam</Button>
+                  <Button variant="outline" onClick={() => aside('trash')} data-testid="ticket-move-trash">Move to trash</Button>
+                </div>
+                <div className="[&>button]:w-full">{resolve}</div>
               </DialogContent>
             </Dialog>
           </header>
@@ -155,26 +196,39 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
             <Button variant="ghost" size="sm" className="-ml-2 lg:hidden" onClick={onBack} data-testid="conversation-back"><ArrowLeft aria-hidden /> Back</Button>
             <div className="min-w-0 flex-1">
               <h2 className="text-base font-semibold text-ink md:text-lg" data-testid="conversation-subject">{ticket.subject}</h2>
-              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
-                <span className="font-medium text-ink">{ticket.id}</span><span aria-hidden>·</span>
-                <span>{ticket.customer.name}</span><span aria-hidden>·</span>
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted" data-testid="conversation-meta">
+                <span><span className="font-medium text-ink">{ticket.customer.name}</span> &lt;{ticket.customer.email}&gt;</span><span aria-hidden>·</span>
                 <span className="inline-flex items-center gap-1"><ChannelIcon className="h-3.5 w-3.5" aria-hidden /> {CHANNEL_LABELS[ticket.channel]}</span><span aria-hidden>·</span>
-                <span>Opened {timeAgo(ticket.createdAt)}</span>
+                <span>Opened {timeAgo(ticket.createdAt)}</span><span aria-hidden>·</span>
+                <span className="font-medium text-ink" title={ticket.id} data-testid="conversation-short-id">{shortId(ticket.id)}</span>
               </p>
             </div>
             <Button variant="outline" size="sm" className="lg:hidden" aria-expanded={detailsOpen} onClick={() => setDetailsOpen((o) => !o)} data-testid="details-toggle"><PanelRight aria-hidden /> Details</Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <EscalationChip steps={steps} />
-            <div className="ml-auto flex flex-nowrap items-center gap-2">{selects}</div>
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+              {selects}
+              {ticket.assignee !== user?.id && <Button variant="outline" size="sm" onClick={() => update({ assignee: user!.id })} data-testid="assign-me">Assign me</Button>}
+              {more}
+              {resolve}
+            </div>
           </div>
         </header>
         )}
+        {ticket.setAside && (
+          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-surface-muted px-4 py-2.5 text-sm md:px-6" data-testid="set-aside-banner">
+            <span>This ticket is in {ticket.setAside === 'spam' ? 'Spam' : 'Trash'}.</span>
+            <Button size="sm" variant="outline" onClick={() => aside(null)} data-testid="set-aside-restore">Restore</Button>
+          </div>
+        )}
         {detail.fraudAlert && <FraudBanner a={detail.fraudAlert} />}
+        <AiRepliedBanner d={{ ...detail, ticket }} />
+        <EmailTiming d={{ ...detail, ticket }} />
         <div ref={thread} className="min-h-0 flex-1 overflow-y-auto bg-background px-4 py-6 md:px-6 max-sm:py-4">
           {isPhone && steps.length > 1 && <div className="mb-4"><EscalationChip steps={steps} /></div>}
           <ol className="space-y-4" aria-label="Messages" data-testid="message-thread">
-            {detail.messages.map((m) => <MessageItem key={m.id} m={m} />)}
+            {detail.messages.map((m) => <MessageItem key={m.id} m={m} channel={ticket.channel} />)}
           </ol>
           {detail.drafts.length > 0 && (
             <ul className="mt-6 space-y-4" aria-label="Pending AI drafts">
@@ -207,6 +261,7 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
           macros={macros}
           fill={fill}
           onDraftChange={setEditingDraft}
+          to={ticket.customer.email}
           onSend={(html, isInternal, draftId) => (user ? run(() => inboxApi.sendMessage(ticketId, { html, isInternal, draftId }, user), isInternal ? 'Note added' : 'Reply sent') : Promise.resolve(false))}
         />
       </section>
@@ -216,7 +271,7 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
         data-testid={isPhone && detailsOpen ? 'ticket-details-sheet' : 'customer-panel'}
         data-state={collapsed ? 'collapsed' : 'open'}
       >
-        {collapsed && <CustomerRail name={ticket.customer.name} orders={detail.customer?.orders.length ?? 0} returns={loop.data?.length} fraud={!!detail.fraudAlert} onExpand={() => setCollapsed(false)} />}
+        {collapsed && <CustomerRail name={ticket.customer.name} orders={detail.customer?.orders.length ?? 0} returns={loop.data?.length} fraud={detail.fraudAlert?.status === 'open'} onExpand={() => setCollapsed(false)} />}
         <div id="customer-panel-body" className={collapsed ? 'lg:hidden' : undefined}>
           <DetailsSidebar d={{ ...detail, ticket }} loop={{ data: loop.data, error: loop.error, reload: loop.reload }} onClose={() => setDetailsOpen(false)} onCollapse={collapsed ? undefined : () => setCollapsed(true)} />
         </div>

@@ -20,8 +20,15 @@ type TicketSeed = [
 ]
 
 const D = 24
+const SET_ASIDE: Record<number, 'spam' | 'trash'> = { 1083: 'spam', 1082: 'spam', 1081: 'trash' }
 
 export const ticketSeeds: TicketSeed[] = [
+  [1083, 'Re: Your hat order, act now for 90% off', 'c19', 'email', 'closed', 'low', ['promo'], null, null, 9 * D, 9 * D,
+    'Congratulations! You have been selected for an exclusive reseller offer. Click here to claim wholesale pricing today.'],
+  [1082, 'SEO services for goorin.com', 'c18', 'email', 'open', 'low', [], null, null, 3 * D, 3 * D,
+    'Hi, I noticed your site is not ranking on page one. We can guarantee top rankings in 30 days for a small fee.'],
+  [1081, 'Duplicate: sizing question', 'c17', 'chat', 'closed', 'low', ['sizing'], null, null, 5 * D, 4 * D,
+    'Sorry, sent this twice. What size is a 7 1/4 in centimetres?'],
   [1080, 'Which size for a 22.5 inch head?', 'c02', 'chat', 'ai_handling', 'normal', ['sizing'], null, null, 0.3, 0.1,
     "Hi there! I measured my head at 22.5 inches. Which size should I order in the Mae Wide Brim? I don't want it to blow off at the beach."],
   [1079, 'Wholesale pricing for our Austin boutique', 'c03', 'email', 'open', 'normal', ['wholesale'], null, null, 2, 2,
@@ -122,6 +129,7 @@ export const tickets: Ticket[] = ticketSeeds.map(
       updatedAt: hoursAgo(upd),
       escalationReason: reason ?? null,
       orderNumber: orderNumber ?? null,
+      setAside: SET_ASIDE[num] ?? null,
     }
   },
 )

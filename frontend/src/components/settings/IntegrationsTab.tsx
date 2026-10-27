@@ -16,12 +16,13 @@ export const STATUS = {
   not_configured: { label: 'Not configured', cls: 'bg-surface-muted text-ink-muted', Icon: Circle },
 }
 
-export const META: Record<IntegrationId, { purpose: string; Icon: LucideIcon; tile: string }> = {
-  outlook: { purpose: 'Pulls email from support@goorin.com', Icon: Mail, tile: 'bg-slate-50 text-slate-700' },
+export const META: Record<IntegrationId, { purpose: string; Icon: LucideIcon; tile: string; logo?: string }> = {
+  outlook: { purpose: 'Mailbox support@goorin.com via Microsoft Graph', Icon: Mail, tile: 'bg-slate-50 text-slate-700', logo: 'microsoftoffice-color.svg' },
   shopify: { purpose: 'Orders, customers & app embed', Icon: ShoppingBag, tile: 'bg-green-50 text-green-700' },
-  claude: { purpose: 'Tier-1 AI replies', Icon: Sparkles, tile: 'bg-amber-50 text-amber-700' },
-  grokbot: { purpose: 'Tier-2 AI fallback', Icon: Bot, tile: 'bg-tobacco-50 text-tobacco-700' },
-  resend: { purpose: 'Transactional email & CSAT', Icon: Send, tile: 'bg-brass-50 text-brass-700' },
+  claude: { purpose: 'Tier-1 AI replies', Icon: Sparkles, tile: 'bg-amber-50 text-amber-700', logo: 'claude-color.svg' },
+  grokbot: { purpose: 'Tier-2 AI fallback', Icon: Bot, tile: 'bg-slate-700 text-white' },
+  resend: { purpose: 'Transactional email & CSAT', Icon: Send, tile: 'bg-brass-50 text-brass-700', logo: 'resend-color.svg' },
+  loop: { purpose: 'Returns, exchanges & store credit', Icon: Send, tile: 'bg-white', logo: 'loop-mark.svg' },
 }
 
 export const lastSync = (i: IntegrationStatus) => `Last sync: ${i.lastSyncAt ? timeAgo(i.lastSyncAt) : 'Never'}`
@@ -36,7 +37,19 @@ export function LogoTile({ id, size = 'md' }: { id: IntegrationId; size?: 'md' |
   const m = META[id]
   const box = size === 'lg' ? 'h-12 w-12' : 'h-11 w-11'
   if (id === 'shopify') return <span className={cn('flex shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-inset ring-border', box)}><ShopifyMark size={size === 'lg' ? 24 : 22} testId={`integration-logo-${id}`} /></span>
-  return <span className={cn('flex shrink-0 items-center justify-center rounded-xl', m.tile, size === 'lg' ? 'h-12 w-12' : 'h-11 w-11')} aria-hidden><m.Icon className="h-5 w-5" /></span>
+  if (m.logo) return <span className={cn('flex shrink-0 items-center justify-center rounded-xl bg-white ring-1 ring-inset ring-border', box)}><img src={`/images/brand/${m.logo}`} alt="" width={22} height={22} className="h-[22px] w-[22px] object-contain" data-testid={`integration-logo-${id}`} /></span>
+  return <span className={cn('flex shrink-0 items-center justify-center rounded-xl', m.tile, box)} aria-hidden data-testid={`integration-logo-${id}`}><m.Icon className="h-5 w-5" /></span>
+}
+
+const DOT = { connected: ['bg-green-600', 'Connected', 'text-green-800'], error: ['bg-red-600', 'Error', 'text-red-700'], not_configured: ['bg-slate-400', 'Not connected', 'text-ink-muted'] } as const
+
+export function ConnectionDot({ i }: { i: IntegrationStatus }) {
+  const [dot, label, text] = DOT[i.status]
+  return <span className={cn('inline-flex items-center gap-1.5 text-xs font-medium', text)} data-testid={`integration-connection-${i.id}`}><span className={cn('h-1.5 w-1.5 rounded-full', dot)} aria-hidden />{label}</span>
+}
+
+export function ConfiguredPill({ i }: { i: IntegrationStatus }) {
+  return <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', i.configured ? 'bg-surface-muted text-ink' : 'bg-white text-ink-muted ring-1 ring-inset ring-border')} data-testid={`integration-configured-${i.id}`}>{i.configured ? 'Configured' : 'Not configured'}</span>
 }
 
 export function Result({ r }: { r: TestResult | null }) {
@@ -62,17 +75,17 @@ export function Credentials({ i }: { i: IntegrationStatus }) {
 // One integration as a single focusable tile linking to its detail page.
 export function IntegrationTile({ i }: { i: IntegrationStatus }) {
   const m = META[i.id]
-  const reason = i.status !== 'connected' ? shortReason(i.error) : null
+  const attention = i.attention ?? (i.status === 'error' ? shortReason(i.error) : null)
   return (
     <Link
       to={`/settings/integrations/${i.id}`}
       className={cn(
         'group relative flex flex-col gap-4 overflow-hidden rounded-2xl bg-surface p-5 shadow-card ring-1 transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-popover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        i.status === 'error' ? 'ring-red-200' : i.status === 'not_configured' ? 'ring-slate-200' : 'ring-black/[0.04]',
+        attention ? 'ring-amber-200' : 'ring-black/[0.04]',
       )}
       data-testid={`integration-tile-${i.id}`}
     >
-      {i.status !== 'connected' && <span className={cn('absolute inset-y-0 left-0 w-1', i.status === 'error' ? 'bg-red-500' : 'bg-slate-300')} aria-hidden />}
+      {attention && <span className="absolute inset-y-0 left-0 w-1 bg-amber-500" aria-hidden data-testid={`integration-attention-edge-${i.id}`} />}
       <div className="flex items-start gap-3">
         <LogoTile id={i.id} />
         <div className="min-w-0 flex-1">
@@ -88,18 +101,22 @@ export function IntegrationTile({ i }: { i: IntegrationStatus }) {
         </div>
         <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink-subtle transition-transform group-hover:translate-x-0.5" aria-hidden />
       </div>
+      {attention && <p className="flex items-center gap-1.5 text-xs font-medium text-amber-800" data-testid={`integration-reason-${i.id}`}><AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Needs attention: {attention}</p>}
       <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1">
-        <StatusPill i={i} />
-        {reason && <span className={cn('flex items-center gap-1 text-xs font-medium', i.status === 'error' ? 'text-red-700' : 'text-ink-muted')} data-testid={`integration-reason-${i.id}`}>{i.status === 'error' && <AlertTriangle className="h-3 w-3" aria-hidden />}{reason}</span>}
-        <span className="ml-auto whitespace-nowrap text-xs text-ink-muted" data-testid={`integration-last-sync-${i.id}`}>{lastSync(i)}</span>
+        <ConfiguredPill i={i} />
+        <ConnectionDot i={i} />
+        <span className="ml-auto text-xs font-semibold text-tobacco-700 group-hover:underline" data-testid={`integration-manage-${i.id}`}>Manage</span>
       </div>
+      <span className="sr-only" data-testid={`integration-last-sync-${i.id}`}>{lastSync(i)}</span>
     </Link>
   )
 }
 
 function summary(list: IntegrationStatus[]) {
   const n = (st: IntegrationStatus['status']) => list.filter((i) => i.status === st).length
-  return `${n('connected')} connected · ${n('error')} error${n('error') === 1 ? '' : 's'} · ${n('not_configured')} not configured`
+  const att = list.filter((i) => i.attention && i.status === 'connected').length
+  const off = n('not_configured')
+  return [`${n('connected')} connected`, att && `${att} needs attention`, n('error') && `${n('error')} error${n('error') === 1 ? '' : 's'}`, off && `${off} not configured`].filter(Boolean).join(' · ')
 }
 
 const GRID = 'grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))]'
@@ -110,14 +127,18 @@ export function IntegrationsTab() {
     return (
       <div className="space-y-4" data-testid="integrations-loading">
         <Skeleton className="h-4 w-64" />
-        <div className={GRID}>{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[148px] w-full rounded-2xl" />)}</div>
+        <div className={GRID}>{[0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-[148px] w-full rounded-2xl" />)}</div>
       </div>
     )
   if (error) return <Card><ErrorState title="Integrations didn't load" onRetry={reload} testId="integrations-error" /></Card>
-  if (!data?.length) return <Card><EmptyState title="No integrations yet" description="Connect Outlook, Shopify and your AI providers to get started." testId="integrations-empty" /></Card>
-  const hasError = data.some((i) => i.status === 'error')
+  if (!data?.length) return <Card><EmptyState title="No integrations yet" description="Connect Office 365, Shopify and your AI providers to get started." testId="integrations-empty" /></Card>
+  const hasError = data.some((i) => i.status === 'error' || i.attention)
   return (
     <div className="space-y-4" data-testid="integrations-tab">
+      <div>
+        <h2 className="text-[15px] font-semibold text-ink">Integrations</h2>
+        <p className="mt-0.5 text-sm text-ink-muted" data-testid="integrations-helper">Services the desk connects to. Configured means setup is saved; Connected is the live check.</p>
+      </div>
       <p className="flex items-center gap-2 text-sm text-ink-muted" data-testid="integrations-summary">
         <span className={cn('h-2 w-2 rounded-full', hasError ? 'bg-amber-500' : 'bg-green-500')} aria-hidden />
         {summary(data)}

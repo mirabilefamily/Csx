@@ -30,6 +30,7 @@
 .gw-dock { position: absolute; display: flex; flex-direction: column; gap: 12px; pointer-events: auto; }
 .gw-dock.is-right { align-items: flex-end; }
 .gw-dock.is-left { align-items: flex-start; }
+.gw-dock.is-top { flex-direction: column-reverse; }
 .gw-launcher {
   position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   background: var(--gw-launcher-bg); color: var(--gw-launcher-fg); border-radius: 999px;

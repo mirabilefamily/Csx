@@ -20,6 +20,7 @@ import { Switch } from '@/components/ui/overlay'
 import { Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/skeleton'
 import { timeAgo } from '@/lib/format'
 import { SgIndex, SgSection as Section } from '@/components/styleguide/SgSection'
+import { Phase9Samples } from '@/components/styleguide/Phase9Samples'
 import { InboxSamples } from '@/components/styleguide/InboxSamples'
 import { WidgetSamples } from '@/components/styleguide/WidgetSamples'
 import { DashboardSamples, NavSamples, PhoneSamples, SegmentedSample, SettingsSamples } from '@/components/styleguide/AppPatterns'
@@ -187,6 +188,7 @@ export default function StyleguidePage() {
           <Section id="widget" title="Chat widget" description="Rendered through the real SupportWidget inside its Shadow DOM (contained mode, forced states), using the current widget settings."><WidgetSamples /></Section>
           <Section id="dashboard" title="Dashboard pieces"><DashboardSamples /></Section>
           <Section id="navigation" title="Sidebar nav item states"><NavSamples /></Section>
+          <Section id="phase9" title="Workspace patterns" description="Page tabs, sub-tabs, save state, integration status, delivery status and the AI replied banner."><Phase9Samples /></Section>
           <Section id="controls" title="Segmented control"><SegmentedSample /></Section>
           <Section id="settings" title="Settings patterns"><SettingsSamples /></Section>
           <Section id="phone" title="Phone patterns" description="Below 640px the sidebar becomes a bottom tab bar and modals, drawers and menus become bottom or full-screen sheets."><PhoneSamples /></Section>

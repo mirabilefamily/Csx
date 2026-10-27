@@ -11,6 +11,7 @@ import { EscalationChart, ResolvedByChart, TopTagsChart, VolumeChart } from '@/c
 import { CsatSection } from '@/components/dashboard/CsatSection'
 import { RefundsPanel } from '@/components/dashboard/RefundsPanel'
 import { FraudPanel } from '@/components/dashboard/FraudPanel'
+import { ChatTimingPanel } from '@/components/dashboard/ChatTimingPanel'
 import { formatRangeLabel, rangeForPreset } from '@/lib/dateRange'
 
 export default function DashboardPage() {
@@ -23,7 +24,7 @@ export default function DashboardPage() {
     <div className="space-y-8" data-testid="dashboard-page">
       <PageHeader
         title="Dashboard"
-        description={<>How the desk is doing, <span className="font-medium text-ink" data-testid="dashboard-range-label">{formatRangeLabel(range)}</span>.</>}
+        description={<>How the desk is doing, <span className="font-semibold text-ink" data-testid="dashboard-range-label">{formatRangeLabel(range)}</span>.</>}
         actions={<DateRangePicker preset={preset} range={range} onChange={(p, r) => { setPreset(p); setRange(r) }} />}
       />
       {error ? (
@@ -36,6 +37,7 @@ export default function DashboardPage() {
           <VolumeChart data={data} loading={loading} />
         </>
       )}
+      <ChatTimingPanel />
       <section aria-label="Refunds and fraud" className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2" data-testid="refunds-fraud-row">
         <RefundsPanel range={range} refreshKey={refundsKey} />
         <FraudPanel onReviewed={() => setRefundsKey((k) => k + 1)} />
