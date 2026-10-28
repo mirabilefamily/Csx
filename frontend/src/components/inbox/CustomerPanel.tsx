@@ -91,46 +91,42 @@ export function OrderCard({ o, defaultOpen = false, actions }: { o: ShopifyOrder
   const a = o.shippingAddress
   const count = o.lineItems.reduce((s, l) => s + l.quantity, 0)
   return (
-    <Collapsible.Root open={open} onOpenChange={setOpen} className="rounded-xl border border-border bg-surface" data-testid={`order-card-${o.id}`}>
+    <Collapsible.Root open={open} onOpenChange={setOpen} className="rounded-lg border border-border bg-surface" data-testid={`order-card-${o.id}`}>
       <div data-testid={`order-${o.number}`}>
-        <Collapsible.Trigger className={cn('flex w-full items-start gap-2 rounded-xl px-3 py-2.5 text-left', focusRing)} data-testid={`order-toggle-${o.id}`}>
-          <span className="min-w-0 flex-1">
-            <span className="flex items-baseline justify-between gap-2"><span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">{SHOP}{o.number}{o.isDraft && <span className="rounded-md border border-border px-1.5 text-[11px] font-medium text-ink-muted" data-testid={`order-draft-${o.id}`}>Draft</span>}</span><Num value={usd(o.total)} className="text-sm text-ink" testId={`order-total-${o.id}`} /></span>
-            <span className="block text-[11px] text-ink-muted" data-testid={`order-summary-${o.id}`}>{new Date(o.createdAt).toLocaleDateString('en-US')} • {count} item{count === 1 ? '' : 's'} • {usd(o.total)}</span>
-            <span className="mt-1.5 flex gap-1" aria-hidden>{o.lineItems.slice(0, 4).map((l) => <img key={l.sku} src={l.image} alt="" className="h-8 w-8 rounded-md object-cover ring-1 ring-border" loading="lazy" />)}</span>
-            <span className="mt-1.5 flex flex-wrap gap-1">
-              <span className={cn(PILL, PAY[o.financialStatus][1])} data-testid={`order-payment-${o.id}`}>{PAY[o.financialStatus][0]}</span>
-              <span className={cn(PILL, FUL[o.fulfillmentStatus][1])} data-testid={`order-fulfillment-${o.id}`}>{FUL[o.fulfillmentStatus][0]}</span>
-            </span>
+        <div className="px-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <a href={o.adminUrl} target="_blank" rel="noopener noreferrer" className={cn('inline-flex min-w-0 items-center gap-1 rounded text-[13px] font-semibold text-ink underline-offset-2 hover:underline max-sm:min-h-11', focusRing)} data-testid={`order-view-shopify-${o.id}`}>{o.number}<ExternalLink className="h-3 w-3 shrink-0 text-ink-muted" aria-hidden /><span className="sr-only">View in Shopify (opens in a new tab)</span></a>
+            {o.isDraft && <span className="rounded-md border border-border px-1.5 text-[11px] font-medium text-ink-muted" data-testid={`order-draft-${o.id}`}>Draft</span>}
+            <Num value={usd(o.total)} className="ml-auto text-[13px] font-semibold text-ink" testId={`order-total-${o.id}`} />
+            <Collapsible.Trigger className={cn('-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-ink-muted hover:bg-tobacco-50 max-sm:h-11 max-sm:w-11', focusRing)} aria-label={open ? 'Hide order details' : 'Show order details'} data-testid={`order-toggle-${o.id}`}>
+              <ChevronDown className={cn('h-4 w-4 transition-transform motion-reduce:transition-none', open && 'rotate-180')} aria-hidden />
+            </Collapsible.Trigger>
+          </div>
+          <p className="mt-0.5 text-xs text-ink-muted" data-testid={`order-summary-${o.id}`}>{new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · {count} item{count === 1 ? '' : 's'}</p>
+          <span className="mt-2 flex flex-wrap gap-1">
+            <span className={cn(PILL, PAY[o.financialStatus][1])} data-testid={`order-payment-${o.id}`}>{PAY[o.financialStatus][0]}</span>
+            <span className={cn(PILL, FUL[o.fulfillmentStatus][1])} data-testid={`order-fulfillment-${o.id}`}>{FUL[o.fulfillmentStatus][0]}</span>
           </span>
-          <ChevronDown className={cn('mt-1 h-4 w-4 shrink-0 text-ink-subtle transition-transform', open && 'rotate-180')} aria-hidden />
-          <span className="sr-only">{open ? 'Hide order details' : 'Show order details'}</span>
-        </Collapsible.Trigger>
-        {actions && <div className="px-3 pb-2.5">{actions}</div>}
-        <Collapsible.Content className="space-y-3 border-t border-border px-3 py-3">
+        </div>
+        <Collapsible.Content className="space-y-4 border-t border-border px-3 py-3">
           <ul className="space-y-2" aria-label="Line items">
             {o.lineItems.map((li) => (
               <li key={li.sku} className="flex items-center gap-2.5" data-testid={`order-line-${li.sku}`}>
                 <img src={li.image} alt="" className="h-10 w-10 shrink-0 rounded-md object-cover ring-1 ring-border" loading="lazy" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-medium text-ink">{li.title}</span>
-                  <span className="block text-[11px] text-ink-muted">{li.variant} · Qty {li.quantity}</span>
+                  <span className="block truncate text-[13px] font-medium text-ink">{li.title}</span>
+                  <span className="block text-xs text-ink-muted">{li.variant} · Qty {li.quantity}</span>
                 </span>
-                <Num value={usd(li.price)} className="text-xs text-ink" />
+                <Num value={usd(li.price)} className="text-[13px] text-ink" />
               </li>
             ))}
           </ul>
-          <div data-testid={`order-address-${o.id}`}>
-            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">Ship to</p>
-            <address className="mt-0.5 text-xs not-italic leading-relaxed text-ink">{a.name}<br />{a.line1}<br />{a.city}{a.region && `, ${a.region}`} {a.zip}<br />{a.country}</address>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            {o.trackingUrl ? (
-              <a href={o.trackingUrl} target="_blank" rel="noopener noreferrer" className={EXT} data-testid={`tracking-link-${o.number}`}>{o.carrier} {o.trackingNumber}{NEW_TAB}</a>
-            ) : <span className="text-xs text-ink-muted">No tracking yet</span>}
-            <a href={o.adminUrl} target="_blank" rel="noopener noreferrer" className={EXT} data-testid={`order-view-shopify-${o.id}`}>{SHOP}View in Shopify{NEW_TAB}</a>
-          </div>
+          <dl className="grid grid-cols-[96px_minmax(0,1fr)] gap-x-3 gap-y-2 text-[13px]">
+            <div className="contents" data-testid={`order-address-${o.id}`}><dt className="pt-0.5 text-ink-muted">Ship to</dt><dd className="min-w-0 text-ink"><address className="not-italic leading-snug">{a.name}, {a.line1}<br />{a.city}{a.region && `, ${a.region}`} {a.zip}, {a.country}</address></dd></div>
+            <div className="contents"><dt className="text-ink-muted">Tracking</dt><dd className="min-w-0">{o.trackingUrl ? <a href={o.trackingUrl} target="_blank" rel="noopener noreferrer" className={cn(EXT, 'text-[13px]')} data-testid={`tracking-link-${o.number}`}>{o.carrier} {o.trackingNumber}{NEW_TAB}</a> : <span className="text-ink-muted">No tracking yet</span>}</dd></div>
+          </dl>
         </Collapsible.Content>
+        {actions && <div className="border-t border-border px-3 py-1">{actions}</div>}
       </div>
     </Collapsible.Root>
   )

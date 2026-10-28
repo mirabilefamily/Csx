@@ -23,6 +23,7 @@ import { SgIndex, SgSection as Section } from '@/components/styleguide/SgSection
 import { Phase9Samples } from '@/components/styleguide/Phase9Samples'
 import { Phase10Samples } from '@/components/styleguide/Phase10Samples'
 import { Phase11Samples } from '@/components/styleguide/Phase11Samples'
+import { Phase14Samples } from '@/components/styleguide/Phase14Samples'
 import { InboxSamples } from '@/components/styleguide/InboxSamples'
 import { WidgetSamples } from '@/components/styleguide/WidgetSamples'
 import { DashboardSamples, NavSamples, PhoneSamples, SegmentedSample, SettingsSamples } from '@/components/styleguide/AppPatterns'
@@ -193,6 +194,7 @@ export default function StyleguidePage() {
           <Section id="phase9" title="Workspace patterns" description="Page tabs, sub-tabs, save state, integration status, delivery status and the AI replied banner."><Phase9Samples /></Section>
           <Section id="phase10" title="Modern Inbox" description="Views panel, Ask Goorin AI pill, handover summary and message cards."><Phase10Samples /></Section>
           <Section id="phase11" title="AI-first Inbox" description="Neutral view rows, Needs you card, Why you're here brief and the draft-first composer."><Phase11Samples /></Section>
+          <Section id="phase14" title="Chat widget (Phase 14)" description="Frosted home view, starter chips, pill input and thumbs, rendered inside the widget's Shadow DOM."><Phase14Samples /></Section>
           <Section id="controls" title="Segmented control"><SegmentedSample /></Section>
           <Section id="settings" title="Settings patterns"><SettingsSamples /></Section>
           <Section id="phone" title="Phone patterns" description="Below 640px the sidebar becomes a bottom tab bar and modals, drawers and menus become bottom or full-screen sheets."><PhoneSamples /></Section>

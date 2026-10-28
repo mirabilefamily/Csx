@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { INBOX_VIEWS } from '@/lib/inboxViews'
 import { cn } from '@/lib/utils'
+import { CountBadge } from './DetailParts'
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
 export const AI_HINT = isMac ? '⌘G' : 'Ctrl+G'
@@ -19,7 +20,7 @@ export const AI_HINT = isMac ? '⌘G' : 'Ctrl+G'
 export const viewRowCls = (active: boolean) => cn('flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md px-2.5 text-left text-[13px] transition-colors max-sm:h-11', active ? 'bg-tobacco-50 font-semibold text-ink' : 'font-medium text-ink hover:bg-surface-sunken', focusRing)
 export function ViewCount({ n, active, amber }: { n?: number; active: boolean; amber?: boolean }) {
   if (n === undefined) return null
-  return <span className={cn('ml-auto text-xs tabular-nums', amber && n > 0 ? 'font-semibold text-[#92400E]' : active ? 'font-semibold text-ink' : 'text-ink-muted')} data-testid="view-count">{n}</span>
+  return <span className="ml-auto"><CountBadge n={n} tone={amber ? 'amber' : active ? 'active' : undefined} testId="view-count" /></span>
 }
 
 function Row({ label, count, active, onClick, testId, menu, amber }: { label: string; count?: number; active: boolean; onClick: () => void; testId: string; menu?: React.ReactNode; amber?: boolean }) {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { CircleDot, ExternalLink, Eye, Filter, MessageSquareText, Palette, Star, type LucideIcon } from 'lucide-react'
+import { CircleDot, ExternalLink, Eye, Filter, Home, MessageSquareText, Palette, Star, type LucideIcon } from 'lucide-react'
+import { ConversationSection, HomeSection } from './HomeSection'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { SheetCloseButton } from '@/components/ui/sheet'
 import { useIsPhone } from '@/hooks/useIsPhone'
@@ -25,14 +26,15 @@ import { WidgetPreview, type PreviewOptions } from './WidgetPreview'
 import { sanitizeForPreview, validateWidget, type WidgetErrors } from './validate'
 
 const SECTIONS: [string, string, string, LucideIcon][] = [
-  ['branding', 'Branding', 'Colors, logo, avatars, font, corners and shadow', Palette],
-  ['launcher', 'Launcher', 'Icon, style, size, position and attention', CircleDot],
-  ['messaging', 'Messaging', 'Header, greeting, pre-chat, handoff, offline and quick replies', MessageSquareText],
+  ['branding', 'Look', 'Colours, panel style and logo', Palette],
+  ['launcher', 'Launcher', 'Icon, corner and spacing', CircleDot],
+  ['home', 'Home screen', 'Greeting, top buttons and conversation starters', Home],
+  ['conversation', 'Conversation', 'Chatbot name, feedback, email and offline message', MessageSquareText],
   ['display', 'Display rules', 'Where the widget shows and what the AI can see', Filter],
   ['csat', 'CSAT in chat', 'Inline survey style and questions', Star],
 ]
 
-const GROUPS = { appearance: ['branding', 'launcher', 'messaging'], preferences: ['display', 'csat'] } as const
+const GROUPS = { appearance: ['branding', 'launcher', 'home', 'conversation'], preferences: ['display', 'csat'] } as const
 
 function Loaded({ saved: initial, theme, view, group }: { saved: WidgetSettings; theme: ThemeEmbedSettings; view: 'editor' | 'install'; group?: keyof typeof GROUPS }) {
   const [saved, setSaved] = useState(initial)
@@ -41,7 +43,7 @@ function Loaded({ saved: initial, theme, view, group }: { saved: WidgetSettings;
   const isPhone = useIsPhone()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [open, setOpen] = useState<Set<string>>(() => new Set(['branding']))
-  const [opts, setOpts] = useState<PreviewOptions>({ page: 'product', device: 'desktop', state: 'active_chat', outsideHours: false })
+  const [opts, setOpts] = useState<PreviewOptions>({ page: 'product', device: 'desktop', state: 'home', outsideHours: false })
   const [saving, setSaving] = useState(false)
   const questions = useApi(() => csatApi.getCsatSurvey(), [])
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(saved), [draft, saved])
@@ -100,14 +102,15 @@ function Loaded({ saved: initial, theme, view, group }: { saved: WidgetSettings;
     )
 
   return (
-    <div className="grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,500px)] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,560px)] min-[1920px]:grid-cols-[minmax(0,1fr)_minmax(0,640px)]" data-testid="widget-settings">
-      <div className="min-w-0 space-y-3" data-testid="widget-settings-form">
+    <div className="grid gap-8 pb-24 lg:grid-cols-[minmax(0,640px)_minmax(0,440px)] lg:justify-between" data-testid="widget-settings">
+      <div className="min-w-0 space-y-3 [&_input:not([type=checkbox]):not([type=number]):not([type=color])]:max-w-[480px] [&_select]:max-w-[280px] [&_textarea]:max-w-[480px]" data-testid="widget-settings-form">
         <div className="flex justify-end"><SaveState dirty={dirty} testId="ws-save-state" /></div>
         {SECTIONS.filter(([id]) => !group || (GROUPS[group] as readonly string[]).includes(id)).map(([id, title, desc, Icon]) => (
           <Section key={id} id={id} title={title} description={desc} Icon={Icon} summary={sectionSummary(id, draft, theme)} open={open.has(id)} onToggle={() => toggle(id)}>
             {id === 'branding' && <BrandingSection draft={draft} update={update} uploadErrors={uploadErrors} setUploadError={setUploadError} />}
             {id === 'launcher' && <LauncherSection draft={draft} update={update} errors={errors} setUploadError={setUploadError} />}
-            {id === 'messaging' && <MessagingSection draft={draft} update={update} errors={errors} />}
+            {id === 'home' && <HomeSection draft={draft} update={update} />}
+            {id === 'conversation' && <ConversationSection draft={draft} update={update} />}
             {id === 'display' && <DisplaySection draft={draft} update={update} />}
             {id === 'csat' && <CsatInChatSection draft={draft} update={update} questions={questions.data?.questions} />}
           </Section>
@@ -132,11 +135,11 @@ function Loaded({ saved: initial, theme, view, group }: { saved: WidgetSettings;
           </Dialog>
         </>
       ) : (
-      <aside className="min-w-0 lg:sticky lg:top-20 lg:self-start" aria-label="Live preview">
+      <aside className="min-w-0 lg:sticky lg:top-6 lg:h-[calc(100vh-48px)] lg:self-start" aria-label="Live preview" data-testid="channels-preview">
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-[15px] font-semibold text-ink">Live preview</p>
-          <Button variant="outline" size="sm" onClick={previewOnStore} data-testid="preview-on-store">
-            <ExternalLink aria-hidden /> Preview on my store
+          <p className="text-[15px] font-semibold text-ink">Preview</p>
+          <Button variant="ghost" size="sm" onClick={previewOnStore} data-testid="preview-on-store">
+            <ExternalLink aria-hidden /> On my store
           </Button>
         </div>
         <WidgetPreview settings={preview} opts={opts} onChange={setOpts} />

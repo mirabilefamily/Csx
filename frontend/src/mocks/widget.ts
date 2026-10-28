@@ -2,7 +2,22 @@ import type { ShopifyInstallStatus, StoreProduct, ThemeEmbedSettings, WidgetSett
 import { hoursAgo } from './time'
 
 export const widgetSettings: WidgetSettings = {
+  home: {
+    cart: { enabled: true, label: 'Cart' },
+    track: { enabled: true, label: 'Track orders' },
+    showLastConversation: true,
+    starters: [
+      { id: 'st-returns', label: 'Returns Info', action: 'ai' },
+      { id: 'st-drops', label: 'Friday Drops Info', action: 'ai' },
+      { id: 'st-order', label: 'Where is my order?', action: 'workflow', workflowId: 'wf-order-tracking' },
+      { id: 'st-cancel', label: 'Can I cancel / edit my order?', action: 'ai' },
+      { id: 'st-wholesale', label: 'Wholesale Inquiry', action: 'workflow', workflowId: 'tpl-wholesale' },
+    ],
+  },
+  conversation: { botName: 'Goorin AI', thumbs: true, askEmailFirst: false },
   branding: {
+    panelStyle: 'frosted',
+    panelColor: '#E8E3D8',
     colors: {
       primary: '#6B4F3A',
       accent: '#B08D57',
@@ -15,18 +30,18 @@ export const widgetSettings: WidgetSettings = {
     logoUrl: '/images/brand/goorin-wordmark-cream.svg',
     aiAvatarUrl: '/images/brand/ai-avatar.svg',
     agentAvatarUrl: null,
-    font: 'inherit',
+    font: 'inter',
     radius: 14,
     shadow: 'soft',
   },
   launcher: {
-    icon: 'hat',
+    icon: 'chat',
     customIconUrl: null,
-    iconColor: '#FAF8F5',
-    backgroundColor: '#6B4F3A',
+    iconColor: '#1F1D1A',
+    backgroundColor: '#FFFFFF',
     style: 'circle',
     label: 'Need help?',
-    size: 'm',
+    size: 'l',
     position: 'bottom-right',
     offset: { x: 24, y: 24 },
     mobileOffset: { x: 16, y: 16 },

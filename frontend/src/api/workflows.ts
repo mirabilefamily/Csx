@@ -2,14 +2,14 @@ import type { RunOrder, Workflow, WorkflowTemplate } from '@/types'
 import { request, ApiError } from './client'
 import { db } from './db'
 import { orderTracking, workflowTemplates } from '@/mocks/workflows'
-import { matchesTrigger, validate } from '@/lib/workflowGraph'
+import { matchesTrigger, tidy, validate } from '@/lib/workflowGraph'
 
 // MOCKED process automations (Phase 13). In-memory; resets on reload.
 const now = () => new Date().toISOString()
 const uid = () => `wf-${Math.random().toString(36).slice(2, 8)}`
 
 // GET /api/workflows (list order = run priority)
-export const listWorkflows = () => request(() => db.workflows, { empty: () => [] })
+export const listWorkflows = () => request(() => db.workflows.map((w) => ({ ...w })), { empty: () => [] })
 
 // GET /api/workflows/:id
 export const getWorkflow = (id: string) => request(() => db.workflows.find((w) => w.id === id) ?? null)
@@ -21,7 +21,7 @@ export const listTemplates = () => request(() => workflowTemplates.map(({ id, na
 export const createWorkflow = (by: string, templateId?: string) =>
   request(() => {
     const tpl: WorkflowTemplate | undefined = workflowTemplates.find((t) => t.id === templateId)
-    const base = tpl ? tpl.build() : { name: 'Untitled workflow', description: '', trigger: { intent: '', phrases: [], channels: ['chat' as const], quickReply: null }, steps: [], edges: [] }
+    const base = tpl ? tidy(tpl.build()) : { name: 'Untitled workflow', description: '', trigger: { intent: '', phrases: [], channels: ['chat' as const], quickReply: null }, steps: [], edges: [] }
     const wf: Workflow = { id: uid(), status: 'draft', runs7d: 0, completedPct: null, handedPct: null, editedAt: now(), editedBy: by, templateId, ...base }
     db.workflows.push(wf)
     return wf
@@ -66,6 +66,13 @@ export const reorderWorkflows = (ids: string[]) => request(() => { db.workflows 
 export function activeWorkflowFor(text: string): Workflow | null {
   return db.workflows.find((w) => w.status === 'active' && w.trigger.channels.includes('chat') && matchesTrigger(w.trigger, text)) ?? null
 }
+
+export const activeWorkflowById = (id: string) => db.workflows.find((w) => w.id === id && w.status === 'active') ?? null
+// Workflows and templates a widget starter can point at; templates count as Off until created.
+export const starterWorkflowChoices = () => [
+  ...db.workflows.map((w) => ({ id: w.id, name: w.name, active: w.status === 'active' })),
+  ...workflowTemplates.filter((t) => !db.workflows.some((w) => w.name === t.name)).map((t) => ({ id: t.id, name: t.name, active: false })),
+]
 
 export const activeOrderTracking = () => db.workflows.find((w) => w.status === 'active' && w.trigger.intent === orderTracking().trigger.intent) ?? null
 

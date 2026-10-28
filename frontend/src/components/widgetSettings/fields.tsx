@@ -1,3 +1,4 @@
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/overlay'
 import { ShopifyMark } from '@/components/brand/ShopifyMark'
 import { useId, useRef, type ReactNode } from 'react'
 import { ChevronDown, Upload, X, type LucideIcon } from 'lucide-react'
@@ -69,23 +70,29 @@ interface ColorProps {
   source?: SettingSource
 }
 
-export function ColorField({ id, label, value, onChange, contrast, source }: ColorProps) {
+// Compact colour row: swatch (opens picker + brand presets) and a 120px hex input.
+export function ColorField({ id, label, value, onChange, contrast }: ColorProps) {
   const err = isHex(value) ? null : 'Enter a 6-digit hex color like #6B4F3A.'
   const warn = contrast && contrastWarning(contrast.fgIsThis === false ? contrast.against : value, contrast.fgIsThis === false ? value : contrast.against)
   return (
     <div data-testid={`ws-color-${id}`}>
-      <FieldLabel htmlFor={`ws-${id}`} hint={source && <SourceBadge source={source} />}>{label}</FieldLabel>
-      <div className="flex items-center gap-2 max-sm:flex-wrap">
-        <input type="color" aria-label={`${label} picker`} value={isHex(value) ? value : '#000000'} onChange={(e) => onChange(e.target.value.toUpperCase())} className="h-10 w-11 shrink-0 cursor-pointer rounded-md border border-border-strong bg-surface p-1" data-testid={`ws-${id}-picker`} />
-        <input id={`ws-${id}`} value={value} onChange={(e) => onChange(e.target.value.trim())} aria-invalid={!!err} aria-describedby={err ? `ws-${id}-error` : undefined} spellCheck={false} className={cn('h-10 w-[120px] rounded-md border bg-surface px-3 font-mono text-sm uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', err ? 'border-red-500' : 'border-border-strong')} data-testid={`ws-${id}-hex`} />
-        <div className="flex flex-wrap gap-1 max-sm:w-full max-sm:gap-1.5" role="group" aria-label={`${label} presets`}>
-          {PRESETS.map(([name, hex]) => (
-            <button key={hex} type="button" onClick={() => onChange(hex)} title={name} aria-label={`${name} ${hex}`} className={cn('h-6 w-6 rounded-full border border-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1', value.toUpperCase() === hex && 'ring-2 ring-tobacco-600 ring-offset-1')} style={{ background: hex }} data-testid={`ws-${id}-preset-${name.toLowerCase()}`} />
-          ))}
-        </div>
+      <FieldLabel htmlFor={`ws-${id}`}>{label}</FieldLabel>
+      <div className="flex items-center gap-2">
+        <Popover>
+          <PopoverTrigger className="h-9 w-9 shrink-0 rounded-lg border border-black/10 shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" style={{ background: isHex(value) ? value : '#fff' }} aria-label={`Choose ${label.toLowerCase()} colour`} data-testid={`ws-${id}-swatch`} />
+          <PopoverContent align="start" className="w-auto p-3" data-testid={`ws-${id}-popover`}>
+            <input type="color" aria-label={`${label} picker`} value={isHex(value) ? value : '#000000'} onChange={(e) => onChange(e.target.value.toUpperCase())} className="h-24 w-full cursor-pointer rounded-md border border-border" data-testid={`ws-${id}-picker`} />
+            <div className="mt-2 flex gap-1.5" role="group" aria-label={`${label} presets`}>
+              {PRESETS.slice(0, 8).map(([name, hex]) => (
+                <button key={hex} type="button" onClick={() => onChange(hex)} title={`${name} ${hex}`} aria-label={`${name} ${hex}`} className={cn('h-6 w-6 rounded-full border border-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', value.toUpperCase() === hex && 'ring-2 ring-ink ring-offset-1')} style={{ background: hex }} data-testid={`ws-${id}-preset-${hex.slice(1)}`} />
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <input id={`ws-${id}`} value={value} onChange={(e) => onChange(e.target.value.trim())} aria-invalid={!!err} aria-describedby={err ? `ws-${id}-error` : undefined} spellCheck={false} className={cn('h-9 w-[120px] rounded-lg border bg-surface px-2.5 font-mono text-sm uppercase text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', err ? 'border-red-600' : 'border-border-strong')} data-testid={`ws-${id}-hex`} />
       </div>
       <FieldError id={`ws-${id}-error`}>{err}</FieldError>
-      {!err && warn && <p className="mt-1.5 text-sm text-amber-700" data-testid={`ws-${id}-contrast`}>{contrast!.label}: {warn}</p>}
+      {!err && warn && <p className="mt-1.5 text-xs text-amber-700" data-testid={`ws-${id}-contrast`}>{contrast!.label}: {warn}</p>}
     </div>
   )
 }

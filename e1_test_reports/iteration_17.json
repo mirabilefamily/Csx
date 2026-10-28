@@ -1,0 +1,35 @@
+{
+  "iteration": 17,
+  "mode": "retest",
+  "phase": "13 and 11",
+  "base_url_used": "http://localhost:3000",
+  "passed": 12,
+  "failed": 0,
+  "bugs": [],
+  "action_items": [
+    {"type": "skipped_by_briefing", "severity": "low", "detail": "The widget part of p13-templates-widget-runtime (/widget-demo, JRN-165) and /channels were not run, as the briefing asked. The template test-panel part moved into the new check p13-templates-test-panel."},
+    {"type": "stale_regression_checks", "severity": "low", "detail": "Older checks p11-draft-editor and p11-summary-orders fail only on assertions that predate this spec: the old draft label and actions layout, and summary-rows docked at 1440 when it now docks only at ≥1600. The new criterion checks cover both behaviours and pass. These older checks need updating to the current spec; this is not an app defect."}
+  ],
+  "notes": [
+    "Demo pill: 32px round at bottom-left at 1440, overlapping no control. At 390 it is 44x44 at the top-right (x=338, y=68), also overlapping nothing. The spec says 32px bottom-left, so the builder should confirm whether the 44px phone touch-target version is intended.",
+    "On the first run of p11-inbox-header-dock-pill the app returned HTTP 500 for about 20s while the builder was editing at the same time. A rerun passed with no change, so this is environmental.",
+    "Card ratio: the widest message element to content column is about 0.90 (for example 582/646 at 1280). The briefing asks for about 78%, but the testid I measured may wrap the bubble, so I did not assert on it. Possible improvement only.",
+    "Header chips: 28px tall and 8px apart (Unassigned right edge 1066, SLA chip starts at 1074). Resolve 32px tall, ⋯ 32x32. The ‹ › pair is joined (1305/1305) and the header actions end at the brief's right edge (1338 = 1338)."
+  ],
+  "retest_needed": false,
+  "checks": [
+    {"criterion": "P13 editor guard, insert position, variables", "name": "p13-editor-list-view", "lane": "browser", "status": "passed", "evidence": "Trigger card shows 'Quick reply: Track my order'. Inserted step is #2 (step-card-trigger, ot-1, st-new, ot-2). The variable picker at the top offers only {channel}, {customer.name} and the tries vars. The issues line shows 1 issue. The back button raises the 'Discard unsaved changes?' dialog."},
+    {"criterion": "P13 canvas", "name": "p13-editor-canvas-sync", "lane": "browser", "status": "passed", "evidence": "14 nodes and 16 edges are laid out. The dropped node carries the warning class and is listed in Issues. A selected edge plus Delete takes edges from 16 to 15. Below 1024 the narrow-screen message shows (count 1)."},
+    {"criterion": "P13 list page and routing", "name": "p13-workflows-list-templates", "lane": "browser", "status": "passed", "evidence": "Stats show 'Handed to a person 14%'. The ⋯ menu is Edit Duplicate Test Rename Move up Move down Delete. Duplicating gives wf-5r835u. Renaming it to tscheck-renamed in the inline dialog updates the row. Delete shows 'Delete tscheck-renamed?' and the row is removed."},
+    {"criterion": "P13 list page and routing", "name": "p13-ai-design-routing", "lane": "browser", "status": "passed", "evidence": "The /ai subtitle matches exactly. Tabs are Brand voice | AI replies | Workflows | Routing | Conversation testing. Rules have grip and up/down controls; after a drag, rule-0's value is 250. No rows wrap at 1280."},
+    {"criterion": "P13 list page and routing", "name": "p13-validation-turn-on", "lane": "browser", "status": "passed", "evidence": "DUP WARNING reads 'Two active workflows use this trigger. The first one in the list runs.' Turning the flow on is blocked with 'Fix 3 issues before turning this on.'"},
+    {"criterion": "P13 test panel flows", "name": "p13-test-order-tracking", "lane": "browser", "status": "passed", "evidence": "The panel starts on the idle hint. 'where is my order' starts the flow. Wrong codes give 'You have 2 tries left.', then 'You have 1 try left.', then 'Run handed to Support'. Orders show '#GB20398 · $148.00 ... Shipped via UPS Track package' (3 Track buttons)."},
+    {"criterion": "P13 test panel flows", "name": "p13-templates-test-panel", "lane": "browser", "status": "passed", "evidence": "The Return template gives 'Your return #LR-3183 is started' with a 'Download return label' link. On Hat size, the I don't know button and typed text each show the tape tip and re-ask; 58 gives 'Size M or L fits you best.'"},
+    {"criterion": "P13 test panel flows", "name": "p13-phone-access", "lane": "browser", "status": "passed", "evidence": "Axe finds 0 violations on 6 AI routes. No phone overflow, and the sheet stays on screen at 390."},
+    {"criterion": "Inbox header, draft dock, demo pill", "name": "p11-inbox-header-dock-pill", "lane": "browser", "status": "passed", "evidence": "Divider is present, chips are h28 and 8px apart, Resolve is h32, ⋯ is 32x32, ‹ › are joined, and the actions' right edge equals the brief's (1338). The dock reads 'Draft by AI' with an amber 58% chip, source chips and ⋯ (Copy/Discard). The actions sit inside the card, and the expanded height is 384 at a 900px viewport. The pill is 32px at 1440 with 0 overlaps and overlaps nothing at 390. At 1024 the customer name is 118px wide."},
+    {"criterion": "Inbox width, sidebar, glow", "name": "p11-inbox-width-sidebar-glow", "lane": "browser", "status": "passed", "evidence": "The sidebar is 239px on both dashboard and inbox. After collapsing, it stays 71 when returning to inbox. Conversation width is 528, 720 and 880 at 1024, 1280 and 1440, with the summary as a 44px rail. Column/pane is 0.94-0.96 from 1280 to 1920. The brief has a round amber glow (0 0 0 3px plus 0 4px 16px) and equal 1px borders on both sides."},
+    {"criterion": "Details panel v2/v3 + Returns overflow", "name": "p11-details-panel-returns", "lane": "browser", "status": "passed", "evidence": "The email appears once, with the 'Matched by the ticket email' tooltip and copy, and the phone appears once. Sections: Orders 3, Returns 2, Ticket, Contact, Note, Past tickets 1, Feedback, AI activity 2. Loop line reads '2 returns · $58.00 returned · 13.3% of spend' with filters. GB-1058 shows only 'No returns with Loop' (no filters or stats). AI activity reads '63% confidence · Escalated' with no model id and 0 truncated. No overflow at 1440 or in the 340px drawer at 1024."},
+    {"criterion": "Claude → AI copy", "name": "p11-claude-to-ai-copy", "lane": "browser", "status": "passed", "evidence": "'Claude' count is 0 on dashboard, inbox, guidance and testing, and 1 each on Settings→Integrations and /ai/replies. The inbox shows 'Draft by AI'."}
+  ],
+  "backend": "No backend lane. The app is frontend-only and mocked (see test_credentials.md), with no API-bearing criteria."
+}

@@ -48,12 +48,12 @@ export function Panel({ title, description, action, loading, empty, error, onRet
   )
 }
 
-export function PillTabs<T extends string>({ tabs, value, onChange, label, testId }: { tabs: { id: T; label: string }[]; value: T; onChange: (v: T) => void; label: string; testId: string }) {
+export function PillTabs<T extends string>({ tabs, value, onChange, label, testId, size = 'md' }: { tabs: { id: T; label: string }[]; value: T; onChange: (v: T) => void; label: string; testId: string; size?: 'sm' | 'md' }) {
   return (
-    <div role="tablist" aria-label={label} className="inline-flex h-10 w-fit max-w-full gap-0.5 overflow-x-auto rounded-full bg-surface-muted p-1 max-sm:h-auto" data-testid={testId}>
+    <div role="tablist" aria-label={label} className={cn('inline-flex w-fit max-w-full gap-0.5 overflow-x-auto rounded-full bg-surface-muted p-1 max-sm:h-auto', size === 'sm' ? 'h-8' : 'h-10')} data-testid={testId}>
       {tabs.map((t) => (
         <button key={t.id} type="button" role="tab" id={`${testId}-${t.id}`} aria-selected={value === t.id} onClick={() => onChange(t.id)} data-testid={`${testId}-${t.id}`}
-          className={cn('h-8 shrink-0 whitespace-nowrap rounded-full px-3 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:h-11', value === t.id ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink')}>
+          className={cn('shrink-0 whitespace-nowrap rounded-full font-medium', size === 'sm' ? 'h-6 px-2.5 text-xs' : 'h-8 px-3 text-[13px]', ' transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:h-11', value === t.id ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink')}>
           {t.label}
         </button>
       ))}

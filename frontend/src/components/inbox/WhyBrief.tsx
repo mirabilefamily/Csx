@@ -18,7 +18,7 @@ export function WhyBrief({ d }: { d: TicketDetail }) {
   if (!b) return null
   const refresh = () => { setBusy(true); setTimeout(() => { setGen(new Date().toISOString()); setBusy(false) }, 600) }
   return (
-    <section className="mx-auto mb-6 max-w-[920px] scroll-mt-6 overflow-hidden rounded-xl border border-[#F1D9B0]/60 bg-surface shadow-glow-ai max-sm:mb-4 max-sm:shadow-glow-ai-sm" aria-label="Why you're here" data-testid="why-brief">
+    <section className="mb-6 w-full scroll-mt-6 overflow-hidden rounded-xl border border-[#F1D9B0]/60 bg-surface shadow-glow-ai max-sm:mb-4 max-sm:shadow-glow-ai-sm" aria-label="Why you're here" data-testid="why-brief">
       <div className="flex items-center gap-2.5 border-b border-border bg-tobacco-50/60 px-4 py-2.5 min-[1440px]:px-5" data-testid="why-brief-header">
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-tobacco-50 ring-1 ring-inset ring-tobacco-100" aria-hidden><Sparkles className="h-4 w-4 text-brass-600" /></span>
         <span className="text-xs font-medium text-ink-muted">Why you're here</span>

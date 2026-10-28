@@ -54,7 +54,7 @@ export function DraftCard({ draft, titles, busy, onApprove, onEdit, onDiscard, o
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-4" data-testid="draft-body-wrap">
         <div className="relative">
-          <p className={cn('whitespace-pre-wrap text-[14px] leading-[1.6] text-ink', !open && 'max-h-[calc(4*1.6em)] overflow-hidden')} data-testid="draft-body">{draft.body}</p>
+          <p className={cn('max-w-[90ch] whitespace-pre-wrap text-[14px] leading-[1.6] text-ink min-[1600px]:text-[15px]', !open && 'max-h-[calc(4*1.6em)] overflow-hidden')} data-testid="draft-body">{draft.body}</p>
           {!open && <span className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-surface to-transparent" aria-hidden data-testid="draft-fade" />}
         </div>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className={cn(LINK, 'mt-1 inline-flex min-h-7 items-center gap-1 max-sm:min-h-11')} data-testid="draft-expand">{open ? 'Show less' : 'Show full draft'}<ChevronDown className={cn('h-4 w-4 transition-transform motion-reduce:transition-none', open && 'rotate-180')} aria-hidden /></button>

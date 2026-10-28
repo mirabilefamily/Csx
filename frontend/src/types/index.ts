@@ -512,13 +512,27 @@ export type WidgetState =
   | 'offline'
   | 'csat'
   | 'transcript_sent'
+  | 'home'
+  | 'order_tracking'
 export type LauncherPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 export type CsatStyle = 'stars' | 'emoji' | 'numeric'
 export type FieldMode = 'required' | 'optional' | 'off'
 export interface Offset { x: number; y: number }
 
+export type StarterAction = 'ai' | 'workflow' | 'link'
+export interface WidgetStarter { id: string; label: string; action: StarterAction; workflowId?: string; url?: string }
 export interface WidgetSettings {
+  // Phase 14 home screen and conversation (REQ-786..799). MOCKED.
+  home: {
+    cart: { enabled: boolean; label: string }
+    track: { enabled: boolean; label: string }
+    starters: WidgetStarter[]
+    showLastConversation: boolean
+  }
+  conversation: { botName: string; thumbs: boolean; askEmailFirst: boolean }
   branding: {
+    panelStyle: 'frosted' | 'solid'
+    panelColor: string
     colors: {
       primary: string
       accent: string

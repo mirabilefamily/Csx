@@ -8,6 +8,8 @@ import { STORE_PAGES, type StorePage } from './storeTypes'
 
 export const WIDGET_STATES: { id: WidgetState; label: string }[] = [
   { id: 'launcher_closed', label: 'Launcher closed' },
+  { id: 'home', label: 'Home' },
+  { id: 'order_tracking', label: 'Order tracking' },
   { id: 'greeting_bubble', label: 'Greeting bubble' },
   { id: 'prechat', label: 'Pre-chat form' },
   { id: 'active_chat', label: 'Active chat' },

@@ -1,0 +1,120 @@
+// Phase 14 journeys JRN-168..176 (widget redesign + Channels chat settings). MOCKED. node scripts/phase14-check.mjs [baseUrl]
+import { chromium } from 'playwright-core'
+const BASE = process.argv[2] ?? 'http://localhost:4173'
+const OUT = '/app/memory/shots/phase14'
+const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] })
+const errs = []
+const log = (...a) => console.log(...a)
+const step = async (n, fn) => { try { await fn() } catch (e) { log(`FAIL ${n}: ${e.message.split('\n')[0]}`) } }
+const page = async (w, h, mobile = false) => { const p = await (await b.newContext({ viewport: { width: w, height: h }, isMobile: mobile, hasTouch: mobile })).newPage(); p.on('pageerror', (e) => errs.push(e.message)); return p }
+const login = async (p) => { await p.goto(`${BASE}/login`); await p.fill('input[type=email]', 'ava@goorin.com'); await p.fill('input[type=password]', 'goorin123'); await p.getByRole('button', { name: 'Sign in' }).click(); await p.waitForURL('**/dashboard') }
+const t = (p, s) => p.locator(s).first().innerText({ timeout: 4000 }).then((x) => x.replace(/\s+/g, ' ').trim()).catch(() => 'MISSING')
+const settle = (p, ms = 700) => p.waitForTimeout(ms)
+const bots = (p) => p.locator('[data-testid="widget-msg-ai"]').allInnerTexts()
+
+const p = await page(1440, 900)
+await step('JRN-168 launcher + home', async () => {
+  await p.goto(`${BASE}/widget-demo`); await settle(p, 1500)
+  const l = await p.locator('[data-testid="widget-launcher"]').boundingBox()
+  log('JRN-168 launcher size:', Math.round(l.width), 'x', Math.round(l.height), '| bg:', await p.locator('[data-testid="widget-launcher"]').evaluate((e) => getComputedStyle(e).backgroundColor))
+  await p.screenshot({ path: `${OUT}/widget-launcher.png`, clip: { x: l.x - 40, y: l.y - 40, width: l.width + 80, height: l.height + 60 } })
+  await p.click('[data-testid="widget-launcher"]'); await settle(p)
+  const panel = p.locator('[data-testid="widget-panel"]')
+  log('  panel:', await panel.evaluate((e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); return `${Math.round(r.width)}x${Math.round(r.height)} radius ${cs.borderTopLeftRadius} blur ${cs.backdropFilter}` }))
+  log('  title bar:', await p.locator('[data-testid="widget-header"]').count(), '| controls:', (await p.locator('[data-testid="widget-float-bar"] button').evaluateAll((els) => els.map((e) => `${e.getAttribute('aria-label') ?? e.textContent}:${Math.round(e.getBoundingClientRect().height)}`))).join(' '))
+  log('  starters:', (await p.locator('[data-testid^="widget-starter-"]').allInnerTexts()).join(' | '), '| last shown:', await p.locator('[data-testid="widget-starter-last"]').count())
+  log('  input:', await p.locator('[data-testid="widget-composer-input"]').getAttribute('placeholder'), '| footer:', await t(p, '[data-testid="widget-legal"]'), '| prechat form:', await p.locator('[data-testid="widget-prechat"]').count())
+  await p.screenshot({ path: `${OUT}/widget-home-1440.png` })
+})
+await step('JRN-169 conversation', async () => {
+  await p.click('[data-testid="widget-starter-st-returns"]'); await settle(p, 2600)
+  const ai = p.locator('[data-testid="widget-msg-ai"] .gw-ai-text').last()
+  log('JRN-169 AI text style:', await ai.evaluate((e) => { const cs = getComputedStyle(e); return `${cs.fontSize}/${(parseFloat(cs.lineHeight) / parseFloat(cs.fontSize)).toFixed(2)} bg ${cs.backgroundColor}` }), '| avatar:', await p.locator('[data-testid="widget-msg-ai"] .gw-avatar').count())
+  log('  customer bubble radius:', await p.locator('[data-testid="widget-msg-customer"] .gw-bubble-text').last().evaluate((e) => getComputedStyle(e).borderTopLeftRadius), '| back:', await p.locator('[data-testid="widget-back"]').count(), '| input:', await p.locator('[data-testid="widget-composer-input"]').getAttribute('placeholder'))
+  await p.locator('[data-testid="widget-thumb-up"]').last().click(); await settle(p, 200)
+  log('  thumb selected:', await p.locator('[data-testid="widget-thumb-up"]').last().evaluate((e) => `${e.getAttribute('aria-pressed')} ${getComputedStyle(e).backgroundColor}`))
+  await p.screenshot({ path: `${OUT}/widget-conversation-1440.png` })
+  await p.click('[data-testid="widget-back"]'); await settle(p)
+  log('  back → home with last conversation:', await p.locator('[data-testid="widget-starter-last"]').count())
+})
+await step('JRN-170 order tracking', async () => {
+  await p.click('[data-testid="widget-track"]'); await settle(p, 2200)
+  log('JRN-170 track pill starts workflow:', (await bots(p)).slice(-1)[0]?.slice(0, 90))
+  await p.click('[data-testid="widget-back"]'); await settle(p)
+  await p.click('[data-testid="widget-starter-st-order"]'); await settle(p, 2200)
+  log('  "Where is my order?" starter:', (await bots(p)).slice(-1)[0]?.slice(0, 90))
+  await p.fill('[data-testid="widget-composer-input"]', 'margaret.okonkwo@example.com'); await p.press('[data-testid="widget-composer-input"]', 'Enter'); await settle(p, 2500)
+  log('  after email:', (await bots(p)).slice(-1)[0]?.slice(0, 120))
+})
+await step('JRN-171 wholesale + cart + notice', async () => {
+  await p.click('[data-testid="widget-back"]'); await settle(p)
+  await p.click('[data-testid="widget-starter-st-wholesale"]'); await settle(p, 2600)
+  log('JRN-171 wholesale (workflow off → AI):', (await bots(p)).slice(-1)[0]?.slice(0, 90))
+  await p.click('[data-testid="widget-cart"]'); await settle(p, 300); log('  cart drawer on /widget-demo:', await p.locator('[data-testid="widget-cart-drawer"]').count()); await p.click('[data-testid="widget-cart-close"]')
+  await p.click('[data-testid="widget-ai-notice-open"]'); await settle(p, 300); log('  AI notice sheet:', await t(p, '[data-testid="widget-ai-notice"]')); await p.click('[data-testid="widget-notice-close"]')
+})
+await step('JRN-172 contrast on frosted panel', async () => {
+  await p.click('[data-testid="widget-back"]'); await settle(p)
+  // Sample the rendered panel pixels behind text and compute the contrast of #1F1D1A text against the lightest/darkest samples.
+  const box = await p.locator('[data-testid="widget-panel"]').boundingBox()
+  const st = await p.locator('[data-testid="widget-starters"]').boundingBox()
+  // Empty panel area to the right of the left-aligned starters: pure frosted background over the storefront.
+  const shot = await p.screenshot({ clip: { x: box.x + box.width - 72, y: st.y, width: 56, height: st.height } })
+  const res = await p.evaluate(async (b64) => {
+    const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode()
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const x = c.getContext('2d'); x.drawImage(img, 0, 0)
+    const d = x.getImageData(0, 0, c.width, c.height).data
+    const lum = (r, g, b) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+    let min = 1; for (let i = 0; i < d.length; i += 4 * 37) { const L = lum(d[i], d[i + 1], d[i + 2]); if (L < min) min = L }
+    const text = lum(0x1f, 0x1d, 0x1a), muted = lum(0x3d, 0x38, 0x32)
+    return { primary: ((min + 0.05) / (text + 0.05)).toFixed(2), muted: ((min + 0.05) / (muted + 0.05)).toFixed(2) }
+  }, shot.toString('base64'))
+  log(`JRN-172 contrast (darkest panel background sample): text ${res.primary}:1, muted ${res.muted}:1 -> ${res.primary >= 4.5 && res.muted >= 4.5 ? 'AA OK' : 'FAIL'}`)
+})
+await step('JRN-173 channels layout', async () => {
+  const q = await page(1440, 900); await login(q)
+  await q.goto(`${BASE}/channels/chat`); await settle(q, 1200)
+  log('JRN-173 tabs:', (await q.locator('[data-testid^="channels-tab-"]').allInnerTexts()).join(' · '), '| sub-tab levels:', await q.locator('[data-testid^="channels-panel-"], [data-testid^="channels-kind-"]').count())
+  const form = await q.locator('[data-testid="widget-settings-form"]').boundingBox(), prev = await q.locator('[data-testid="channels-preview"]').boundingBox()
+  log('  settings column', Math.round(form.width), '| preview', Math.round(prev.width), 'sticky:', await q.locator('[data-testid="channels-preview"]').evaluate((e) => getComputedStyle(e).position))
+  log('  sections:', (await q.locator('[data-testid="widget-settings-form"] section h3').allInnerTexts()).join(' > '))
+  const widest = await q.locator('[data-testid="widget-settings-form"] input:visible:not([type=checkbox]), [data-testid="widget-settings-form"] select:visible').evaluateAll((els) => Math.max(...els.map((e) => e.getBoundingClientRect().width)))
+  log('  widest input:', Math.round(widest), '(≤480) | caption:', await t(q, '[data-testid="preview-caption"]'))
+  log('  Claude in Channels copy:', await q.locator('[data-testid="channels-page"]').evaluate((e) => (e.innerText.match(/Claude/g) ?? []).length))
+  await q.screenshot({ path: `${OUT}/channels-chat-1440.png` })
+  for (const v of ['active_chat', 'order_tracking', 'home']) { await q.click(`[data-testid="preview-view-${v}"]`); await settle(q, 500) }
+  log('  preview views ok, phone toggle:', await q.locator('[data-testid="preview-device-mobile"]').count())
+  await q.setViewportSize({ width: 1920, height: 1080 }); await settle(q); await q.screenshot({ path: `${OUT}/channels-chat-1920.png` })
+  await q.setViewportSize({ width: 1440, height: 900 })
+  // starters editor
+  const tog = q.locator('[data-testid="ws-section-home"] button[aria-expanded]').first(); if ((await tog.getAttribute('aria-expanded')) !== 'true') await tog.click()
+  await q.waitForSelector('[data-testid="starters-editor"]')
+  await q.fill('[data-testid="starter-label-0"]', 'x'.repeat(41)); log('JRN-174 >40 chars:', await t(q, '[data-testid="starter-error-0"]'))
+  await q.fill('[data-testid="starter-label-0"]', ''); log('  empty:', await t(q, '[data-testid="starter-error-0"]'))
+  await q.fill('[data-testid="starter-label-0"]', 'Returns Info')
+  await q.selectOption('[data-testid="starter-action-1"]', 'link'); log('  link without url:', await t(q, '[data-testid="starter-error-1"]'))
+  await q.fill('[data-testid="starter-url-1"]', 'https://goorin.com/pages/drops'); log('  link ok:', (await t(q, '[data-testid="starter-error-1"]')) || 'none')
+  log('  wholesale off note:', await t(q, '[data-testid="starter-off-note-4"]'))
+  const v0 = await q.inputValue('[data-testid="starter-label-0"]'); await q.click('[data-testid="starter-down-0"]'); log('  move down:', (await q.inputValue('[data-testid="starter-label-1"]')) === v0)
+  await q.dragAndDrop('[data-testid="starter-grip-1"]', '[data-testid="starter-grip-0"]'); log('  drag reorder:', (await q.inputValue('[data-testid="starter-label-0"]')) === v0)
+  for (let i = 0; i < 4; i++) await q.click('[data-testid="starter-add"]').catch(() => {})
+  log('  max 8:', await q.locator('[data-testid^="starter-row-"]').count(), await t(q, '[data-testid="starter-limit"]'), '| add disabled:', await q.locator('[data-testid="starter-add"]').isDisabled())
+  await q.locator('[data-testid="starters-editor"]').screenshot({ path: `${OUT}/starters-editor-1440.png` })
+  const ct = q.locator('[data-testid="ws-section-conversation"] button[aria-expanded]').first(); if ((await ct.getAttribute('aria-expanded')) !== 'true') await ct.click()
+  log('JRN-175 ask-email default:', await q.locator('[data-testid="ws-ask-email"]').getAttribute('aria-checked'), '| thumbs:', await q.locator('[data-testid="ws-thumbs"]').getAttribute('aria-checked'))
+  // focus ring only on keyboard focus
+  await q.click('[data-testid="nav-channels"]').catch(() => {}); await settle(q, 300)
+  log('JRN-176 sidebar ring after mouse click:', await q.evaluate(() => { const a = document.activeElement; const cs = a && getComputedStyle(a); return cs ? `${cs.outlineStyle}/${cs.boxShadow === 'none' ? 'none' : 'shadow'}` : 'n/a' }))
+  await q.goto(`${BASE}/channels/form`); await settle(q, 800); log('  contact form tab:', await q.locator('[data-testid="contact-form-editor"]').count(), '| legacy ?kind=form redirect:', await q.goto(`${BASE}/channels/chat?kind=form`).then(() => settle(q, 500)).then(() => q.url().endsWith('/channels/form')))
+})
+await step('JRN-176 phone', async () => {
+  const m = await page(390, 844, true)
+  await m.goto(`${BASE}/widget-demo`); await settle(m, 1500); await m.click('[data-testid="widget-launcher"]'); await settle(m)
+  const r = await m.locator('[data-testid="widget-panel"]').boundingBox()
+  log('JRN-176 phone sheet:', Math.round(r.width), 'x', Math.round(r.height), '| overflow:', await m.evaluate(() => document.documentElement.scrollWidth > innerWidth))
+  await m.screenshot({ path: `${OUT}/widget-390.png` })
+  const q = await page(390, 844, true); await login(q); await q.goto(`${BASE}/channels/chat`); await settle(q, 1000)
+  log('  channels phone preview button:', await q.locator('[data-testid="preview-open"], button:has-text("Preview")').count(), '| overflow:', await q.evaluate(() => document.documentElement.scrollWidth > innerWidth))
+})
+log('page errors:', errs.length, [...new Set(errs)].slice(0, 3))
+await b.close()

@@ -30,33 +30,35 @@ export function TicketTags({ d, onPatch, allTags }: { d: TicketDetail; onPatch: 
   const shown = more ? tags : tags.slice(0, 3)
   const add = (t: string) => { const v = t.trim().toLowerCase(); if (v && !tags.includes(v)) onPatch({ tags: [...tags, v] }); setQ('') }
   return (
-    <div className="space-y-3" data-testid="ticket-details">
+    <div className="space-y-4" data-testid="ticket-details">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Tag className="h-3.5 w-3.5 text-ink-muted" aria-hidden />
         {shown.map((t) => (
-          <span key={t} className="inline-flex h-[22px] items-center gap-1 rounded-full bg-surface-muted pl-2 pr-0.5 text-xs text-ink-muted" data-testid={`ticket-tag-${t}`}>
+          <span key={t} className="inline-flex h-6 items-center gap-1 rounded-md bg-tobacco-50 pl-2 pr-0.5 text-xs text-ink" data-testid={`ticket-tag-${t}`}>
             <span className="h-2 w-2 rounded-full" style={{ background: viewsApi.TAG_COLORS[t] ?? '#8A7F73' }} aria-hidden />{t}
             <button type="button" aria-label={`Remove tag ${t}`} onClick={() => onPatch({ tags: tags.filter((x) => x !== t) })} className={cn('rounded-full p-0.5 hover:bg-surface-muted', focusRing)} data-testid={`ticket-tag-remove-${t}`}><X className="h-3 w-3" aria-hidden /></button>
           </span>
         ))}
         {tags.length > 3 && <button type="button" onClick={() => setMore(!more)} aria-expanded={more} className={cn('inline-flex min-h-6 items-center gap-0.5 rounded-full bg-surface-muted px-2 text-xs font-medium text-ink-muted', focusRing)} data-testid="ticket-tags-overflow">{more ? 'Less' : `+${tags.length - 3}`}<ChevronDown className={cn('h-3 w-3', more && 'rotate-180')} aria-hidden /></button>}
         <Popover>
-          <PopoverTrigger aria-label="Add tag" className={cn('inline-flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-border-strong text-ink-muted hover:text-ink max-sm:h-11 max-sm:w-11', focusRing)} data-testid="ticket-tag-add"><Plus className="h-3.5 w-3.5" aria-hidden /></PopoverTrigger>
+          <PopoverTrigger className={cn('inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-medium text-ink-muted hover:bg-tobacco-50 hover:text-ink max-sm:h-11', focusRing)} data-testid="ticket-tag-add"><Plus className="h-3.5 w-3.5" aria-hidden />Add tag</PopoverTrigger>
           <PopoverContent align="start" className="w-60 p-2">
             <form onSubmit={(e) => { e.preventDefault(); add(q) }}><Input autoFocus aria-label="Tag name" placeholder="Add or search tags" className="h-9" value={q} onChange={(e) => setQ(e.target.value)} data-testid="ticket-tag-input" /></form>
             <ul className="mt-2 max-h-40 overflow-y-auto">{allTags.filter((t) => !tags.includes(t) && t.includes(q.toLowerCase())).slice(0, 8).map((t) => <li key={t}><button type="button" onClick={() => add(t)} className={cn('flex min-h-8 w-full items-center gap-2 rounded px-2 text-left text-sm hover:bg-surface-muted', focusRing)} data-testid={`ticket-tag-option-${t}`}><span className="h-2 w-2 rounded-full" style={{ background: viewsApi.TAG_COLORS[t] ?? '#8A7F73' }} aria-hidden />{t}</button></li>)}</ul>
           </PopoverContent>
         </Popover>
       </div>
-      <Disclosure label="Ticket fields" testId="ticket-fields-toggle">
+      <dl className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 text-[13px]" data-testid="ticket-fields">
         {viewsApi.TICKET_FIELDS.map((f) => (
-          <label key={f.id} className="block text-xs text-ink-muted">{f.label}
-            <select value={fields[f.id] ?? ''} onChange={(e) => setFields({ ...fields, [f.id]: e.target.value })} className="mt-1 h-9 w-full rounded-lg border border-border-strong bg-surface px-2 text-sm text-ink" data-testid={`ticket-field-${f.id}`}>
-              <option value="">Not set</option>{f.options.map((o) => <option key={o}>{o}</option>)}
-            </select>
-          </label>
+          <div key={f.id} className="contents">
+            <dt className="flex min-h-7 items-center text-ink-muted"><label htmlFor={`tf-${f.id}`}>{f.label}</label></dt>
+            <dd className="flex min-h-7 items-center">
+              <select id={`tf-${f.id}`} value={fields[f.id] ?? ''} onChange={(e) => setFields({ ...fields, [f.id]: e.target.value })} className={cn('-ml-[5px] h-7 w-[calc(100%+5px)] cursor-pointer rounded-md border border-transparent bg-transparent px-1 text-[13px] hover:border-border hover:bg-tobacco-50 max-sm:h-11', fields[f.id] ? 'text-ink' : 'text-ink-subtle', focusRing)} data-testid={`ticket-field-${f.id}`}>
+                <option value="">Not set</option>{f.options.map((o) => <option key={o}>{o}</option>)}
+              </select>
+            </dd>
+          </div>
         ))}
-      </Disclosure>
+      </dl>
     </div>
   )
 }
@@ -75,30 +77,28 @@ export function CustomerRows({ email, c }: { email: string; c: Customer | null }
   )
 }
 
+import { CountBadge } from './DetailParts'
 export function PastTickets({ d }: { d: TicketDetail }) {
   const { search } = useLocation()
   const [all, setAll] = useState(false)
-  const list = all ? d.pastTickets : d.pastTickets.slice(0, 1)
-  if (!d.pastTickets.length) return <p className="text-sm text-ink-muted">No other tickets from this customer</p>
+  const list = all ? d.pastTickets : d.pastTickets.slice(0, 3)
+  if (!d.pastTickets.length) return <p className="text-[13px] text-ink-muted">No other tickets from this customer</p>
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-ink-muted" data-testid="past-tickets-count">{d.pastTickets.length} ticket{d.pastTickets.length === 1 ? '' : 's'}</span>
-        {d.pastTickets.length > 1 && <Button variant="ghost" size="sm" onClick={() => setAll(!all)} data-testid="past-tickets-show-all">{all ? 'Show less' : <>Show all <ChevronRight aria-hidden /></>}</Button>}
-      </div>
       <ul className="space-y-1.5">
         {list.map((t) => {
           const Icon = t.channel === 'email' ? Mail : MessageCircle
           return (
             <li key={t.id}>
-              <Link to={{ pathname: `/inbox/${t.id}`, search }} className="block rounded-lg border border-border p-2.5 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`past-ticket-${t.id}`}>
-                <span className="flex items-center gap-1.5 text-sm font-medium text-ink"><Icon className="h-3.5 w-3.5 shrink-0 text-ink-muted" aria-hidden /><span className="truncate">{t.subject}</span></span>
-                <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-muted"><span>{timeAgo(t.updatedAt)}</span>{t.tags[0] && <span>· {t.tags[0]}</span>}<StatusPill status={t.status} /></span>
+              <Link to={{ pathname: `/inbox/${t.id}`, search }} className="block rounded-lg border border-border px-3 py-2.5 hover:bg-tobacco-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`past-ticket-${t.id}`}>
+                <span className="flex items-center gap-1.5 text-[13px] font-medium text-ink"><Icon className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden /><span className="truncate">{t.subject}</span></span>
+                <span className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted"><span>{timeAgo(t.updatedAt)}{t.tags[0] && ` · ${t.tags[0]}`}</span><span className="ml-auto"><StatusPill status={t.status} /></span></span>
               </Link>
             </li>
           )
         })}
       </ul>
+      {d.pastTickets.length > 3 && <Button variant="ghost" size="sm" className="-ml-2 text-ink-muted" onClick={() => setAll(!all)} data-testid="past-tickets-show-all">{all ? 'Show less' : <>Show all <CountBadge n={d.pastTickets.length} /></>}</Button>}
     </div>
   )
 }

@@ -22,13 +22,14 @@ async function login(page, email = 'ava@goorin.com') {
 const go = async (path) => { await p.goto(`${BASE}${path}`); await p.waitForLoadState('networkidle'); await p.waitForTimeout(800) }
 const ids = (sel) => p.locator(sel).evaluateAll((els) => els.map((e) => e.dataset.testid.replace(/^ticket-link-/, '')))
 
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+const ctx = await browser.newContext({ viewport: { width: 1680, height: 900 } })
 p = await ctx.newPage()
 p.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
 p.on('pageerror', (e) => errors.push(`PAGEERROR ${e.message}`))
 await login(p)
 
 await step('JRN-134 opens on needs you', async () => {
+  await p.setViewportSize({ width: 1440, height: 900 })
   await go('/inbox')
   log('JRN-134 view:', await txt(p, '[data-testid="views-dropdown"]'), '| status line:', await txt(p, '[data-testid="ai-status-line"]'))
   const opts = []
@@ -36,6 +37,7 @@ await step('JRN-134 opens on needs you', async () => {
   for (const o of await p.locator('[role="option"]').all()) opts.push((await o.innerText()).trim())
   await p.keyboard.press('Escape')
   log('JRN-134 switcher:', opts.join(' | '))
+  await p.setViewportSize({ width: 1680, height: 900 })
 })
 
 await step('JRN-135 cards + sort', async () => {
@@ -120,7 +122,7 @@ await step('JRN-141 header + menu', async () => {
 await step('JRN-142 summary', async () => {
   await go('/inbox/GB-1076?view=needs_you')
   for (const r of ['customer', 'order', 'returns', 'risk']) log(`JRN-142 ${r}:`, await txt(p, `[data-testid="summary-${r}"]`))
-  await p.click('[data-testid="summary-toggle-full"]')
+  await p.click('[data-testid="summary-view-details"]')
   log('JRN-142 full sections:', (await p.locator('[data-testid="full-details"] section h2, [data-testid="full-details"] [data-testid$="-section"]').count()), await has(p, '[data-testid="past-tickets"]'))
   await go('/inbox/GB-1065?view=needs_you')
   log('JRN-142 persisted full:', await has(p, '[data-testid="full-details"]'))
@@ -130,7 +132,7 @@ await step('JRN-142 summary', async () => {
 
 await step('JRN-143 orders', async () => {
   await go('/inbox/GB-1076?view=needs_you')
-  if (!(await has(p, '[data-testid="full-details"]'))) await p.click('[data-testid="summary-toggle-full"]')
+  if (!(await has(p, '[data-testid="full-details"]'))) await p.click('[data-testid="summary-view-details"]')
   log('JRN-143 GB19790 total:', await txt(p, '[data-testid="order-total-order-19790"]'))
   await p.click('[data-testid="order-refund-order-19790"]')
   log('JRN-143 refundable:', await txt(p, '[data-testid="refund-available"]'))
@@ -152,7 +154,7 @@ await step('JRN-143 orders', async () => {
   log(`JRN-143 edit applied ${oid}:`, await txt(p, `[data-testid="order-total-${oid}"]`))
   await p.locator('[data-testid^="order-duplicate-"]').first().click(); await p.click('[data-testid="order-dialog-confirm"]'); await p.click('[data-testid="order-action-done"]'); await p.waitForTimeout(500)
   log('JRN-143 duplicate draft cards:', await p.locator('[data-testid^="order-draft-"]').count())
-  await p.click('[data-testid="shopify-create-order"]')
+  await p.click('[data-testid="shopify-orders-menu"]'); await p.click('[data-testid="shopify-create-order"]')
   log('JRN-143 create disabled empty:', await p.locator('[data-testid="order-dialog-confirm"]').isDisabled())
   await p.fill('[data-testid="create-order-search"]', 'fedora'); await p.waitForTimeout(400)
   await p.locator('[data-testid^="create-order-product-"]').first().click()
@@ -235,7 +237,7 @@ await pp.click('[data-testid="ticket-actions-trigger"]'); await pp.waitForTimeou
 log('phone ask AI in menu:', await pp.locator('[data-testid="ticket-ask-ai"]').isVisible())
 await pp.keyboard.press('Escape')
 await pp.click('[data-testid="details-toggle"]'); await pp.waitForTimeout(300)
-await pp.click('[data-testid="summary-toggle-full"]').catch(() => {})
+await pp.click('[data-testid="summary-view-details"]').catch(() => {})
 await pp.locator('[data-testid^="order-refund-"]').first().click()
 const box = await pp.locator('[data-testid="order-dialog-refund"]').boundingBox()
 log('phone order dialog full-screen:', box && Math.round(box.width), box && Math.round(box.height))
@@ -243,13 +245,13 @@ log('phone overflow:', await pp.evaluate(() => document.documentElement.scrollWi
 
 // Iteration 14 fixes: brief vs draft vs summary vs Ask AI share one data source; widths; status line.
 {
-  const cx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const cx = await browser.newContext({ viewport: { width: 1680, height: 900 } })
   const q = await cx.newPage()
   await login(q)
   const money = (t) => (t.match(/\$[\d,]+\.\d\d/g) ?? [])
   for (const id of ['GB-1076', 'GB-1064', 'GB-1068']) {
     await q.goto(`${BASE}/inbox/${id}?view=all`); await q.waitForSelector('[data-testid="message-thread"]'); await q.waitForTimeout(700)
-    if (await q.locator('[data-testid="summary-rows"]').count() === 0 && await q.locator('[data-testid="summary-toggle-full"]').count()) await q.click('[data-testid="summary-toggle-full"]')
+    if (await q.locator('[data-testid="summary-rows"]').count() === 0 && await q.locator('[data-testid="summary-view-details"]').count()) await q.click('[data-testid="summary-view-details"]')
     const did = await txt(q, '[data-testid="why-brief-did"]')
     const draft = await txt(q, '[data-testid="draft-confidence"]')
     const ret = await txt(q, '[data-testid="summary-returns"]')
@@ -300,5 +302,25 @@ log('phone overflow:', await pp.evaluate(() => document.documentElement.scrollWi
   await cx.close()
 }
 
+await step('Details overflow', async () => {
+  for (const w of [1024, 1440, 1680]) {
+    await p.setViewportSize({ width: w, height: 900 })
+    for (const id of ['GB-1076', 'GB-1068', 'GB-1058']) {
+      await p.goto(`${BASE}/inbox/${id}`); await p.waitForSelector('[data-testid="message-thread"]'); await p.waitForTimeout(500)
+      const drawer = w < 1600
+      if (drawer) { await p.click('[aria-label="Expand details panel"]'); await p.waitForTimeout(300) }
+      const root = drawer ? '[data-testid="details-drawer"]' : '[data-testid="customer-panel"]'
+      if (!(await p.locator(`${root} [data-testid="details-sidebar"]`).count())) { await p.click(`${root} [data-testid="summary-view-details"]`); await p.waitForTimeout(400) }
+      const bad = await p.locator(root).first().evaluate((panel) => {
+        const pb = panel.getBoundingClientRect(), pl = pb.left, pr = pb.left + panel.clientLeft + panel.clientWidth
+        // Full-bleed section containers may touch the edge; their content must stay inside the 20px padding.
+        return [...panel.querySelectorAll('[data-testid="details-sidebar"] *, [data-testid="summary-panel"] *')].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.left > pl + 1 && r.right > pr - 20 + 0.5 && !e.closest('.sr-only') && getComputedStyle(e).position !== 'fixed' }).map((e) => (e.dataset.testid || e.tagName) + ':' + Math.round(e.getBoundingClientRect().right - pr + 20)).slice(0, 5)
+      })
+      log(`details overflow ${id} @${w}${w < 1600 ? ' drawer' : ' docked'}: ${bad.length ? 'FAIL ' + bad.join(', ') : 'OK'}`)
+      if (id === 'GB-1076') { const sec = p.locator(`${root} [data-testid="loop-returns"]`); await sec.scrollIntoViewIfNeeded(); await sec.screenshot({ path: `${OUT}/returns-fix-${w}.png` }) }
+      if (drawer) await p.keyboard.press('Escape')
+    }
+  }
+})
 log('console errors:', errors.length, JSON.stringify(errors.slice(0, 5)))
 await browser.close()

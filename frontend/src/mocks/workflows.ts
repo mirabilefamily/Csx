@@ -1,3 +1,4 @@
+import { tidy } from '@/lib/workflowGraph'
 import type { Edge, Step, StepConfig, StepType, Trigger, Workflow, WorkflowTemplate } from '@/types'
 
 let n = 0
@@ -92,4 +93,4 @@ const ago = (h: number) => new Date(Date.now() - h * 36e5).toISOString()
 
 export const workflows: Workflow[] = [
   { id: 'wf-order-tracking', status: 'active', runs7d: 214, completedPct: 86, handedPct: 9, editedAt: ago(26), editedBy: 'Ava Martinez', ...orderTracking() },
-]
+].map((w) => tidy<Workflow>(w as Workflow))

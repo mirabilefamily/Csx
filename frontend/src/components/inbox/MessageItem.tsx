@@ -94,8 +94,8 @@ export function MessageItem({ m, channel = 'email', email, reasoning }: { m: Mes
   const copy = async () => { await navigator.clipboard?.writeText(plain(m)).catch(() => undefined); toast.success('Message copied') }
   return (
     <li data-testid={`message-${m.id}`} data-author={m.authorType} data-internal={m.isInternal || undefined} className={cn('group flex w-full py-2 max-sm:py-1.5', inbound ? 'justify-start' : 'justify-end')}>
-      <div className={cn('w-full max-w-[min(85%,760px)] rounded-xl border p-4 shadow-card max-sm:max-w-[92%] min-[1440px]:p-5', m.isInternal ? 'border-[#F3E3B5] bg-[#FFFCF3]' : 'border-border bg-surface')}>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <div className={cn('w-full max-w-[78%] rounded-xl border p-4 shadow-card max-sm:max-w-[92%] min-[1440px]:p-5', m.isInternal ? 'border-[#F3E3B5] bg-[#FFFCF3]' : 'border-border bg-surface')}>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs min-[1600px]:text-[13px]" data-testid="message-meta">
           <Avatar m={m} />
           <span className="text-sm font-semibold text-ink">{m.authorName}</span>
           {inbound ? email && <span className="truncate text-xs text-ink-muted">&lt;{email}&gt;</span> : isAi(m) ? <span className={chipCls} data-testid="ai-label"><Sparkles className="h-3 w-3" aria-hidden />AI</span> : <span className={chipCls} data-testid="agent-label">Agent</span>}
@@ -109,9 +109,9 @@ export function MessageItem({ m, channel = 'email', email, reasoning }: { m: Mes
         </div>
         <div className="mt-2">
           {m.format === 'html' ? (
-            <div className={cn('text-[14px] leading-[1.55] text-ink', richText)} dangerouslySetInnerHTML={{ __html: m.body }} />
+            <div className={cn('max-w-[90ch] text-[14px] leading-[1.55] text-ink min-[1600px]:text-[15px] min-[1600px]:leading-[1.6]', richText)} dangerouslySetInnerHTML={{ __html: m.body }} />
           ) : (
-            <p className="whitespace-pre-wrap text-[14px] leading-[1.55] text-ink">{m.body}</p>
+            <p className="max-w-[90ch] whitespace-pre-wrap text-[14px] leading-[1.55] text-ink min-[1600px]:text-[15px] min-[1600px]:leading-[1.6]">{m.body}</p>
           )}
         </div>
         {m.approvedBy && !isAi(m) && <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-green-700" data-testid="approved-by"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Approved by {m.approvedBy}</p>}

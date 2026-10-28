@@ -154,6 +154,13 @@
 - REQ-772 [always] The system shall show the draft header as a sparkle tile, "Draft by Claude", a confidence chip coloured by meaning (≥80 green, 50–79 amber, <50 red), up to 2 source chips plus "+n", and a ⋯ menu (Discard, Copy).
 - REQ-773 [always] The system shall never let the demo-state switcher overlap an app control at any width.
 - REQ-774 [always] The system shall NOT auto-collapse the main sidebar on /inbox. The sidebar keeps the user's own expanded or collapsed choice on every page. This supersedes REQ-562, REQ-563, REQ-635 (icon-only part) and REQ-638. With the sidebar expanded, the conversation must stay ≥480px; the summary panel uses the rail or overlay drawer at widths where it would be narrower.
+- REQ-775 [always] The system shall organize the right panel as:
+  - a header with "Customer" and a [Summary | Details] segmented control plus the collapse button
+  - an always-visible identity block (avatar, name, email with copy, tags, View in Shopify, Copy, ⋯)
+  - a 2×2 stats grid without filled tiles
+  - one accordion pattern for Orders, Returns, Ticket, Contact, Note, Past tickets, Feedback and AI activity.
+  Email and phone each appear once, and the "Shopify customer" pill and the "Matched by the ticket email" line are removed (that text moves to a tooltip).
+- REQ-776 [always] The system shall show "Claude" only on configuration surfaces (the Integrations Claude tile and detail, the AI replies model setting). Everywhere else the actor is called "AI".
 
 ### Carry-over fixes (from iteration_13)
 - REQ-667 [always] The system shall seed order #GB19790 with line items that sum to $160, of which $78 is already refunded, so $82 is refundable.

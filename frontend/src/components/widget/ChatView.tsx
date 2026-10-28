@@ -3,6 +3,7 @@ import { ArrowUp, RotateCw } from 'lucide-react'
 import type { RunOrder, WidgetOrderCard, WidgetSettings } from '@/types'
 import { usd } from '@/lib/format'
 
+import { Thumbs } from './Home'
 export interface ChatMsg {
   id: string
   author: 'customer' | 'ai' | 'agent' | 'system'
@@ -74,26 +75,24 @@ export function MessageList({ messages, settings, typing, onChip, onRetry }: Lis
               </div>
             </div>
           )
-        const who = m.author === 'customer' ? 'You' : m.author === 'agent' ? 'Goorin team' : 'Goorin assistant'
+        const who = m.author === 'customer' ? 'You' : m.author === 'agent' ? 'Goorin team' : settings.conversation.botName
         return (
           <div key={m.id}>
             <div className={`gw-msg is-${m.author}`} data-testid={`widget-msg-${m.author}`}>
-              {m.author !== 'customer' && <Avatar author={m.author} settings={settings} />}
               <div className="gw-msg-col">
-                <p className="gw-bubble-text">{m.text}</p>
+                <p className={m.author === 'customer' ? 'gw-bubble-text' : 'gw-ai-text'}>{m.text}</p>
                 {m.link && <a href={m.link.url} target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 600, textDecoration: 'underline', minHeight: 24, display: 'inline-block' }} data-testid="widget-run-link">{m.link.label}</a>}
                 {m.runOrders?.map((o) => (
-                  <div key={o.number} style={{ marginTop: 6, padding: '8px 10px', border: '1px solid #E6E0D7', borderRadius: 10, background: '#fff', fontSize: 12, lineHeight: 1.4 }} data-testid={`widget-run-order-${o.number.replace('#', '')}`}>
-                    <div style={{ fontWeight: 600 }}>{o.number} · {o.date} · {usd(o.total)}</div>
-                    <div style={{ color: '#6B6158' }}>{o.items}</div>
-                    <div style={{ color: '#6B6158' }}>{o.status}</div>
-                    {o.trackingUrl && <a href={o.trackingUrl} target="_blank" rel="noreferrer" style={{ fontWeight: 600, textDecoration: 'underline', display: 'inline-block', minHeight: 24, paddingTop: 2 }}>Track package</a>}
+                  <div key={o.number} className="gw-order-card" data-testid={`widget-run-order-${o.number.replace('#', '')}`}>
+                    <strong>{o.number} · {usd(o.total)}</strong>
+                    <span>{o.date} · {o.items}</span>
+                    <span>{o.status}</span>
+                    {o.trackingUrl && <a className="gw-link" href={o.trackingUrl} target="_blank" rel="noreferrer">Track package</a>}
                   </div>
                 ))}
                 {m.order && <OrderCard order={m.order} />}
-                <span className="gw-meta">
-                  {who} · {time(m.at)}
-                </span>
+                {m.author === 'customer' ? <span className="gw-sr">{who} · {time(m.at)}</span> : <span className="gw-sr">{who}</span>}
+                {m.author === 'ai' && m.kind !== 'greeting' && settings.conversation.thumbs && <Thumbs label={settings.conversation.botName} />}
                 {m.failed && (
                   <button type="button" className="gw-text-btn" onClick={() => onRetry(m)} data-testid="widget-retry">
                     <RotateCw size={12} aria-hidden style={{ display: 'inline', marginRight: 4 }} />
@@ -102,7 +101,7 @@ export function MessageList({ messages, settings, typing, onChip, onRetry }: Lis
                 )}
               </div>
             </div>
-            {m.kind === 'greeting' && settings.messaging.quickReplies.length > 0 && (
+            {false && m.kind === 'greeting' && settings.messaging.quickReplies.length > 0 && (
               <div className="gw-chips" role="group" aria-label="Quick replies" style={{ marginTop: 10 }} data-testid="widget-quick-replies">
                 {settings.messaging.quickReplies.map((q) => (
                   <button key={q} type="button" className="gw-chip" disabled={typing} onClick={() => onChip(q)} data-testid={`widget-chip-${q.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -116,8 +115,7 @@ export function MessageList({ messages, settings, typing, onChip, onRetry }: Lis
       })}
       {typing && (
         <div className="gw-msg is-ai" data-testid="widget-typing">
-          <Avatar author="ai" settings={settings} />
-          <span className="gw-bubble-text gw-typing" role="img" aria-label="Goorin assistant is typing">
+          <span className="gw-typing" role="img" aria-label="Goorin assistant is typing">
             <i />
             <i />
             <i />

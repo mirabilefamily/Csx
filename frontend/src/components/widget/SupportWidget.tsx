@@ -6,8 +6,9 @@ import type { CsatQuestion, StorePageType, TestRun, WidgetCustomer, WidgetSettin
 import { ShadowRoot } from './ShadowRoot'
 import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { GreetingBubble, Launcher, launcherSize } from './Launcher'
-import { PanelHeader } from './PanelHeader'
-import { Composer, MessageList, type ChatMsg } from './ChatView'
+import { CartDrawer, FloatingBar, HomeView, NoticeSheet, PillInput, WidgetFooter } from './Home'
+import { MessageList, type ChatMsg } from './ChatView'
+import { toast } from 'sonner'
 import { OfflineView, PreChatForm, type Identity } from './Forms'
 import { CsatView, TranscriptSent } from './CsatView'
 import { hiddenReason } from '@/lib/widgetRules'
@@ -27,7 +28,7 @@ export interface SupportWidgetProps {
   typing?: boolean
 }
 
-type View = 'prechat' | 'chat' | 'offline' | 'csat' | 'transcript' | null
+type View = 'home' | 'prechat' | 'chat' | 'offline' | 'csat' | 'transcript' | null
 type Bubble = 'hidden' | 'shown' | 'dismissed'
 
 const SHADOWS = {
@@ -60,6 +61,13 @@ function initialState(s: WidgetSettings, forced?: WidgetState, loggedIn?: boolea
       return { ...base, open: false, bubble: 'hidden' as Bubble, view: null, messages: [] }
     case 'launcher_closed':
       return { ...base, open: false, view: null, messages: [] }
+    case 'home':
+      return { ...base, view: 'home' as View, messages: [] }
+    case 'order_tracking':
+      return { ...base, messages: [
+        { id: uid(), author: 'customer' as const, text: 'Where is my order?', at: now - 60_000 },
+        { id: uid(), author: 'ai' as const, text: "Here are your recent orders. Your Panther Trucker is on its way.", at: now - 50_000, runOrders: [{ number: '#GB20411', date: 'Oct 2', items: 'The Panther Trucker', status: 'Shipped via UPS', total: 48, carrier: 'UPS', trackingUrl: 'https://tracking.example.com/ups/1Z20411' }, { number: '#GB20398', date: 'Sep 14', items: 'Hampton Wool Fedora', status: 'Delivered', total: 148, carrier: null, trackingUrl: null }] },
+      ] }
     case 'greeting_bubble':
       return { ...base, open: false, bubble: 'shown' as Bubble, view: null, messages: [] }
     case 'prechat':
@@ -115,6 +123,8 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   const [transcriptTo, setTranscriptTo] = useState(init.transcriptTo)
   const [unread, setUnread] = useState(forcedState && init.open ? 0 : 1)
   const [typing, setTyping] = useState(startTyping)
+  const [notice, setNotice] = useState<'ai' | 'cart' | null>(null)
+  const [last, setLast] = useState<ChatMsg[] | null>(null)
   const [identity, setIdentity] = useState<Identity>({ email: null, name: null, orderNumber: null })
   const [customer, setCustomer] = useState<WidgetCustomer | null>(null)
   const [questions, setQuestions] = useState<CsatQuestion[] | null>(null)
@@ -132,7 +142,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   const isSheet = open && isMobile
   const offlineActive = outsideHours && s.display.outsideHours === 'offline_form'
   const pre = s.messaging.preChat
-  const needsPrechat = !loggedIn && (pre.email !== 'off' || pre.name !== 'off' || pre.orderNumber !== 'off')
+  const needsPrechat = !loggedIn && s.conversation.askEmailFirst && !identity.email
   const firstName = customer?.firstName ?? identity.name?.split(' ')[0] ?? null
   const knownEmail = identity.email ?? customer?.email ?? null
 
@@ -197,22 +207,42 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
     setUnread(0)
     setBubble('dismissed')
     setBounce(false)
-    if (!view) setView(offlineActive ? 'offline' : needsPrechat ? 'prechat' : 'chat')
+    if (!view) setView(offlineActive ? 'offline' : 'home')
   }
   const closePanel = () => {
     setOpen(false)
     requestAnimationFrame(() => launcherRef.current?.focus())
   }
 
-  const send = async (text: string, retry?: ChatMsg) => {
+  // Home actions: starters, Track orders, Cart, last conversation (REQ-787..790). MOCKED.
+  const startChat = (text: string, wf?: Workflow | null) => {
+    if (needsPrechat) { pendingRef.current = text; setView('prechat'); return }
+    setView('chat')
+    if (messages.length > 1) setLast(messages)
+    setMessages((m) => m.filter((x) => x.kind === 'greeting'))
+    setWfRun(null); wfRef.current = null
+    send(text, undefined, wf, true)
+  }
+  const pendingRef = useRef<string | null>(null)
+  const onStarter = (id: string) => {
+    const st = s.home.starters.find((x) => x.id === id)
+    if (!st) return
+    if (st.action === 'link' && st.url) { window.open(st.url, '_blank', 'noopener'); return }
+    const wf = st.action === 'workflow' && st.workflowId ? workflowsApi.activeWorkflowById(st.workflowId) : null
+    startChat(st.label, wf ?? undefined)
+  }
+  const onCart = () => (mode === 'contained' ? toast('Cart opens here on your store') : setNotice('cart'))
+  const goHome = () => { if (messages.length > 1) setLast(messages); setView('home') }
+
+  const send = async (text: string, retry?: ChatMsg, forceWf?: Workflow | null, fresh = false) => {
     const msg = retry ?? { id: uid(), author: 'customer' as const, text, at: Date.now() }
     setMessages((ms) => (retry ? ms.map((m) => (m.id === msg.id ? { ...m, failed: false } : m)) : [...ms, msg]))
     // Active "Order tracking" workflow runs order-status questions (REQ-757). MOCKED.
     const deps = { findOrders: workflowsApi.findOrdersByEmail, handoverText: s.messaging.handoffMessage }
     let next: TestRun | null = null
     let seen = 0
-    if (wfRun && !wfRun.ended && wfRef.current) { next = replyRun(wfRef.current, wfRun, msg.text, deps); seen = wfRun.chat.length + 1 }
-    else if (!retry) { const wf = workflowsApi.activeWorkflowFor(msg.text); if (wf) { wfRef.current = wf; next = startRun(wf, 'chat', deps, undefined, msg.text); seen = 1 } }
+    if (!fresh && wfRun && !wfRun.ended && wfRef.current) { next = replyRun(wfRef.current, wfRun, msg.text, deps); seen = wfRun.chat.length + 1 }
+    else if (!retry) { const wf = forceWf ?? workflowsApi.activeWorkflowFor(msg.text); if (wf) { wfRef.current = wf; next = startRun(wf, 'chat', deps, undefined, msg.text); seen = 1 } }
     if (next) {
       const add: ChatMsg[] = next.chat.slice(seen).filter((m) => m.from === 'bot').map((m) => ({ id: uid(), author: 'ai' as const, at: Date.now(), text: [m.text, m.buttons ? `Reply: ${m.buttons.join(' / ')}` : ''].filter(Boolean).join('\n'), runOrders: m.orders, link: m.link }))
       setWfRun(next)
@@ -279,6 +309,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
     '--gw-header-bg': s.branding.colors.headerBackground,
     '--gw-header-text': s.branding.colors.headerText,
     '--gw-bg': '#FAF8F5',
+    '--gw-panel': s.branding.panelColor,
     '--gw-text': '#1F1D1A',
     '--gw-customer-bubble': s.branding.colors.customerBubble,
     '--gw-link': s.branding.colors.link,
@@ -292,7 +323,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   } as CSSProperties
   const panelStyle: CSSProperties = isSheet
     ? {}
-    : { [side]: off.x, [vert]: off.y + size + 16, height: `min(640px, calc(100% - ${off.y + size + 32}px))`, maxWidth: `calc(100% - ${off.x * 2}px)` }
+    : { [side]: off.x, [vert]: off.y + size + 16, height: `min(${view === 'home' ? 580 : 680}px, calc(100% - ${off.y + size + 32}px))`, maxWidth: `calc(100% - ${off.x * 2}px)` }
   const animation = bounce ? 'anim-bounce' : s.launcher.animation === 'pulse_once' && !open ? 'anim-pulse' : ''
 
   return (
@@ -301,7 +332,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
       {!hidden && open && (
         <div
           ref={panelRef}
-          className={`gw-panel${isSheet ? ' is-sheet' : ''}`}
+          className={`gw-panel${isSheet ? ' is-sheet' : ''}${s.branding.panelStyle === 'solid' ? ' is-solid' : ''}`}
           style={panelStyle}
           role="dialog"
           aria-modal="true"
@@ -310,18 +341,25 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
           data-testid="widget-panel"
           data-sheet={isSheet ? 'true' : 'false'}
         >
-          <PanelHeader settings={s} titleId="gw-title" onMinimize={closePanel} />
-          <div className="gw-body" data-testid="widget-body">
+          <h2 className="gw-sr" id="gw-title">Chat with {s.messaging.headerTitle}</h2>
+          <FloatingBar s={s} onBack={view && view !== 'home' ? goHome : undefined} onCart={onCart} onTrack={() => startChat(s.home.track.label || 'Track orders', workflowsApi.activeOrderTracking())} onClose={closePanel} />
+          {notice === 'ai' && <NoticeSheet s={s} onClose={() => setNotice(null)} />}
+          {notice === 'cart' && <CartDrawer onClose={() => setNotice(null)} />}
+          <div className={`gw-body${view === 'home' ? ' is-home' : ''}`} data-testid="widget-body">
+            {view === 'home' && <HomeView s={s} greeting={greetingFor(s, firstName)} hasLast={!!last} onStarter={onStarter} onLast={() => { setMessages(last!); setView('chat') }} />}
             {view === 'prechat' && (
               <PreChatForm
                 preChat={pre}
                 onSubmit={(id) => {
                   setIdentity(id)
                   setView('chat')
+                  const t = pendingRef.current
+                  pendingRef.current = null
+                  if (t) setTimeout(() => send(t), 0)
                 }}
               />
             )}
-            {view === 'chat' && <p className="gw-system" data-testid="widget-context-note">{contextNote}</p>}
+            {view === 'chat' && <p className="gw-sr" data-testid="widget-context-note">{contextNote}</p>}
             {view === 'chat' && <MessageList messages={messages} settings={s} typing={typing} onChip={(q) => send(q)} onRetry={(m) => send(m.text, m)} />}
             {view === 'offline' && <OfflineView settings={s} defaults={{ ...identity, email: knownEmail, name: customer?.name ?? identity.name }} />}
             {view === 'csat' && (
@@ -358,12 +396,14 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
                 </details>
               )}
               <div className="gw-footer-row">
-                <span>{handoff ? 'A hatter will join shortly' : 'Our team can step in anytime'}</span>
+                <span>{handoff ? 'Connecting you with our team…' : ''}</span>
                 <button type="button" className="gw-text-btn" onClick={() => setView('csat')} data-testid="widget-end-chat">End chat</button>
               </div>
-              <Composer disabled={typing} onSend={(t) => send(t)} />
+              <PillInput placeholder="Reply" disabled={typing} onSend={(t) => send(t)} autoFocus />
             </>
           )}
+          {view === 'home' && <PillInput placeholder="Ask anything" onSend={(t) => startChat(t)} />}
+          {(view === 'home' || view === 'chat') && <WidgetFooter onNotice={() => setNotice('ai')} />}
         </div>
       )}
       {!hidden && !isSheet && (

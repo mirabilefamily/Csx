@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { ErrorState } from '@/components/States'
 import { SaveBar } from '@/components/settings/SaveBar'
 import { PillTabs } from '@/components/dashboard/Panel'
-import { duplicateStep, insertAfter, removeStep, swapSteps, validate } from '@/lib/workflowGraph'
+import { duplicateStep, insertAfter, removeStep, swapSteps, tidy, validate } from '@/lib/workflowGraph'
 import { StepList } from './StepList'
 import { StepSettings, TriggerSettings } from './StepSettings'
 import { TestPanel } from './TestPanel'
@@ -50,7 +50,7 @@ export function WorkflowEditor({ id }: { id: string }) {
 
   const patch = (p: Partial<Workflow>) => setWf({ ...wf, ...p })
   const setView2 = (v: 'list' | 'canvas') => { setView(v); sessionStorage.setItem(VIEW_KEY, v) }
-  const insert = (src: string, h: string, t: StepType) => { const r = insertAfter(wf, src, h, t); setWf(r.wf); setSelected(r.id) }
+  const insert = (src: string, h: string, t: StepType) => { const r = insertAfter(wf, src, h, t); setWf(view === 'canvas' ? tidy(r.wf) : r.wf); setSelected(r.id) }
   const save = async () => {
     setSaving(true)
     try { const s = await workflowsApi.saveWorkflow(wf, user!.name); setSaved(s); setWf(s); toast.success('Workflow saved') } catch (e) { toast.error((e as Error).message) }

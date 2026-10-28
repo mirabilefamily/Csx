@@ -51,7 +51,7 @@ const FULL_KEY = 'goorin.inbox.fullDetails'
 const COLLAPSE_KEY = 'goorin.inbox.panelCollapsed'
 
 // One centred column shared by header, thread and draft dock so their edges line up.
-const COL = 'mx-auto w-full max-w-[968px] px-6 max-sm:px-4'
+const COL = 'mx-auto box-content max-w-[clamp(720px,88%,1280px)] px-6 xl:px-8 min-[1600px]:px-12 max-sm:px-4'
 const GUTTER = '[scrollbar-gutter:stable_both-edges]'
 
 export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketId, users, macros, onBack, crumb, onStep, canStep, onAsk }, ref) => {
@@ -244,7 +244,7 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
 
   const panelBody = (
     <>
-      <SummaryPanel d={{ ...detail, ticket }} returns={loop.data} full={full} onToggle={toggleFull} onCollapse={isDesktop() ? togglePanel : undefined} />
+      <SummaryPanel d={{ ...detail, ticket }} returns={loop.data} full={full} onToggle={toggleFull} onCollapse={isDesktop() ? togglePanel : undefined} onClose={isDesktop() ? undefined : () => setDetailsOpen(false)} />
       {full && (
         <div id="full-details" data-testid="full-details">
           <DetailsSidebar d={{ ...detail, ticket }} loop={{ data: loop.data, error: loop.error, reload: loop.reload }} onClose={() => setDetailsOpen(false)} onPatch={(p) => update(p)} allTags={[...new Set((tickets ?? []).flatMap((t) => t.tags))]} onOrdersChanged={async () => { const d = await inboxApi.getTicketDetail(ticketId); if (d) setDetail(d) }} />
@@ -259,7 +259,7 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
           <div ref={headRef} className={cn(COL, 'flex items-center gap-3 py-4 max-sm:h-14 max-sm:gap-2 max-sm:px-2 max-sm:py-0')} data-testid="conversation-header-inner">
             <Button variant="ghost" size={isPhone ? 'icon' : 'icon-sm'} className="md:hidden" onClick={onBack} aria-label="Back to inbox" data-testid="conversation-back"><ArrowLeft aria-hidden /></Button>
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-base font-semibold leading-5 text-ink max-sm:text-sm" title={ticket.subject} data-testid="conversation-subject">{ticket.subject}</h2>
+              <h2 className="truncate text-base font-semibold leading-5 text-ink max-sm:text-sm min-[1600px]:text-[17px] min-[1600px]:leading-6" title={ticket.subject} data-testid="conversation-subject">{ticket.subject}</h2>
               <div className="mt-1.5 flex min-w-0 items-center overflow-hidden whitespace-nowrap text-[13px] text-ink-muted max-sm:mt-0.5 max-sm:text-xs" data-testid="conversation-meta">
                 <span className="flex h-7 shrink-0 items-center gap-1.5 max-sm:h-auto max-sm:min-w-0 max-sm:shrink" data-testid="conversation-identity">
                   <span className="min-w-[min(fit-content,160px)] max-w-[160px] shrink-0 truncate font-medium text-ink max-sm:min-w-0 max-sm:shrink" title={ticket.customer.name} data-testid="conversation-customer">{ticket.customer.name}</span>
@@ -302,7 +302,7 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
         <div ref={thread} className={cn('min-h-0 flex-1 overflow-y-auto bg-background py-6 max-sm:py-4', GUTTER)} data-testid="thread-scroll">
           <div className={COL} data-testid="thread-column">
           <WhyBrief key={ticket.status} d={{ ...detail, ticket }} />
-          <ol className="-my-2 mx-auto max-w-[920px] max-sm:-my-1.5" aria-label="Messages" data-testid="message-thread">
+          <ol className="-my-2 max-sm:-my-1.5" aria-label="Messages" data-testid="message-thread">
             {visible.map((m, i) => (
               <li key={m.id} className="contents">
                 {hidden > 0 && i === 1 && <button type="button" onClick={() => setShowAll(true)} className="mx-auto flex min-h-9 items-center rounded-full border border-border bg-white px-3 text-xs font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:min-h-11" data-testid="thread-show-earlier">Show {hidden} earlier {hidden === 1 ? "message" : "messages"}</button>}
@@ -356,10 +356,6 @@ export const ConversationPane = forwardRef<ConversationHandle, Props>(({ ticketI
         className={cn('min-h-0 overflow-y-auto border-l border-border bg-white lg:static lg:block lg:shrink-0', collapsed ? 'lg:w-11' : 'lg:w-[280px] xl:w-[320px]', detailsOpen ? 'absolute inset-y-0 right-0 z-20 block w-[min(100%,360px)] shadow-popover max-sm:fixed max-sm:inset-0 max-sm:z-50 max-sm:w-full max-sm:border-l-0 max-sm:pb-[env(safe-area-inset-bottom)] max-sm:pt-[env(safe-area-inset-top)]' : 'hidden')}
         data-testid={detailsOpen && !isDesktop() ? 'ticket-details-sheet' : 'customer-panel'}
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-2 lg:hidden">
-          <p className="text-sm font-semibold text-ink">Details</p>
-          <Button variant="ghost" size="icon-sm" aria-label="Close details" onClick={() => setDetailsOpen(false)} data-testid="details-close"><X aria-hidden /></Button>
-        </div>
         {collapsed && isDesktop() ? <SummaryRail d={{ ...detail, ticket }} returns={loop.data} onExpand={togglePanel} /> : panelBody}
       </aside>
       {mid && drawer && (

@@ -135,7 +135,7 @@ await step('inbox', async () => {
 await step('customer panel', async () => {
   await p.goto(`${BASE}/inbox/GB-1064`)
   await p.waitForSelector('[data-testid=summary-panel]')
-  if (await p.locator('[data-testid=summary-rows]').count()) await p.click('[data-testid=summary-toggle-full]')
+  if (await p.locator('[data-testid=summary-rows]').count()) await p.click('[data-testid=summary-view-details]')
   await p.waitForSelector('[data-testid=order-tools]')
   await p.click('[data-testid=order-tool-inventory]')
   await p.click('[data-testid=order-tool-run]')

@@ -48,6 +48,25 @@ for (const w of [1024, 1280, 1440, 1920]) {
     log(`   expanded: card h${card.h} (≤ ${450}) actions visible ${act.b <= 900}`)
   }
 }
+for (const w of [1280, 1440, 1920, 2560]) {
+  await p.setViewportSize({ width: w, height: 1000 })
+  for (const mode of ['collapsed', 'expanded']) {
+    await open('GB-1076')
+    const rail = await p.locator('[data-testid="summary-rail"]').count()
+    const wantRail = mode === 'collapsed'
+    if (rail && !wantRail) { await p.click('[aria-label="Expand details panel"]'); await p.waitForTimeout(400) }
+    if (!rail && wantRail) { const c = p.locator('[aria-label="Collapse details panel"]'); if (await c.count()) { await c.first().click(); await p.waitForTimeout(400) } }
+    const pane = await box('[data-testid="thread-scroll"]'), col = await box('[data-testid="thread-column"]')
+    const colInner = await p.locator('[data-testid="thread-column"]').evaluate((e) => { const cs = getComputedStyle(e); return Math.round(e.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) })
+    const cards = await p.locator('[data-testid="message-thread"] li[data-author] > div').evaluateAll((els) => els.map((e) => `${e.parentElement.dataset.author}:${Math.round(e.getBoundingClientRect().width)}`))
+    const brief = (await box('[data-testid="why-brief"]'))?.w, draft = (await box('[data-testid="draft-dock"] [data-testid^="draft-card-"]'))?.w
+    const hdrR = (await box('[data-testid="conversation-actions"]'))?.r, briefR = (await box('[data-testid="why-brief"]'))?.r
+    const drawer = await p.locator('[data-testid="details-drawer"]').count()
+    log(`chat-width @${w} summary ${mode}${drawer ? ' (overlay drawer)' : ''}: pane ${pane.w} column ${colInner} (${Math.round(colInner / pane.w * 100)}%) | brief ${brief} draft ${draft} | cards ${[...new Set(cards)].slice(0, 4).join(' ')} | actions right ${hdrR} vs brief right ${briefR} | body font ${await p.locator('[data-testid="message-thread"] li[data-author] p, [data-testid="message-thread"] li[data-author] .prose').first().evaluate((e) => getComputedStyle(e).fontSize).catch(() => '-')} subject ${await p.locator('[data-testid="conversation-subject"]').evaluate((e) => getComputedStyle(e).fontSize)}`)
+    if (drawer) await p.keyboard.press('Escape')
+    if (mode === 'collapsed' && [1440, 1920, 2560].includes(w)) await p.screenshot({ path: `${OUT}/chat-width-${w}.png` })
+  }
+}
 for (const w of [1024, 1100, 1279]) {
   await p.setViewportSize({ width: w, height: 800 }); await open('GB-1076')
   const n1 = (await box('[data-testid="conversation-customer"]'))?.w

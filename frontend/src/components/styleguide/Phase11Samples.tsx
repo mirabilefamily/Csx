@@ -1,6 +1,7 @@
 import { Sparkles } from 'lucide-react'
 import { StatusPill } from '@/components/StatusPill'
 import { viewRowCls, ViewCount } from '@/components/inbox/InboxViewsPanel'
+import { CountBadge } from '@/components/inbox/DetailParts'
 
 // Phase 11 AI-first Inbox patterns (static samples; live versions are in /inbox).
 export function Phase11Samples() {
@@ -11,6 +12,7 @@ export function Phase11Samples() {
           <div key={l} className={viewRowCls(a)}><span>{l}</span><ViewCount n={n} active={a} amber={amber} /></div>
         ))}
         <p className="px-2.5 pt-2 text-xs text-ink-muted">32px rows, 6px radius. Selected: tobacco-50 token fill, semibold; hover surface-sunken. Needs you count is amber.</p>
+        <p className="flex items-center gap-1.5 px-2.5 pt-2 text-[13px] font-semibold text-ink" data-testid="sg-count-badge">Past tickets <CountBadge n={1} /> <CountBadge n={0} /> <CountBadge n={7} tone="amber" /><span className="text-xs font-normal text-ink-muted">CountBadge: 20px, tobacco-50, 12px medium; 0 muted; amber for Needs you</span></p>
       </div>
       <div className="rounded-lg border border-border bg-white p-3" data-testid="sg-needs-card">
         <p className="text-[13px] font-semibold text-ink">Margaret Chen</p>

@@ -199,10 +199,10 @@ export function OrderActionDialog({ kind, o, ticketId, customerId, onClose, onCh
 
 export function OrderButtons({ o, onAction }: { o: ShopifyOrder; onAction: (k: Kind) => void }) {
   return (
-    <div className="flex flex-wrap gap-1.5" data-testid={`order-actions-${o.id}`}>
-      <Button size="sm" variant="outline" onClick={() => onAction('edit')} data-testid={`order-edit-${o.id}`}><Pencil aria-hidden /> Edit</Button>
-      <Button size="sm" variant="outline" onClick={() => onAction('duplicate')} data-testid={`order-duplicate-${o.id}`}><Copy aria-hidden /> Duplicate</Button>
-      <Button size="sm" variant="outline" disabled={viewsApi.refundable(o) <= 0} onClick={() => onAction('refund')} data-testid={`order-refund-${o.id}`}><RotateCcw aria-hidden /> Refund</Button>
+    <div className="-ml-2 flex flex-wrap gap-0.5 [&_button]:h-8 [&_button]:px-2 [&_button]:text-xs [&_button]:text-ink-muted max-sm:[&_button]:h-11" data-testid={`order-actions-${o.id}`}>
+      <Button size="sm" variant="ghost" onClick={() => onAction('edit')} data-testid={`order-edit-${o.id}`}><Pencil aria-hidden /> Edit</Button>
+      <Button size="sm" variant="ghost" onClick={() => onAction('duplicate')} data-testid={`order-duplicate-${o.id}`}><Copy aria-hidden /> Duplicate</Button>
+      <Button size="sm" variant="ghost" disabled={viewsApi.refundable(o) <= 0} onClick={() => onAction('refund')} data-testid={`order-refund-${o.id}`}><RotateCcw aria-hidden /> Refund</Button>
     </div>
   )
 }

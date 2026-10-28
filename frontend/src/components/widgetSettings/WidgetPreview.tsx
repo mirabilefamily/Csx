@@ -1,4 +1,4 @@
-import { ChevronDown, EyeOff, Monitor, Smartphone, Tablet } from 'lucide-react'
+import { ChevronDown, EyeOff, Monitor, Smartphone } from 'lucide-react'
 import type { WidgetSettings, WidgetState } from '@/types'
 import { SupportWidget } from '@/components/widget/SupportWidget'
 import { WIDGET_STATES } from '@/components/storefront/DemoControls'
@@ -63,38 +63,27 @@ export function DeviceStage({ settings, opts, keyExtra = '' }: { settings: Widge
         <span className="flex gap-1" aria-hidden>{['#E0675A', '#E9B44C', '#6DB46B'].map((c) => <i key={c} className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />)}</span>
         <span className="ml-2 flex-1 truncate rounded bg-surface px-2 py-0.5 text-[11px] text-ink-muted">goorin.myshopify.com{path}</span>
       </div>
-      <div className="h-[560px]">{screen}</div>
+      <div className="h-[calc(100vh-260px)] min-h-[560px] max-h-[760px]">{screen}</div>
     </div>
   )
 }
 
+const VIEWS: { id: WidgetState; label: string }[] = [{ id: 'home', label: 'Home' }, { id: 'active_chat', label: 'Conversation' }, { id: 'order_tracking', label: 'Order tracking' }]
+
 export function WidgetPreview({ settings, opts, onChange }: { settings: WidgetSettings; opts: PreviewOptions; onChange: (o: PreviewOptions) => void }) {
   const set = <K extends keyof PreviewOptions>(k: K, v: PreviewOptions[K]) => onChange({ ...opts, [k]: v })
-  const pro = settings.messaging.proactive
   return (
     <div className="space-y-3" data-testid="widget-preview">
       <div className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-muted/70 p-1.5" role="toolbar" aria-label="Preview controls" data-testid="preview-toolbar">
-        <Seg label="Preview page" testId="preview-page" value={opts.page} onChange={(v) => set('page', v)} options={[{ id: 'product', label: 'Product' }, { id: 'collection', label: 'Collection' }, { id: 'cart', label: 'Cart' }]} />
-        <Seg label="Preview device" testId="preview-device" value={opts.device} onChange={(v) => set('device', v)} options={[{ id: 'desktop', label: 'Desktop', icon: <Monitor className="h-3.5 w-3.5" aria-hidden /> }, { id: 'tablet', label: 'Tablet', icon: <Tablet className="h-3.5 w-3.5" aria-hidden /> }, { id: 'mobile', label: 'Mobile', icon: <Smartphone className="h-3.5 w-3.5" aria-hidden /> }]} />
-        <label className="relative ml-auto inline-flex items-center">
-          <span className="sr-only">Preview state</span>
-          <select value={opts.state} onChange={(e) => set('state', e.target.value as WidgetState)} aria-label="Preview state" className="h-8 appearance-none rounded-lg bg-surface pl-2.5 pr-8 text-xs font-medium text-ink shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="preview-state">
-            {WIDGET_STATES.map((s) => <option key={s.id} value={s.id} data-testid={`preview-state-${s.id}`}>{s.label}</option>)}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink-muted" aria-hidden />
-        </label>
+        <Seg label="Preview device" testId="preview-device" value={opts.device === 'mobile' ? 'mobile' : 'desktop'} onChange={(v) => set('device', v)} options={[{ id: 'desktop', label: 'Desktop', icon: <Monitor className="h-3.5 w-3.5" aria-hidden /> }, { id: 'mobile', label: 'Phone', icon: <Smartphone className="h-3.5 w-3.5" aria-hidden /> }]} />
+        <Seg label="Preview view" testId="preview-view" value={VIEWS.some((v) => v.id === opts.state) ? opts.state : 'active_chat'} onChange={(v) => set('state', v)} options={VIEWS} />
       </div>
-      <DeviceStage settings={settings} opts={opts} />
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
-        <span data-testid="preview-greeting-caption">
-          {pro.enabled ? `Greeting bubble appears after ${pro.delaySec}s on ${pro.pages.map((p) => PAGE_TYPE_LABELS[p]).join(', ') || 'no pages'}` : 'Greeting bubble is off'}
-          {settings.launcher.animation === 'bounce' && ` · Launcher bounces after ${settings.launcher.bounceAfterSec}s`}
-        </span>
-        <label className="inline-flex items-center gap-1.5">
-          <input type="checkbox" checked={opts.outsideHours} onChange={(e) => set('outsideHours', e.target.checked)} className="accent-[#6B4F3A]" data-testid="preview-outside-hours" />
-          Outside business hours
-        </label>
-      </div>
+      <DeviceStage settings={settings} opts={{ ...opts, page: 'product' }} />
+      <p className="text-xs text-ink-muted" data-testid="preview-caption">Uses the same code shoppers get. Shows your draft; nothing is sent from the preview.</p>
+      <label className="inline-flex items-center gap-1.5 text-xs text-ink-muted">
+        <input type="checkbox" checked={opts.outsideHours} onChange={(e) => set('outsideHours', e.target.checked)} className="accent-[#6B4F3A]" data-testid="preview-outside-hours" />
+        Outside business hours
+      </label>
     </div>
   )
 }

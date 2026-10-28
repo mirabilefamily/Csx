@@ -63,23 +63,27 @@ export function LauncherSection({ draft, update, errors, setUploadError }: Props
         <div className="flex items-center gap-2"><SourceBadge source={draft.sources.launcherPosition} /></div>
         <div className="mt-2">
           <p className="mb-1.5 text-sm font-medium text-ink" id="ws-position-label">Position</p>
-          <div role="radiogroup" aria-labelledby="ws-position-label" className="grid w-full max-w-[320px] grid-cols-2 gap-2" data-testid="ws-position">
+          <div role="radiogroup" aria-labelledby="ws-position-label" className="grid w-[104px] grid-cols-2 gap-1.5 rounded-xl border border-border bg-surface-muted/50 p-1.5" data-testid="ws-position">
             {POSITIONS.map((p) => (
-              <button key={p.id} type="button" role="radio" aria-checked={l.position === p.id} onClick={() => update((d) => { d.launcher.position = p.id; d.sources.launcherPosition = 'desk' })} className={cn('relative h-14 rounded-xl border text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', l.position === p.id ? 'border-tobacco-600 bg-tobacco-50 font-medium text-tobacco-800' : 'border-border-strong text-ink-muted hover:bg-surface-muted')} data-testid={`ws-position-${p.id}`}>
+              <button key={p.id} type="button" role="radio" aria-checked={l.position === p.id} onClick={() => update((d) => { d.launcher.position = p.id; d.sources.launcherPosition = 'desk' })} aria-label={p.label} title={p.label} className={cn('relative h-9 rounded-lg border text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', l.position === p.id ? 'border-tobacco-600 bg-tobacco-50 font-medium text-tobacco-800' : 'border-border-strong text-ink-muted hover:bg-surface-muted')} data-testid={`ws-position-${p.id}`}>
                 <span className={cn('absolute h-2 w-2 rounded-full', l.position === p.id ? 'bg-tobacco-600' : 'bg-ink-subtle', p.id.startsWith('top') ? 'top-2' : 'bottom-2', p.id.endsWith('left') ? 'left-2' : 'right-2')} aria-hidden />
-                {p.label}
               </button>
             ))}
           </div>
         </div>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2">
-        <RangeField id="offset-x" label="Desktop X offset" value={l.offset.x} min={0} max={64} onChange={(n) => update((d) => { d.launcher.offset.x = n })} />
-        <RangeField id="offset-y" label="Desktop Y offset" value={l.offset.y} min={0} max={64} onChange={(n) => update((d) => { d.launcher.offset.y = n })} />
-        <RangeField id="mobile-offset-x" label="Mobile X offset" value={l.mobileOffset.x} min={0} max={48} onChange={(n) => update((d) => { d.launcher.mobileOffset.x = n })} />
-        <RangeField id="mobile-offset-y" label="Mobile Y offset" value={l.mobileOffset.y} min={0} max={48} onChange={(n) => update((d) => { d.launcher.mobileOffset.y = n })} />
+      <div className="space-y-2" data-testid="ws-spacing">
+        <p className="text-sm font-medium text-ink">Spacing from the edge</p>
+        {([['Desktop', 'offset', 64], ['Phone', 'mobileOffset', 48]] as const).map(([lab, k, max]) => (
+          <div key={k} className="flex flex-wrap items-center gap-2 text-sm text-ink-muted"><span className="w-16">{lab}</span>
+            {(['x', 'y'] as const).map((ax) => (
+              <label key={ax} className="inline-flex items-center gap-1.5">{ax === 'x' ? 'Side' : 'Bottom'}
+                <span className="relative inline-flex w-[88px] items-center"><input type="number" min={0} max={max} value={l[k][ax]} onChange={(e) => update((d) => { d.launcher[k][ax] = Math.max(0, Math.min(max, Number(e.target.value) || 0)) })} className="h-9 w-full rounded-lg border border-border-strong bg-surface pl-2.5 pr-7 text-sm text-ink tabular-nums" data-testid={`ws-${k}-${ax}`} /><span className="pointer-events-none absolute right-2 text-xs">px</span></span>
+              </label>
+            ))}
+          </div>
+        ))}
       </div>
-      <p className="-mt-3 text-xs text-ink-muted">Mobile offsets apply below 640px. Switch the preview to Mobile to see them.</p>
       <div className="flex flex-wrap items-end gap-4">
         <Segmented label="Attention animation" testId="ws-animation" value={l.animation} onChange={(v) => update((d) => { d.launcher.animation = v })} options={[{ id: 'none', label: 'None' }, { id: 'pulse_once', label: 'Pulse once' }, { id: 'bounce', label: 'Bounce after…' }]} />
         {l.animation === 'bounce' && (

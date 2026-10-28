@@ -56,7 +56,9 @@ export async function fixChecks({ p, log, step, txt, settle, spaGo, shot }) {
     await p.click('[data-testid="workflow-menu-wf-order-tracking"]'); await p.click('[data-testid="workflow-rename-wf-order-tracking"]'); await settle()
     log('FIX 6 rename dialog:', await p.locator('[data-testid="rename-dialog"]').count())
     await p.fill('[data-testid="rename-input"]', 'Order tracking (chat)'); await p.click('[data-testid="rename-save"]'); await settle()
-    log('  renamed row:', (await txt('[data-testid="workflow-open-wf-order-tracking"]')).slice(0, 24))
+    const nm = async () => (await p.locator('[data-testid="workflow-open-wf-order-tracking"]').first().innerText()).split('\n')[0]
+    const inPlace = await nm(); await go('/ai/routing'); await go('/ai/workflows'); await p.waitForSelector('[data-testid="workflows-rows"]')
+    log('  renamed row in place:', inPlace, '| after revisit:', await nm(), '| url', p.url(), '| toast:', await txt('[data-sonner-toast]'), '| dialog open:', await p.locator('[data-testid="rename-dialog"]').count())
     const last = await p.locator('[data-testid^="workflow-row-"]').last().getAttribute('data-testid'); const lid = last.replace('workflow-row-', '')
     await p.click(`[data-testid="workflow-menu-${lid}"]`); await p.click(`[data-testid="workflow-delete-${lid}"]`); await settle()
     log('  delete asks:', await txt('[data-testid="delete-dialog"] h2')); await p.click('[data-testid="delete-confirm"]'); await settle()

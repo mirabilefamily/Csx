@@ -38,7 +38,7 @@ const seeds: CustomerSeed[] = [
     order(20398, 'delivered', 4, [['Hampton Wool Fedora', 'Tobacco / M', 148]]),
     order(20211, 'delivered', 30, [['Watkins Straw Panama', 'Natural / M', 128]], 'USPS'),
     order(19790, 'delivered', 160, [['Dulles Newsboy', 'Grey Tweed / M', 78], ['Sage Bucket Hat', 'Olive / M', 82]], 'UPS', 'partially_refunded'),
-  ], 'Long-time customer since 2023. Prefers email.'],
+  ], 'Repeat buyer and Hat Club member. Prefers email.'],
   ['c02', 'Lena Fischer', 'lena.fischer@example.com', 'Portland, OR', 210, [order(20190, 'delivered', 25, [['Mae Wide Brim', 'Charcoal / S', 138]])]],
   ['c03', 'Marcus Bell', 'marcus@bellandbrim.example.com', 'Austin, TX', 640, [
     order(20150, 'delivered', 40, [['The Rooster Trucker', 'Black / One size', 27, 24], ['The Panther Trucker', 'Black / One size', 27, 24]], 'FedEx'),

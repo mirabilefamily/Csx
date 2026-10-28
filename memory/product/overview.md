@@ -69,6 +69,8 @@ A fully clickable, front-end-only prototype of an AI-first customer service desk
 | F-54 | Workflow editor with List and drag-and-drop Canvas views (same data), triggers by AI intent on chat / contact form / email, step library (messages, questions, email code, Shopify, Loop, conditions, hand over) | Admin | 13 |
 | F-55 | Order tracking workflow (email → 6-digit code → orders + tracking) + templates: Start a return (Loop), Change shipping address, Wholesale inquiry, Hat size finder; Test workflow with chat preview + mock inbox; runs in /widget-demo | Admin, Customer | 13 |
 | F-56 | Routing tab (escalation rules, business hours, assignment) and refined AI & Workflows page design | Admin | 13 |
+| F-57 | Chat widget redesign to match the reference: frosted panel, floating Cart / Track orders / Close, stacked conversation starters, "Ask anything" pill input, bubble-less AI replies with thumbs feedback, round launcher | Customer | 14 |
+| F-58 | Channels page cleanup: one tab level, compact settings column + sticky store-backdrop preview, Home screen settings with conversation starters editor (ask AI / start workflow / open link) | Admin | 14 |
 
 ## Phases
 - **Phase 1: Foundation + Dashboard.** Gets the Vite/TS project, tokens, shell, login, mock data + API layer, Dashboard and CSAT drawer, and styleguide foundations working. Delivers F-1 to F-18. [requirement](phase1/requirement.md) · [journeys](phase1/journeys.md)
@@ -84,6 +86,7 @@ A fully clickable, front-end-only prototype of an AI-first customer service desk
 - **Phase 11: AI-first Inbox, simplified.** Needs-you-first, AI draft first, summary panel, enterprise-neutral look; fixes Phase 10 test failures. Delivers F-49 to F-51. [requirement](phase11/requirement.md) · [journeys](phase11/journeys.md)
 - **Phase 12: Simpler Dashboard.** 5 KPIs, paired blocks, tabbed cards, top-3 + View all. Delivers F-52. [requirement](phase12/requirement.md) · [journeys](phase12/journeys.md)
 - **Phase 13: AI & Workflows refresh + Workflows automation.** Multiple workflows, List + Canvas editor, Order tracking with email-code verification, 4 templates, Routing tab, Test workflow with mock inbox, widget runtime. Delivers F-53 to F-56. [requirement](phase13/requirement.md) · [journeys](phase13/journeys.md)
+- **Phase 14: Chat widget redesign + Channels chat settings.** Frosted panel, floating Cart / Track orders / Close, stacked starters, pill input, plain AI replies with thumbs, round launcher; one tab level, compact settings + sticky preview, starters editor. Delivers F-57 and F-58. [requirement](phase14/requirement.md) · [journeys](phase14/journeys.md)
 
 ## UI/UX Rules
 - Light mode only. Heritage-craft warmth with modern SaaS usability, not corporate blue.

@@ -139,3 +139,6 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Sidebar items: ring only for keyboard focus (REQ-803). */
+[data-testid="sidebar"] a:focus:not(:focus-visible), [data-testid="sidebar"] button:focus:not(:focus-visible) { outline: none; box-shadow: none; }

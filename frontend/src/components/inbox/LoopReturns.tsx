@@ -62,14 +62,14 @@ export function LoopReturnCard({ r }: { r: LoopReturn }) {
 }
 
 const STATE_FILTERS = [
-  ['all', 'Open, closed and expired', () => true],
-  ['open', 'Open & in review', (r: LoopReturn) => r.state === 'open' || r.state === 'in_review'],
-  ['closed', 'Closed', (r: LoopReturn) => r.state === 'closed'],
-  ['inactive', 'Cancelled & expired', (r: LoopReturn) => r.state === 'cancelled' || r.state === 'expired'],
+  ['all', 'Open, closed and expired', () => true, 'All states'],
+  ['open', 'Open & in review', (r: LoopReturn) => r.state === 'open' || r.state === 'in_review', 'Open'],
+  ['closed', 'Closed', (r: LoopReturn) => r.state === 'closed', 'Closed'],
+  ['inactive', 'Cancelled & expired', (r: LoopReturn) => r.state === 'cancelled' || r.state === 'expired', 'Cancelled'],
 ] as const
 const RANGES = [['all', 'All time', Infinity], ['90', 'Last 90 days', 90], ['365', 'Last 12 months', 365]] as const
 
-export function LoopReturnsSection({ returns: all, lifetimeSpend, error, onRetry }: { returns?: LoopReturn[]; lifetimeSpend: number; error?: unknown; onRetry?: () => void }) {
+export function LoopReturnsSection({ returns: all, lifetimeSpend, error, onRetry, bare = false }: { returns?: LoopReturn[]; lifetimeSpend: number; error?: unknown; onRetry?: () => void; bare?: boolean }) {
   const [state, setState] = useState<string>('all')
   const [range, setRange] = useState<string>('all')
   const [looking, setLooking] = useState(false)
@@ -79,22 +79,24 @@ export function LoopReturnsSection({ returns: all, lifetimeSpend, error, onRetry
   const refresh = (fn?: () => void) => { setLooking(true); fn?.(); setTimeout(() => setLooking(false), 700) }
   const s = returns && loopStats(returns, lifetimeSpend)
   return (
-    <section className="space-y-3 border-b border-border px-5 py-5" aria-label="Loop Returns" data-testid="loop-returns-section">
-      <h3 className="flex items-center gap-2">
+    <section className={cn('space-y-3', !bare && 'border-b border-border px-5 py-5')} aria-label="Loop Returns" data-testid="loop-returns-section">
+      {!bare && <h3 className="flex items-center gap-2">
         <img src="/images/brand/loop-wordmark.svg" alt="Loop Returns" width={56} height={18} style={{ width: 56, height: 18 }} data-testid="loop-wordmark" />
         <span className="text-sm font-semibold text-ink" aria-hidden>Returns</span>
         <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label="Refresh Loop returns" onClick={() => refresh(onRetry)} data-testid="loop-refresh"><RefreshCw className={cn(looking && 'animate-spin')} aria-hidden /></Button>
-      </h3>
-      <div className="grid grid-cols-2 gap-2" data-testid="loop-filters">
+      </h3>}
+      {bare && s && s.count > 0 && <p className="text-[13px] text-ink-muted" data-testid="loop-stats-line">{s.count} return{s.count === 1 ? '' : 's'} · {usd(s.dollars)} returned · {s.rate === null ? '0' : s.rate.toFixed(1)}% of spend</p>}
+      {!(bare && all && all.length === 0) && <div className={cn(bare ? 'flex min-w-0 items-center gap-2' : 'grid grid-cols-2 gap-2')} data-testid="loop-filters">
         <Select value={range} onValueChange={(v) => { setRange(v); refresh() }}>
-          <SelectTrigger className="h-9 text-xs max-sm:h-11" aria-label="Return date range" data-testid="loop-range"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={cn('h-8 min-w-0 whitespace-nowrap text-xs max-sm:h-11 [&>span]:truncate', bare && 'w-auto max-w-[50%] gap-1 rounded-full px-3')} aria-label="Return date range" data-testid="loop-range"><SelectValue>{RANGES.find((r) => r[0] === range)![1]}</SelectValue></SelectTrigger>
           <SelectContent>{RANGES.map(([id, l]) => <SelectItem key={id} value={id}>{l}</SelectItem>)}</SelectContent>
         </Select>
         <Select value={state} onValueChange={(v) => { setState(v); refresh() }}>
-          <SelectTrigger className="h-9 text-xs max-sm:h-11" aria-label="Return state" data-testid="loop-state-filter"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={cn('h-8 min-w-0 whitespace-nowrap text-xs max-sm:h-11 [&>span]:truncate', bare && 'w-auto max-w-[50%] gap-1 rounded-full px-3')} aria-label="Return state" data-testid="loop-state-filter"><SelectValue>{bare ? STATE_FILTERS.find((f) => f[0] === state)![3] : STATE_FILTERS.find((f) => f[0] === state)![1]}</SelectValue></SelectTrigger>
           <SelectContent>{STATE_FILTERS.map(([id, l]) => <SelectItem key={id} value={id} data-testid={`loop-state-${id}`}>{l}</SelectItem>)}</SelectContent>
         </Select>
-      </div>
+        {bare && <Button variant="ghost" size="icon-sm" className="ml-auto shrink-0" aria-label="Refresh Loop returns" onClick={() => refresh(onRetry)} data-testid="loop-refresh"><RefreshCw className={cn(looking && 'animate-spin')} aria-hidden /></Button>}
+      </div>}
       {error ? (
         <p className="text-xs text-red-700" data-testid="loop-error">Couldn't load Loop returns. <button type="button" onClick={onRetry} className="font-medium underline max-sm:min-h-11">Try again</button></p>
       ) : looking || !returns || !s ? (
@@ -103,7 +105,7 @@ export function LoopReturnsSection({ returns: all, lifetimeSpend, error, onRetry
         <p className="text-sm text-ink-muted" data-testid="loop-empty">{all?.length ? 'No returns match these filters' : 'No returns with Loop'}</p>
       ) : (
         <>
-          <dl className="grid grid-cols-3 gap-2" data-testid="loop-stats">
+          <dl className={cn('grid grid-cols-3 gap-2', bare && 'sr-only')} data-testid="loop-stats">
             <div className="min-w-0 rounded-lg bg-surface-muted px-2.5 py-2"><dt className="text-[11px] text-ink-muted">Returns</dt><dd className="mt-0.5 text-sm text-ink" data-testid="loop-count"><Num value={String(s.count)} /></dd></div>
             <div className="min-w-0 rounded-lg bg-surface-muted px-2.5 py-2"><dt className="text-[11px] text-ink-muted">Returned $</dt><dd className="mt-0.5 truncate text-sm text-ink" data-testid="loop-dollars"><Num value={usd(s.dollars)} /></dd></div>
             <div className="min-w-0 rounded-lg bg-surface-muted px-2.5 py-2"><dt className="text-[11px] text-ink-muted">Return rate</dt><dd className="mt-0.5 text-sm text-ink" data-testid="loop-rate"><Num value={s.rate === null ? '—' : `${s.rate.toFixed(1)}%`} /></dd><dd className="text-[10px] leading-tight text-ink-muted">of lifetime spend</dd></div>
