@@ -5,7 +5,7 @@ import { FraudAlertRow, RefundPipeline, RiskBadge } from '@/components/dashboard
 import { settingsApi } from '@/api'
 import { useApi } from '@/hooks/useApi'
 import { KpiStrip } from '@/components/dashboard/KpiStrip'
-import { ResolvedByChart } from '@/components/dashboard/OverviewCharts'
+import { AiPerformanceCard } from '@/components/dashboard/OverviewCharts'
 import { Panel, RankedList } from '@/components/dashboard/Panel'
 import { navItemClass, NAV_BADGE_COLLAPSED } from '@/components/shell/Sidebar'
 import { IntegrationTile } from '@/components/settings/IntegrationsTab'
@@ -27,7 +27,7 @@ const KPIS: KpiMetric[] = [
   { key: 'sg-csat', label: 'CSAT average', value: 4.49, previous: 4.49, format: 'score', betterWhen: 'higher', hint: 'No change', series },
   { key: 'sg-rate', label: 'CSAT response rate', value: 33.2, previous: 30.8, format: 'percent', betterWhen: 'higher', hint: 'Higher is better', series },
 ]
-const RESOLVED = { resolvedBy: [{ key: 'claude', label: 'Claude', count: 612 }, { key: 'grokbot', label: 'Grokbot', count: 148 }, { key: 'human', label: 'Human', count: 216 }] } as unknown as DashboardSummary
+const RESOLVED = { resolvedBy: [{ key: 'claude', label: 'AI', count: 612 }, { key: 'grokbot', label: 'Grokbot', count: 148 }, { key: 'human', label: 'Human', count: 216 }] } as unknown as DashboardSummary
 const sgAlert = (id: string, level: FraudAlert['level'], riskScore: number, status: FraudAlert['status']): FraudAlert => ({
   id, ticketId: 'GB-1064', orderNumber: '#GB20268', customer: 'Nora Lindqvist', riskScore, level, amountAtRisk: 168, status, createdAt: new Date(Date.now() - 4 * 3_600_000).toISOString(),
   signals: [{ code: 'not_received_delivered', label: 'Not received · tracking delivered' }, { code: 'repeat_refund', label: '3rd refund in 30 days' }],
@@ -42,9 +42,9 @@ export function DashboardSamples() {
     <div className="space-y-6">
       <Specimen label="KPI stat strip items with delta chips and sparklines"><KpiStrip kpis={KPIS} comparisonLabel="vs prior 30 days" loading={false} /></Specimen>
       <div className="grid gap-6 lg:grid-cols-2">
-        <Specimen label="Stacked proportion bar"><ResolvedByChart data={RESOLVED} loading={false} /></Specimen>
+        <Specimen label="AI performance card (stacked proportion bar)"><AiPerformanceCard data={RESOLVED} loading={false} /></Specimen>
         <Specimen label="Ranked bar list">
-          <Panel title="Escalation reasons" description="Why tickets left Claude" testId="sg-ranked"><RankedList rows={REASONS} color={palette.tobacco[600]} testId="sg-ranked-list" /></Panel>
+          <Panel title="Escalation reasons" description="Why tickets left the AI" testId="sg-ranked"><RankedList rows={REASONS} color={palette.tobacco[600]} testId="sg-ranked-list" /></Panel>
         </Specimen>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">

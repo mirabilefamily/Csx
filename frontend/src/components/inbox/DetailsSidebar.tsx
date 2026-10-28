@@ -1,8 +1,13 @@
+import { lifetimeSpend } from '@/lib/customerFacts'
 import { useState, type FormEvent } from 'react'
-import { Link, useLocation } from 'react-router-dom'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { ChevronDown, PanelRightClose, RefreshCw, Search, Star, X } from 'lucide-react'
-import type { CsatResponse, LoopReturn, ShopifyOrder, TicketDetail } from '@/types'
+import { ChevronDown, PanelRightClose, Plus, RefreshCw, Search, Settings2, Sparkles, Star, User, X } from 'lucide-react'
+import type { CsatResponse, LoopReturn, ShopifyOrder, TicketDetail, TicketPatch } from '@/types'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/overlay'
+import { CustomerRows, Disclosure, PastTickets, TicketTags } from './PanelParts'
+import { ExternalLink } from 'lucide-react'
+import { usd as money } from '@/lib/format'
+import { OrderActionDialog, OrderButtons } from './OrderActions'
 import { customerToolsApi } from '@/api'
 import type { InventoryResult } from '@/api/customerTools'
 import { useApi } from '@/hooks/useApi'
@@ -23,7 +28,7 @@ export function Section({ title, children, testId, icon, defaultOpen = true, act
     <Collapsible.Root open={open} onOpenChange={setOpen} asChild>
       <section className="border-b border-border px-5 py-4" data-testid={testId}>
         <div className="flex items-center gap-2">
-          <Collapsible.Trigger className={cn('flex min-h-9 flex-1 items-center gap-1.5 rounded-md text-left text-xs font-semibold uppercase tracking-wider text-ink-muted hover:text-ink max-sm:min-h-11', focusRing)} data-testid={`${testId}-toggle`}>
+          <Collapsible.Trigger className={cn('flex min-h-9 flex-1 items-center gap-1.5 rounded-md text-left text-sm font-semibold text-ink hover:text-tobacco-700 max-sm:min-h-11', focusRing)} data-testid={`${testId}-toggle`}>
             {icon}{title}
             <ChevronDown className={cn('ml-auto h-4 w-4 transition-transform', open && 'rotate-180')} aria-hidden />
           </Collapsible.Trigger>
@@ -65,7 +70,7 @@ function OrderTools({ orders }: { orders: ShopifyOrder[] }) {
     try {
       if (tool === 'find') {
         const r = await customerToolsApi.findOrder(q)
-        setResult(r ? <div data-testid="order-find-result"><p className="font-medium text-ink">{r.order.number} · {r.customerName}</p><p className="text-ink-muted">{r.email} · ${r.order.total.toFixed(2)} · {r.order.status.replace('_', ' ')}</p></div> : <p className="text-ink-muted" data-testid="order-find-empty">No order matches "{q}".</p>)
+        setResult(r ? <div data-testid="order-find-result"><p className="font-medium text-ink">{r.order.number} · {r.customerName}</p><p className="text-ink-muted">{r.email} · {money(r.order.total)} · {r.order.status.replace('_', ' ')}</p></div> : <p className="text-ink-muted" data-testid="order-find-empty">No order matches "{q}".</p>)
       } else if (tool === 'inventory') {
         const r: InventoryResult = await customerToolsApi.checkInventory(q)
         setResult(
@@ -103,65 +108,53 @@ function Helper() {
   return <p className="text-[11px] text-ink-muted" data-testid="matched-by-email">Matched by the ticket email</p>
 }
 
-export function DetailsSidebar({ d, onClose, onCollapse, loop }: { d: TicketDetail; onClose: () => void; onCollapse?: () => void; loop?: { data?: LoopReturn[]; error?: unknown; reload: () => void; loading?: boolean } }) {
-  const { search } = useLocation()
+export function DetailsSidebar({ d, onClose, onCollapse, loop, onPatch, onOrdersChanged, allTags = [], onAsk }: { d: TicketDetail; onClose: () => void; onCollapse?: () => void; loop?: { data?: LoopReturn[]; error?: unknown; reload: () => void; loading?: boolean }; onPatch?: (p: TicketPatch) => void; onOrdersChanged?: () => void; allTags?: string[]; onAsk?: () => void }) {
   const c = d.customer
   const orders = newestFirst(c?.orders ?? [])
   const [ordersKey, setOrdersKey] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
+  const [action, setAction] = useState<{ kind: 'edit' | 'duplicate' | 'refund' | 'create'; o?: ShopifyOrder } | null>(null)
   const openFraud = d.fraudAlert?.status === 'open' ? d.fraudAlert : null
   const refresh = () => { setRefreshing(true); setTimeout(() => { setOrdersKey((k) => k + 1); setRefreshing(false) }, 600) }
+  const jump = (id: string) => document.querySelector(`[data-testid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   return (
     <div className="pb-16" data-testid="details-sidebar">
-      <div className="flex items-center justify-between border-b border-border px-5 py-3 lg:hidden">
-        <p className="text-sm font-semibold text-ink">Customer &amp; Shopify</p>
-        <button type="button" onClick={onClose} aria-label="Close details" className={cn('inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-surface-muted max-sm:h-11 max-sm:w-11', focusRing)} data-testid="details-close"><X className="h-4 w-4" aria-hidden /></button>
-      </div>
-      {onCollapse && (
-        <div className="hidden items-center justify-between border-b border-border py-1.5 pl-5 pr-2 lg:flex">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink" data-testid="customer-panel-title">Customer &amp; Shopify</p>
-          <button type="button" onClick={onCollapse} aria-expanded aria-controls="customer-panel-body" aria-label="Collapse customer panel" className={cn('inline-flex h-9 w-9 items-center justify-center rounded-md text-ink-muted hover:bg-surface-muted hover:text-ink', focusRing)} data-testid="customer-panel-collapse"><PanelRightClose className="h-4 w-4" aria-hidden /></button>
-        </div>
-      )}
-      <Section title="Customer feedback" testId="customer-feedback" defaultOpen={false}><Feedback customerId={c?.id} /></Section>
+      <p className="sr-only" data-testid="customer-panel-title">Full details</p>
+      {onPatch && <Section title="Ticket details" testId="ticket-details-section"><TicketTags d={d} onPatch={onPatch} allTags={allTags} /></Section>}
       <Section title="Customer" testId="customer-card">
         <CustomerHeader name={d.ticket.customer.name} email={d.ticket.customer.email} c={c} fraud={openFraud} />
+        <CustomerRows email={d.ticket.customer.email} c={c} />
         {c?.shopifyCustomerId && <CustomerStats orders={orders} />}
         {c?.shopifyCustomerId && orders.length > 0 && <span className="inline-flex rounded-full border border-green-100 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700" data-testid="shopify-customer-tag">Shopify customer</span>}
         {c?.note && <p className="text-xs text-ink-muted">{c.note}</p>}
         <Helper />
       </Section>
       <Section
-        title="Shopify orders"
+        title="Shopify"
         testId="shopify-orders"
         icon={<ShopifyMark size={16} decorative />}
         action={<Button variant="ghost" size="icon-sm" aria-label="Refresh Shopify orders" onClick={refresh} data-testid="shopify-orders-refresh"><RefreshCw className={cn(refreshing && 'animate-spin')} aria-hidden /></Button>}
       >
+        {c?.shopifyCustomerId && <a href={`https://admin.shopify.com/store/goorin-bros/customers/${c.shopifyCustomerId}`} target="_blank" rel="noopener noreferrer" className="-mt-1 inline-flex items-center gap-1 text-xs font-medium text-ink-muted hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="shopify-customer-link">View customer in Shopify <ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only">(opens in a new tab)</span></a>}
+        {c?.customerSince && <p className="text-xs text-ink-muted">Created at {new Date(c.customerSince).toLocaleDateString('en-US')}</p>}
+        <Disclosure label="Metafields" testId="shopify-metafields-toggle"><p className="text-xs text-ink-muted" data-testid="shopify-metafields-empty">No metafields</p></Disclosure>
+        <Disclosure label="Purchase summary" testId="shopify-purchase-toggle"><CustomerStats orders={orders} /></Disclosure>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-ink" data-testid="shopify-orders-count">Orders <span className="ml-1 rounded-full bg-surface-muted px-1.5 text-xs text-ink-muted">{orders.length}</span></p>
+          <Button variant="outline" size="sm" onClick={() => setAction({ kind: 'create' })} data-testid="shopify-create-order"><Plus aria-hidden /> Create order</Button>
+        </div>
         <OrderTools orders={orders} />
         {refreshing ? <p className="text-xs text-ink-muted" role="status" data-testid="shopify-orders-loading">Refreshing orders from Shopify…</p> : orders.length === 0 ? (
-          <p className="text-sm text-ink-muted" data-testid="no-shopify-orders">No Shopify orders</p>
+          <p className="text-sm text-ink-muted" data-testid="no-shopify-orders">No orders yet</p>
         ) : (
-          <div key={ordersKey} className="space-y-3">{orders.map((o, i) => <OrderCard key={o.id} o={o} defaultOpen={i === 0} />)}</div>
+          <div key={ordersKey} className="space-y-3">{orders.map((o, i) => <OrderCard key={o.id} o={o} defaultOpen={i === 0} actions={<OrderButtons o={o} onAction={(kind) => setAction({ kind, o })} />} />)}</div>
         )}
         <Helper />
       </Section>
-      {loop && <LoopReturnsSection returns={loop.data} lifetimeSpend={orders.reduce((s, o) => s + o.total, 0)} error={loop.error} onRetry={loop.reload} />}
-      <Section title="Past tickets" testId="past-tickets" defaultOpen={false}>
-        {d.pastTickets.length === 0 ? (
-          <p className="text-sm text-ink-muted">No other tickets from this customer</p>
-        ) : (
-          <ul className="space-y-1">
-            {d.pastTickets.map((t) => (
-              <li key={t.id}>
-                <Link to={{ pathname: `/inbox/${t.id}`, search }} className="block rounded-md p-2 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`past-ticket-${t.id}`}>
-                  <span className="flex items-center justify-between gap-2"><span className="text-xs font-medium text-ink-muted">{t.id}</span><StatusPill status={t.status} /></span>
-                  <span className="mt-1 block truncate text-sm text-ink">{t.subject}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
+      {loop && <LoopReturnsSection returns={loop.data} lifetimeSpend={lifetimeSpend(c?.orders)} error={loop.error} onRetry={loop.reload} />}
+      <Section title="Past tickets" testId="past-tickets" defaultOpen={false}><PastTickets d={d} /></Section>
+      <Section title="Customer feedback" testId="customer-feedback" defaultOpen={false}><Feedback customerId={c?.id} /></Section>
+      <OrderActionDialog kind={action?.kind ?? null} o={action?.o} ticketId={d.ticket.id} customerId={c?.id} onClose={() => setAction(null)} onChanged={() => onOrdersChanged?.()} />
       <Section title={`AI attempt log (${d.attempts.length})`} testId="ai-attempt-log" defaultOpen={false}>
         {d.attempts.length === 0 ? (
           <p className="text-sm text-ink-muted" data-testid="ai-attempts-empty">No AI attempts on this ticket</p>

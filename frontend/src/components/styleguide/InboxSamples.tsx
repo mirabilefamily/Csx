@@ -54,14 +54,14 @@ export function InboxSamples() {
       <Specimen label="Loop Returns section · wordmark header, stats (High return rate chip over 30%), return card with state + outcome pills, View in Loop">
         <div className="max-w-[340px] rounded-2xl bg-surface ring-1 ring-border" data-testid="sg-loop-returns"><LoopReturnsSection returns={SG_RETURNS} lifetimeSpend={148} /></div>
       </Specimen>
-      <Specimen label="AI draft card · Claude and Grokbot · high and low confidence">
+      <Specimen label="AI draft card · AI and Grokbot · high and low confidence">
         <ul className="grid gap-4 lg:grid-cols-2">
-          {DRAFTS.map((d) => <DraftCard key={d.id} draft={d} titles={TITLES} editing={false} busy={false} onApprove={noop} onEdit={noop} onDiscard={noop} />)}
+          {DRAFTS.map((d) => <li key={d.id} className="list-none"><DraftCard draft={d} titles={TITLES} busy={false} onApprove={noop} onEdit={noop} onDiscard={noop} onWriteOwn={noop} /></li>)}
         </ul>
       </Specimen>
       <div className="grid gap-8 lg:grid-cols-2">
         <Specimen label="Escalation timeline chip (hover a step for the reason)">
-          <EscalationChip steps={[{ key: 'claude', label: 'Claude', reason: 'Confidence 58%, below the 75% threshold' }, { key: 'grokbot', label: 'Grokbot', reason: 'Refund over $150' }, { key: 'human', label: 'Human', reason: 'Assigned to Sam Okafor' }]} />
+          <EscalationChip steps={[{ key: 'claude', label: 'AI', reason: 'Confidence 58%, below the 75% threshold' }, { key: 'grokbot', label: 'Grokbot', reason: 'Refund over $150' }, { key: 'human', label: 'Human', reason: 'Assigned to Sam Okafor' }]} />
         </Specimen>
         <Specimen label="Internal note">
           <ul><MessageItem m={NOTE} /></ul>

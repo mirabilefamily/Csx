@@ -110,7 +110,7 @@ for (const t of tickets) {
   const skipGrok = t.escalationReason === 'asked_for_human'
   const viaGrok = t.status === 'grok_handling' || t.status === 'needs_human' || t.resolvedBy === 'grokbot' || t.resolvedBy === 'human'
   if (skipGrok) {
-    push('claude', 'Claude', s.claude, 2)
+    push('claude', 'AI', s.claude, 2)
     attempt('claude', pick(0.7, 0.8), 'escalated', 'Customer asked for a human')
     push('system', 'System', 'Customer asked for a human. Skipped Grokbot and escalated to the team.', 1)
     if (t.assignee) push('agent', agentName, s.note, 20, true)
@@ -118,17 +118,17 @@ for (const t of tickets) {
   }
   const short = t.status === 'ai_handling' && t.id === 'GB-1080'
   if (t.status === 'ai_handling') {
-    if (!short) push('claude', 'Claude', s.claude, 2)
+    if (!short) push('claude', 'AI', s.claude, 2)
     attempt('claude', pick(0.74, 0.9), 'in_progress', null)
     continue
   }
-  push('claude', 'Claude', s.claude, 2)
+  push('claude', 'AI', s.claude, 2)
   if (!viaGrok) {
     attempt('claude', pick(0.86, 0.96), 'answered', null)
   } else {
     const c = pick(0.42, 0.66)
     attempt('claude', c, 'escalated', `Confidence ${c.toFixed(2)} below 0.70 threshold`)
-    push('system', 'System', `Claude confidence ${c.toFixed(2)} is below the 0.70 threshold. Handed to Grokbot.`, 3)
+    push('system', 'System', `AI confidence ${c.toFixed(2)} is below the 0.70 threshold. Handed to Grokbot.`, 3)
     if (t.status === 'grok_handling') {
       attempt('grokbot', pick(0.6, 0.78), 'in_progress', null)
       continue
@@ -153,6 +153,8 @@ const draftSeeds: [string, AIDraft['tier'], number, string][] = [
   ['GB-1076', 'claude', 0.58, "Dear Margaret,\n\nI'm so sorry your Hampton arrived crushed, especially with the wedding this weekend. I've reserved a new Hampton Wool Fedora in Tobacco, size M, and can ship it overnight today so it arrives Thursday. There's no need to send the damaged one back.\n\nWarmly,\nGoorin Bros."],
   ['GB-1074', 'claude', 0.49, "Hi Jonah,\n\nCongratulations! We'd be honored to make caps for your guests. For 120 embroidered truckers, our custom shop typically needs 4–6 weeks. Could you send your monogram artwork and preferred cap color? We'll put together a quote and mock-up."],
   ['GB-1068', 'grokbot', 0.63, "Hi Clara,\n\nThank you for your patience. We received all three hats from order #GB20360 and your refund of $451.00 is ready to be approved. You'll see it on your statement within 3–5 business days of approval."],
+  ['GB-1065', 'claude', 0.52, "Hi Marcus,\n\nThanks for the reorder of 48 units. I've noted your request for net-30 terms on this order. Our wholesale team approves terms, so I've passed it to them and you'll hear back today with a confirmed invoice.\n\nBest,\nGoorin Bros."],
+  ['GB-1058', 'claude', 0.46, "Hi Rosa,\n\nWhat a treasure. A 1950s Goorin fedora deserves careful hands. We don't restore vintage felt in-house, but our team can recommend a trusted hatter near Santa Fe and share how to store it until then.\n\nWarmly,\nGoorin Bros."],
   ['GB-1061', 'grokbot', 0.55, "Hi Dev,\n\nI'm sorry you've had to ask more than once. Your Hampton Wool Fedora (order #GB20340) has been held at the FedEx Chicago hub since last Tuesday. I've opened a trace and can ship a replacement today with overnight delivery."],
 ]
 

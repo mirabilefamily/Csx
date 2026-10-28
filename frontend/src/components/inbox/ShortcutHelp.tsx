@@ -1,11 +1,15 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 
 const SHORTCUTS: [string, string][] = [
-  ['j', 'Next ticket'],
-  ['k', 'Previous ticket'],
+  ['j / k', 'Next / previous ticket'],
+  ['→ / ←', 'Next / previous ticket'],
   ['r', 'Reply'],
   ['n', 'Internal note'],
-  ['e', 'Close ticket'],
+  ['Shift+N', 'New ticket'],
+  ['a', 'Approve & send the AI draft'],
+  ['e', 'Resolve ticket'],
+  ['⌘G / Ctrl+G', 'Ask Goorin AI'],
+  [']', 'Collapse or expand the details panel'],
   ['?', 'Show shortcuts'],
 ]
 

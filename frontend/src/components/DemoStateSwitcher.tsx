@@ -24,18 +24,19 @@ export function DemoStateSwitcher({ inline = false }: { inline?: boolean }) {
   const current = OPTIONS.find((o) => o.id === state)!
   const inConversation = /^\/inbox\/.+/.test(pathname)
   return (
-    <div className={inline ? '' : cn('fixed bottom-4 right-4 z-40', inConversation ? 'max-sm:bottom-auto max-sm:right-2 max-sm:top-[calc(4.25rem+env(safe-area-inset-top))]' : 'max-sm:bottom-[calc(4.5rem+env(safe-area-inset-bottom))] max-sm:right-3')}>
+    <div className={inline ? '' : cn('fixed bottom-[136px] left-5 z-40 max-sm:left-auto', inConversation ? 'max-sm:bottom-auto max-sm:right-2 max-sm:top-[calc(4.25rem+env(safe-area-inset-top))]' : 'max-sm:bottom-[calc(4.5rem+env(safe-area-inset-bottom))] max-sm:right-3')}>
       <Popover>
         <PopoverTrigger
           data-testid="demo-state-trigger"
           aria-label={`Demo state: ${current.label}`}
           className={cn(
-            'inline-flex h-9 items-center gap-2 rounded-full border bg-surface px-3.5 text-xs font-medium text-ink shadow-popover transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 max-sm:h-11 max-sm:min-w-11 max-sm:justify-center max-sm:px-3',
+            inline ? 'inline-flex h-9 items-center gap-2 rounded-full border bg-surface px-3.5 text-xs font-medium text-ink shadow-popover' : 'inline-flex h-8 w-8 items-center justify-center rounded-full border bg-surface text-ink shadow-popover max-sm:h-11 max-sm:w-11',
+            'transition-colors transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             state === 'live' ? 'border-border-strong' : 'border-amber-500 ring-2 ring-amber-100',
           )}
         >
           <FlaskConical className="h-3.5 w-3.5 text-brass-700" aria-hidden />
-          <span className="max-sm:sr-only">Demo state:</span> <span className={cn('font-semibold', state === 'live' && 'max-sm:sr-only')}>{current.label}</span>
+          {inline && <><span>Demo state:</span> <span className="font-semibold">{current.label}</span></>}
         </PopoverTrigger>
         <PopoverContent side={inline ? 'bottom' : 'top'} className="w-64 p-2" data-testid="demo-state-panel">
           <p className="px-2 pb-2 pt-1 text-xs font-medium text-ink-muted" id="demo-state-label">

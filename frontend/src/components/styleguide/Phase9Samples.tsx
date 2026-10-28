@@ -25,7 +25,7 @@ export function Phase9Samples() {
       </div>
       <div className="flex items-start gap-2.5 rounded-xl bg-[#FAF5EE] px-4 py-2.5 text-sm text-ink ring-1 ring-[#EADFD2]">
         <Bot className="mt-0.5 h-4 w-4 shrink-0 text-tobacco-600" aria-hidden />
-        <p><span className="font-semibold">AI replied:</span> Claude answered the latest customer message. No staff handoff yet. This ticket isn't resolved.</p>
+        <p><span className="font-semibold">AI replied:</span> AI answered the latest customer message. No staff handoff yet. This ticket isn't resolved.</p>
       </div>
     </div>
   )

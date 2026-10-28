@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import * as SliderPrimitive from '@radix-ui/react-slider'
 import * as Collapsible from '@radix-ui/react-collapsible'
-import { ArrowRight, ChevronDown, Copy, Mail, MessageCircle, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUp, ChevronDown, Copy, GripVertical, Mail, MessageCircle, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { AiSettings, RuleCondition } from '@/types'
 import { settingsApi } from '@/api'
@@ -106,25 +106,30 @@ function Hours({ form, set, hourErr }: { form: AiSettings; set: SetFn; hourErr: 
 }
 
 function Rules({ form, set }: { form: AiSettings; set: SetFn }) {
+  const [drag, setDrag] = useState<number | null>(null)
+  const moveRule = (from: number, to: number) => { const r = [...form.rules]; const [x] = r.splice(from, 1); r.splice(to, 0, x); set({ rules: r }) }
   return (
     <>
       <ul className="space-y-2" data-testid="escalation-rules">
         {form.rules.map((r, i) => {
           const upd = (p: Partial<typeof r>) => set({ rules: form.rules.map((x) => (x.id === r.id ? { ...x, ...p } : x)) })
           return (
-            <li key={r.id} className="flex flex-wrap items-center gap-2 rounded-xl bg-surface-muted/60 px-3 py-2" data-testid={`rule-${i}`}>
-              <span className="text-sm font-medium text-ink-muted">If</span>
+            <li key={r.id} onDragOver={(e) => { if (drag !== null && drag !== i) { e.preventDefault(); e.dataTransfer.dropEffect = 'move' } }} onDrop={(e) => { e.preventDefault(); if (drag !== null && drag !== i) moveRule(drag, i); setDrag(null) }} className={`flex flex-wrap items-center gap-2 rounded-xl bg-surface-muted/60 px-3 py-2 xl:flex-nowrap ${drag === i ? 'opacity-60' : ''}`} data-testid={`rule-${i}`}>
+              <span draggable onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; setDrag(i) }} onDragEnd={() => setDrag(null)} className="flex h-8 w-5 shrink-0 cursor-grab items-center justify-center text-ink-subtle" title="Drag to reorder" aria-hidden data-testid={`rule-grip-${i}`}><GripVertical className="h-4 w-4" /></span>
+              <span className="sr-only">Rule {i + 1} of {form.rules.length}</span>
+              <span className="w-6 text-sm font-medium text-ink-muted">If</span>
               <Select value={r.condition} onValueChange={(v) => upd({ condition: v as RuleCondition })}>
-                <SelectTrigger className="h-9 w-56 bg-surface" aria-label={`Rule ${i + 1} condition`}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 w-56 shrink-0 whitespace-nowrap bg-surface [&>span]:truncate" aria-label={`Rule ${i + 1} condition`}><SelectValue /></SelectTrigger>
                 <SelectContent>{CONDITIONS.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
               </Select>
-              <Input className="h-9 w-32 bg-surface" value={r.value} onChange={(e) => upd({ value: e.target.value })} aria-label={`Rule ${i + 1} value`} />
-              <span className="inline-flex items-center gap-1.5 text-sm text-ink-muted"><ArrowRight className="h-4 w-4" aria-hidden /> escalate to</span>
+              <Input className="h-9 w-32 min-w-[6rem] bg-surface xl:w-auto xl:flex-1" value={r.value} onChange={(e) => upd({ value: e.target.value })} aria-label={`Rule ${i + 1} value`} />
+              <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-ink-muted"><ArrowRight className="h-4 w-4" aria-hidden /> escalate to</span>
               <Select value={r.target} onValueChange={(v) => upd({ target: v as 'grokbot' | 'human' })}>
-                <SelectTrigger className="h-9 w-32 bg-surface" aria-label={`Rule ${i + 1} target`}><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 w-32 shrink-0 bg-surface" aria-label={`Rule ${i + 1} target`}><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="grokbot">Grokbot</SelectItem><SelectItem value="human">Human</SelectItem></SelectContent>
               </Select>
-              <Button size="icon-sm" variant="ghost" className="ml-auto" aria-label={`Remove rule ${i + 1}`} onClick={() => set({ rules: form.rules.filter((x) => x.id !== r.id) })} data-testid={`rule-remove-${i}`}><Trash2 aria-hidden /></Button>
+              <span className="ml-auto flex shrink-0 items-center gap-1"><Button size="icon-sm" variant="ghost" disabled={i === 0} aria-label={`Move rule ${i + 1} up`} onClick={() => moveRule(i, i - 1)} data-testid={`rule-up-${i}`}><ArrowUp aria-hidden /></Button><Button size="icon-sm" variant="ghost" disabled={i === form.rules.length - 1} aria-label={`Move rule ${i + 1} down`} onClick={() => moveRule(i, i + 1)} data-testid={`rule-down-${i}`}><ArrowDown aria-hidden /></Button></span>
+              <Button size="icon-sm" variant="ghost" aria-label={`Remove rule ${i + 1}`} onClick={() => set({ rules: form.rules.filter((x) => x.id !== r.id) })} data-testid={`rule-remove-${i}`}><Trash2 aria-hidden /></Button>
             </li>
           )
         })}
@@ -227,7 +232,7 @@ function Assignment({ form, set }: { form: AiSettings; set: SetFn }) {
   )
 }
 
-export function AiTab({ part = 'replies' }: { part?: 'replies' | 'workflows' }) {
+export function AiTab({ part = 'replies' }: { part?: 'replies' | 'routing' }) {
   const { data, loading, error, reload } = useApi(() => settingsApi.getAiSettings(), [])
   const [saved, setSaved] = useState<AiSettings | null>(null)
   const [form, setForm] = useState<AiSettings | null>(null)
@@ -250,7 +255,7 @@ export function AiTab({ part = 'replies' }: { part?: 'replies' | 'workflows' }) 
   }
 
   return (
-    <div className="pb-24" data-testid={part === 'replies' ? 'ai-tab' : 'workflows-tab'}>
+    <div className="pb-24" data-testid={part === 'replies' ? 'ai-tab' : 'routing-tab'}>
       <div className="divide-y divide-border/70 rounded-2xl bg-surface px-6 py-6 shadow-card ring-1 ring-black/[0.04] max-sm:px-4">
         {part === 'replies' ? (
           <>

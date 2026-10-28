@@ -61,7 +61,7 @@ export function RefundPipeline({ stages, testId = 'refund-pipeline' }: { stages:
 }
 
 const DONE: Record<FraudAction, string> = { safe: 'Marked safe', held: 'Refund held', escalated: 'Escalated' }
-const ACTIONS: [FraudAction, string, string][] = [['safe', 'Mark safe', 'safe'], ['held', 'Hold refund', 'hold'], ['escalated', 'Escalate', 'escalate']]
+export const ACTIONS: [FraudAction, string, string][] = [['safe', 'Mark safe', 'safe'], ['held', 'Hold refund', 'hold'], ['escalated', 'Escalate', 'escalate']]
 
 export function FraudAlertRow({ a, onAction, busy }: { a: FraudAlert; onAction?: (a: FraudAlert, action: FraudAction) => void; busy?: boolean }) {
   return (
@@ -90,6 +90,19 @@ export function FraudAlertRow({ a, onAction, busy }: { a: FraudAlert; onAction?:
           {a.reviewNote && <span className="mt-1 block rounded-lg bg-surface-muted px-2.5 py-1.5 text-ink" data-testid={`fraud-note-${a.id}`}>Note: {a.reviewNote}</span>}
         </p>
       )}
+    </li>
+  )
+}
+
+// Compact one-line alert row for the dashboard card (REQ-763); actions sit in a ⋯ menu.
+export function FraudCompactRow({ a, menu }: { a: FraudAlert; menu: React.ReactNode }) {
+  return (
+    <li className="flex min-h-12 items-center gap-3 py-2" data-testid={`fraud-alert-${a.id}`}>
+      <RiskBadge level={a.level} score={a.riskScore} testId={`fraud-risk-${a.id}`} />
+      <Link to={`/inbox/${a.ticketId}`} className="min-w-0 flex-1 truncate rounded text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid={`fraud-ticket-${a.id}`}>
+        <span className="font-semibold text-ink">{a.customer}</span><span className="text-ink-muted"> · {a.orderNumber} · </span><span className="font-medium text-ink" data-testid={`fraud-amount-${a.id}`}>{formatMoney(a.amountAtRisk)}</span><span className="text-ink-muted"> · {a.signals[0]?.label}</span>
+      </Link>
+      {menu}
     </li>
   )
 }

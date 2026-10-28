@@ -59,6 +59,10 @@ export interface ShopifyOrder {
   trackingNumber: string | null
   trackingUrl: string | null
   lineItems: LineItem[]
+  refundedAmount?: number
+  shippingCost?: number
+  isDraft?: boolean
+  discount?: number
   shippingAddress: ShippingAddress
   adminUrl: string
 }
@@ -131,6 +135,11 @@ export interface Ticket {
   orderNumber: string | null
   fraud?: TicketFraudFlag | null
   setAside?: 'spam' | 'trash' | null
+  team?: TeamId | null
+  snoozedUntil?: string | null
+  draftReady?: boolean
+  handoverReason?: string | null
+  aiConfidence?: number | null
 }
 
 export interface Message {
@@ -377,7 +386,7 @@ export interface SearchResults {
   articles: Pick<GuidanceArticle, 'id' | 'title' | 'category'>[]
 }
 
-export type InboxViewId = 'all_open' | 'needs_human' | 'ai_handling' | 'mine' | 'unassigned' | 'resolved' | 'closed' | 'all' | 'spam' | 'trash'
+export type InboxViewId = 'needs_you' | 'ai_handling' | 'mine' | 'resolved' | 'closed' | 'all' | 'spam' | 'trash'
 export interface NewTicketInput { email: string; name?: string; subject: string; channel: Channel; body: string; isInternal: boolean }
 
 export interface TicketDetail {
@@ -395,7 +404,15 @@ export interface TicketPatch {
   status?: TicketStatus
   priority?: Priority
   assignee?: string | null
+  team?: TeamId | null
+  snoozedUntil?: string | null
+  tags?: string[]
 }
+
+export type TeamId = 'support' | 'returns' | 'wholesale'
+export interface SavedViewFilters { q?: string; channel?: Channel | 'all'; tag?: string; status?: TicketStatus | 'active' | 'all'; sort?: 'newest' | 'oldest' | 'priority' }
+export interface SavedView { id: string; name: string; scope: 'shared' | 'private'; ownerId: string; ownerName: string; filters: SavedViewFilters }
+export interface OrderRefundInput { orderId: string; items: Record<string, number>; shipping: boolean; restock: boolean; reason: string; note: string; notify: boolean }
 
 export interface BulkPatch {
   status?: TicketStatus
@@ -643,3 +660,4 @@ export interface EmailChannelSettings {
 
 export interface NotificationPrefs { needsHuman: boolean; lowCsat: boolean; fraudAlerts: boolean }
 export interface ChangePasswordInput { current: string; next: string; confirm: string }
+export * from './workflows'

@@ -17,7 +17,7 @@ await p.fill('input[type=password]', 'goorin123')
 await p.getByRole('button', { name: 'Sign in' }).click()
 await p.waitForURL('**/dashboard')
 await p.waitForSelector('[data-testid=refund-total]')
-await p.waitForSelector('[data-testid=fraud-list-open]')
+await p.click('[data-testid=rf-tab-fraud]'); await p.waitForSelector('[data-testid=fraud-top-open]')
 
 // JRN-105
 for (const r of ['30d', '7d', '90d']) {
@@ -28,10 +28,11 @@ for (const r of ['30d', '7d', '90d']) {
 }
 log('open alerts:', await txt('[data-testid=fraud-open-count]'), '| fa-101:', await txt('[data-testid=fraud-alert-fa-101]'))
 const box = async (s) => (await p.locator(s).boundingBox())
-const rb = await box('[data-testid=refunds-panel]'); const fb = await box('[data-testid=fraud-panel]'); const vb = await box('[data-testid=chart-volume-by-channel]')
+const rb = await box('[data-testid=refunds-fraud-card]'); const fb = await box('[data-testid=csat-section]'); const vb = await box('[data-testid=chart-volume-by-channel]')
 log(`layout 1440: side-by-side=${Math.abs(rb.y - fb.y) < 2 && rb.x < fb.x} below-volume=${rb.y > vb.y}`)
 
 // JRN-106
+await p.click('[data-testid=fraud-view-all]'); await p.waitForSelector('[data-testid=fraud-list-open]')
 await p.click('[data-testid=fraud-action-hold-fa-101]'); await p.click('[data-testid=fraud-note-confirm]'); log('hold toast:', await toast())
 await p.waitForTimeout(1200)
 log('after hold pipeline:', await txt('[data-testid=refund-pipeline]'), '| pending:', await txt('[data-testid=refund-pending]'))
@@ -39,7 +40,7 @@ await p.click("[data-testid=fraud-action-safe-fa-103]"); await p.click('[data-te
 await p.waitForTimeout(300)
 await p.click('[data-testid=fraud-action-escalate-fa-104]'); await p.click('[data-testid=fraud-note-confirm]')
 await p.waitForSelector('[data-sonner-toast]:has-text("Escalated to admin")'); log('escalate toast: Escalated to admin')
-await p.locator('[data-sonner-toast]:has-text("Escalated to admin") button:has-text("Undo")').click()
+await p.click('[data-testid=fraud-sheet-undo]')
 await p.waitForTimeout(1000)
 log('fa-104 after undo in open list:', await p.isVisible('[data-testid=fraud-list-open] [data-testid=fraud-alert-fa-104]'))
 await p.click('[data-testid=fraud-tab-reviewed]')
@@ -49,8 +50,8 @@ for (const id of ['fa-102', 'fa-104']) { await p.click(`[data-testid=fraud-actio
 log('all clear:', await txt('[data-testid=fraud-empty]'))
 
 // JRN-107 (fresh session: reload resets mocks)
-await p.reload(); await p.waitForSelector('[data-testid=fraud-list-open]')
-await p.goto(`${BASE}/inbox`)
+await p.reload(); await p.click('[data-testid=rf-tab-fraud]'); await p.waitForSelector('[data-testid=fraud-top-open]')
+await p.goto(`${BASE}/inbox?view=all`)
 await p.waitForSelector('[data-testid=ticket-row-GB-1064]')
 const shields = await p.locator('[data-testid^=ticket-fraud-]').evaluateAll((els) => els.map((e) => `${e.dataset.testid}:${e.getAttribute('aria-label')}`))
 log('shields:', shields.join(', '))
@@ -82,10 +83,11 @@ log('dashboard limit:', await txt('[data-testid=refund-auto-limit]'))
 const demo = async (label) => { if (!(await p.isVisible('[data-testid=demo-state-panel]'))) await p.click('[data-testid=demo-state-trigger]'); await p.click(`[data-testid=demo-state-option-${label.toLowerCase()}]`); await p.keyboard.press('Escape') }
 try {
   await demo('Error'); await p.waitForTimeout(1200)
-  log('error states:', await p.isVisible('[data-testid=refunds-error]'), await p.isVisible('[data-testid=fraud-stale-error]') || await p.isVisible('[data-testid=fraud-error]'))
-  await p.click('[data-testid=fraud-action-safe-fa-101]'); await p.click('[data-testid=fraud-note-confirm]'); log('error action toast:', await (await p.waitForSelector('[data-sonner-toast]:has-text("update the alert")')).innerText())
+  await p.click('[data-testid=rf-tab-refunds]'); const refErr = await p.isVisible('[data-testid=refunds-error]'); await p.click('[data-testid=rf-tab-fraud]')
+  log('error states:', refErr, await p.isVisible('[data-testid=fraud-stale-error]') || await p.isVisible('[data-testid=fraud-error]'))
+  await p.click('[data-testid=rf-tab-fraud]').catch(() => {}); await p.click('[data-testid=fraud-menu-fa-101]'); await p.click('[data-testid=fraud-action-safe-fa-101]'); await p.click('[data-testid=fraud-note-confirm]'); log('error action toast:', await (await p.waitForSelector('[data-sonner-toast]:has-text("update the alert")')).innerText())
   await demo('Empty'); await p.waitForTimeout(1200)
-  log('empty:', await txt('[data-testid=refunds-empty]'), '|', await txt('[data-testid=fraud-empty]'))
+  log('empty fraud:', await txt('[data-testid=fraud-empty]')); await p.click('[data-testid=rf-tab-refunds]'); log('empty refunds:', await txt('[data-testid=refunds-empty]'))
   await demo('Loading'); await p.waitForTimeout(600)
   log('skeletons:', await p.isVisible('[data-testid=refunds-panel-skeleton]'), await p.isVisible('[data-testid=fraud-panel-skeleton]'))
   await demo('Live')

@@ -16,6 +16,8 @@ const ROUTES = [
   ['ai-voice', '/ai/voice'],
   ['ai-testing', '/ai/testing'],
   ['ai-workflows', '/ai/workflows'],
+  ['ai-workflow-editor', '/ai/workflows/wf-order-tracking'],
+  ['ai-routing', '/ai/routing'],
   ['channels-form', '/channels/chat?kind=form'],
   ['channels-email', '/channels/email'],
   ['settings-account', '/settings/account'],

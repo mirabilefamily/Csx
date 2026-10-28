@@ -85,3 +85,14 @@ Admin (support lead), Agent (support rep), Customer (later phases), Backend deve
 - Inbox: Spam/Trash, + New ticket, short ids, pagination, Assign me / Resolve, AI replied banner, Email timing, delivery timeline, Reply/Internal note tabs, collapsible Customer & Shopify panel with order tools and Loop filters.
 - Integrations: Office 365 (id outlook), Loop Returns added, Configured/Connected/attention states. Fraud review notes.
 - Checks: scripts/phase9-check.mjs; shots in /app/memory/shots/phase9/.
+
+## Phases 11–13 (Sep 2026) — DONE
+- Phase 11 Inbox: AI-first Needs you / AI handling, shared app tokens (no Inbox-only palette), calmer view rows + StatusPill, GOORIN | Support Desk lockup, summary collapse rail (]), USD formatter, thread spacing, single Shopify store, cleanup pass REQ-709..716 (56px headers, 2-row conversation header + SLA chip, brief first, hover checkboxes, 4-line draft preview, full-details replaces summary).
+- Phase 12 Dashboard rev 2: header + 5 KPIs + strict 2x2 equal cards (Ticket volume, AI performance tabs, Refunds & fraud tabs with View all sheets, Customer satisfaction).
+- Phase 13 AI & Workflows: workflowsApi (MOCKED), Order tracking (Active) + 4 templates, List + React Flow Canvas editor on one model, validation, Test panel with mock inbox/code flow, Routing tab, widget runtime on /widget-demo.
+- Checks: tsc, build, audit, phone-sweep, width-check, phase8/9/11/12/13, check-readme all pass.
+
+## Backlog
+- P1: Map Phase 13 strictly to REQ-717..759 / JRN-156..166
+- P1: Free move (not swap) reorder in List view; inline rename instead of prompt
+- P2: Order cards in widget runtime; verify Channels chat preview runtime

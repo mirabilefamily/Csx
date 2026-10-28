@@ -25,6 +25,8 @@ function order(num: number, status: OrderStatus, ageDays: number, items: ItemSee
     trackingNumber: tracking,
     trackingUrl: tracking ? `https://tracking.example.com/${carrier.toLowerCase()}/${tracking}` : null,
     lineItems,
+    refundedAmount: financial === 'partially_refunded' ? lineItems[0].price : 0,
+    shippingCost: 8,
     adminUrl: `https://admin.shopify.com/store/goorin/orders/${num}`,
   }
 }
@@ -35,7 +37,7 @@ const seeds: CustomerSeed[] = [
   ['c01', 'Margaret Okonkwo', 'margaret.okonkwo@example.com', 'Brooklyn, NY', 900, [
     order(20398, 'delivered', 4, [['Hampton Wool Fedora', 'Tobacco / M', 148]]),
     order(20211, 'delivered', 30, [['Watkins Straw Panama', 'Natural / M', 128]], 'USPS'),
-    order(19790, 'delivered', 160, [['Dulles Newsboy', 'Grey Tweed / M', 78], ['Sage Bucket Hat', 'Olive / M', 58, 2]], 'UPS', 'partially_refunded'),
+    order(19790, 'delivered', 160, [['Dulles Newsboy', 'Grey Tweed / M', 78], ['Sage Bucket Hat', 'Olive / M', 82]], 'UPS', 'partially_refunded'),
   ], 'Long-time customer since 2023. Prefers email.'],
   ['c02', 'Lena Fischer', 'lena.fischer@example.com', 'Portland, OR', 210, [order(20190, 'delivered', 25, [['Mae Wide Brim', 'Charcoal / S', 138]])]],
   ['c03', 'Marcus Bell', 'marcus@bellandbrim.example.com', 'Austin, TX', 640, [

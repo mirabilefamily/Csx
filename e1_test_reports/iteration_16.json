@@ -1,0 +1,42 @@
+{
+  "iteration": 16,
+  "mode": "retest",
+  "phase": "11 and 12",
+  "target": "http://localhost:3000 (frontend-only, mocked, so there is no backend lane)",
+  "passed": 8,
+  "failed": 1,
+  "retest_needed": true,
+  "bugs": [
+    {
+      "id": "BUG-1",
+      "severity": "medium",
+      "title": "At 1024 the customer name in the conversation header meta row collapses to 0px wide",
+      "criterion": "Conversation width and 1024 drawer (the header meta row isn't clipped at 1024)",
+      "evidence": "Check p12-header-drawer-statusline failed twice, so it is not flaky. At 1024x800 on GB-1076, the 'Margaret Okonkwo' element in [data-testid=conversation-meta] has a bounding width of 0. A fresh-load probe measured it at x 376-376, while the next separator sits at x 382. The visible row reads '· #E3B75B Needs human Unassigned …', so it starts with a dangling separator and has no name. Screenshot: p12-header-drawer-statusline-1024-drawer.png. The same squeeze happens at 1440 after resizing down from 1920: the row shows '· Er…' and the name is missing (screenshot p12-header-drawer-statusline-1440.png). On a fresh load at 1440 the row renders correctly. The likely cause is that the name span can shrink (flex-shrink/min-width:0) and nothing protects it. The accepted deviation hides only the 'Email' label and 'Assign me' below 1440, not the name. The app is mocked with no API, so this is frontend-only."
+    }
+  ],
+  "improvements": [
+    "Header controls: the assignee and email-timing controls are 28px, but Resolve, More, Prev and Next are 32px. The spec asks for 28px controls. This is a polish item, not a bug.",
+    "Conversation header height is 73px against a target of about 72px, which is within tolerance."
+  ],
+  "notes": [
+    "Two stale assertions were updated to match the briefing: the Returns row now expects 13.3% (the accepted value), and the 'Needs human' pill may be 28px tall (REQ-767 controls are 28px).",
+    "p11-draft-editor was extended to assert the 'Reply sent' toast copy.",
+    "p12-dashboard-modules failed once because the exact KPI values drifted: 77.9% vs 78.0%, 4.39 vs 4.38, and 1,120 vs 1,119 tickets. Earlier checks in this session create tickets and CSAT responses, which explains the drift. The tolerance was widened and the check passed on rerun. The 2×2 grid layout passed on both runs.",
+    "The only console errors are Vite HMR websocket errors (ws://localhost:443), which are dev-server noise. No app errors.",
+    "/ai Workflows was ignored as instructed."
+  ],
+  "action_items": [],
+  "checks": [
+    {"criterion": "AI status line not truncated", "name": "p11-inbox-needs-you", "lane": "browser", "status": "passed", "evidence": "At 1440 the status line reads '128 by AI today · 7 need you · 9 in progress', trunc=false. Needs you shows 7; conversation width is 728 at 1440 and 628 at 1024."},
+    {"criterion": "AI status line not truncated (1024/1280/1440/1920); Conversation width and 1024 drawer; REQ-767/768 header spacing and no accent bar", "name": "p12-header-drawer-statusline", "lane": "browser", "status": "failed", "evidence": "Passed: the full status line with no ellipsis at all 4 widths; conversation width 628/568/728 at 1024/1280/1440; rail 44px; ']' and the summary-expand button open the overlay drawer, which closes on Esc and on a backdrop click; no overlay at 1280; header 73px, 16px subject, 12px meta gap, actions centred (1px offset); the 3 zone header bottoms sit at 136/137/136; at 1920 the header column is 968 wide and the subject-to-Resolve span is 808; the brief has a uniform 1px border, a white background and the label 'Why you're here'; no element uses a coloured side bar. FAILED: metaNotClipped at 1024, where the name width is 0."},
+    {"criterion": "Conversation width and 1024 drawer", "name": "p12-blend-tablet", "lane": "browser", "status": "passed", "evidence": "Conversation 628 wide at 1024 with no overflow; at 768 the list and conversation show, the details sheet opens and nothing overflows."},
+    {"criterion": "Facts match across brief, Ask AI and summary", "name": "p11-brief-thread-header", "lane": "browser", "status": "passed", "evidence": "The brief says 'drafted a reply at 58% confidence … 2 Loop returns ($58.00 returned, 13.3% of spend)'; the draft says '58% confidence'; How the AI got here says Confidence 58%."},
+    {"criterion": "Facts match across brief, Ask AI and summary", "name": "p11-askai-shortcuts", "lane": "browser", "status": "passed", "evidence": "The Ask AI refund answer says 'Loop: 2 returns, $58.00 returned (13.3% of spend)' and cites Shopify and Loop Returns."},
+    {"criterion": "Facts match across brief, Ask AI and summary", "name": "p11-summary-orders", "lane": "browser", "status": "passed", "evidence": "summary-returns reads 'Loop 2 · $58.00 · 13.3%'. The #GB19790 refund flow works: $82.00 available, the over-limit note shows, and Edit/Duplicate/Create work. Rail is 44px and ']' toggles it."},
+    {"criterion": "Approve & send toast", "name": "p11-draft-editor", "lane": "browser", "status": "passed", "evidence": "toastCopy='Reply sent'. Approve & send sends after 2 clicks, Send & hand back to AI works, and the handback event is logged."},
+    {"criterion": "Regression smoke", "name": "p11-ai-handling-takeover", "lane": "browser", "status": "passed", "evidence": "Take over logs 'Ava Martinez took over from Claude' and the counts update to '8 need you · 8 in progress'."},
+    {"criterion": "Regression smoke", "name": "p12-dashboard-modules", "lane": "browser", "status": "flaky", "evidence": "The first run failed on exact KPI values that drifted because of session residue (77.9% vs 78.0%). After the tolerance was widened it passed: 5 KPIs, 4 modules all 556px wide in a 2×2 grid, and a single column at 1024."},
+    {"criterion": "Regression smoke", "name": "p11-inbox-needs-you (Needs you default)", "lane": "browser", "status": "passed", "evidence": "views-dropdown shows 'Needs you 7' by default, and sort works."}
+  ]
+}

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
-const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+import { usd } from '@/lib/format'
 const PILL = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium'
 const STATE: Record<LoopState, [string, string]> = {
   open: ['Open', 'bg-brass-50 text-brass-700'], in_review: ['In review', 'bg-amber-50 text-amber-900'], closed: ['Closed', 'bg-slate-100 text-slate-700'],
@@ -17,11 +17,8 @@ const OUTCOME: Record<LoopOutcome, string> = { refund: 'Refund', exchange: 'Exch
 const LABEL: Record<LoopLabelStatus, string> = { label_created: 'Label created', in_transit: 'In transit', delivered_to_warehouse: 'Delivered to warehouse' }
 const amountOf = (r: LoopReturn) => (r.outcome === 'refund' ? r.refund : r.outcome === 'exchange' ? r.exchangeTotal : r.storeCredit)
 
-// Cancelled and expired returns are listed and counted, but left out of Returned $ and the return rate.
-export function loopStats(returns: LoopReturn[], lifetimeSpend: number) {
-  const dollars = returns.filter((r) => r.state !== 'cancelled' && r.state !== 'expired').reduce((s, r) => s + r.returnTotal, 0)
-  return { count: returns.length, dollars, rate: lifetimeSpend > 0 ? (dollars / lifetimeSpend) * 100 : null }
-}
+export { loopStats } from '@/lib/customerFacts'
+import { loopStats } from '@/lib/customerFacts'
 
 export function LoopMark({ size = 14 }: { size?: number }) {
   return <img src="/images/brand/loop-mark.svg" alt="" aria-hidden width={size} height={size} style={{ width: size, height: size, flexShrink: 0 }} />
@@ -85,7 +82,7 @@ export function LoopReturnsSection({ returns: all, lifetimeSpend, error, onRetry
     <section className="space-y-3 border-b border-border px-5 py-5" aria-label="Loop Returns" data-testid="loop-returns-section">
       <h3 className="flex items-center gap-2">
         <img src="/images/brand/loop-wordmark.svg" alt="Loop Returns" width={56} height={18} style={{ width: 56, height: 18 }} data-testid="loop-wordmark" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted" aria-hidden>Returns</span>
+        <span className="text-sm font-semibold text-ink" aria-hidden>Returns</span>
         <Button variant="ghost" size="icon-sm" className="ml-auto" aria-label="Refresh Loop returns" onClick={() => refresh(onRetry)} data-testid="loop-refresh"><RefreshCw className={cn(looking && 'animate-spin')} aria-hidden /></Button>
       </h3>
       <div className="grid grid-cols-2 gap-2" data-testid="loop-filters">

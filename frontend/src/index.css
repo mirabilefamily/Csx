@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Inbox uses the shared app tokens (REQ-686..688). */
+
+
 @layer base {
   html {
     color-scheme: light;

@@ -28,7 +28,7 @@ export default function GuidancePage() {
     <div className="space-y-6" data-testid="guidance-page">
       <PageHeader
         title="Guidance"
-        description="What Claude knows, and how your team replies."
+        description="What the AI knows, and how your team replies."
         actions={
           <>
             {user?.role === 'admin' && (
@@ -42,7 +42,7 @@ export default function GuidancePage() {
       />
       <div className="space-y-3">
         <SubTabs tabs={TABS} value={tab} onChange={(t) => tab !== t && confirmLeave(() => go({ tab: t }))} label="Guidance sections" testIdPrefix="guidance-tab" />
-        <p className="text-sm text-ink-muted" data-testid="guidance-helper">Active articles guide Claude's chat replies and agent drafts. Publish customer-safe policy only.</p>
+        <p className="text-sm text-ink-muted" data-testid="guidance-helper">Active articles guide the AI's chat replies and agent drafts. Publish customer-safe policy only.</p>
       </div>
       <div role="tabpanel" aria-label={TABS.find((t) => t.id === tab)?.label}>
         {tab === 'articles' && <ArticlesTab articleId={article} openArticle={(id) => go(id ? { tab: 'articles', article: id } : { tab: 'articles' })} />}

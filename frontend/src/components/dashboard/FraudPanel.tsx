@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ShieldCheck } from 'lucide-react'
+import { MoreHorizontal, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FraudAction, FraudAlert } from '@/types'
 import { refundsApi, ticketsApi } from '@/api'
@@ -12,13 +12,16 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/input'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
-import { Panel } from './Panel'
-import { FraudAlertRow } from './FraudBits'
+import { Panel, ViewAll } from './Panel'
+import { Sheet, SheetCloseButton, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
+import { ACTIONS, FraudAlertRow, FraudCompactRow } from './FraudBits'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { buttonVariants } from '@/components/ui/button'
 
 const TOAST: Record<FraudAction, string> = { safe: 'Marked safe', held: 'Refund held', escalated: 'Escalated to admin' }
 const FAIL = "Couldn't update the alert. Try again."
 
-export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
+export function FraudPanel({ onReviewed, bare, onCount }: { onReviewed: () => void; bare?: boolean; onCount?: (n: number) => void }) {
   const { data, loading, error, reload } = useApi(() => refundsApi.getFraudAlerts(), [])
   const demo = useDemoState()
   const { user } = useAuth()
@@ -29,6 +32,8 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [pending, setPending] = useState<{ a: FraudAlert; action: FraudAction } | null>(null)
   const [note, setNote] = useState('')
+  const [all, setAll] = useState(false)
+  const [lastDone, setLastDone] = useState<{ a: FraudAlert; label: string } | null>(null)
   useEffect(() => { if (data) setAlerts(data) }, [data])
   useEffect(() => { if (hash === '#fraud' && alerts) document.getElementById('fraud')?.scrollIntoView({ block: 'start' }) }, [hash, alerts === null])
 
@@ -46,15 +51,18 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
     try {
       const r = await refundsApi.reviewFraudAlert(a.id, action, user!, note)
       replace(r.alert)
+      if (all) setLastDone({ a, label: TOAST[action] })
       synced(a.ticketId)
       toast.success(note.trim() ? `${TOAST[action]} · note saved` : TOAST[action], { action: { label: 'Undo', onClick: () => void undo(a) } })
     } catch { toast.error(FAIL) }
     setBusy(null)
   }
 
-  const open = alerts?.filter((a) => a.status === 'open') ?? []
+  const open = (alerts?.filter((a) => a.status === 'open') ?? []).sort((a, b) => b.riskScore - a.riskScore)
   const reviewed = (alerts ?? []).filter((a) => a.status !== 'open').sort((a, b) => (b.reviewedAt ?? '').localeCompare(a.reviewedAt ?? ''))
   const list = tab === 'open' ? open : reviewed
+  useEffect(() => { if (alerts) onCount?.(open.length) }, [alerts])
+  const head = alerts && <span className="flex shrink-0 items-center gap-2"><span className="text-[13px] font-medium text-red-700" data-testid="fraud-open-count">{open.length} open (all time)</span><ViewAll count={open.length} onClick={() => { setTab('open'); setAll(true) }} testId="fraud-view-all" /></span>
   return (
     <div id="fraud" className="min-w-0 scroll-mt-24">
       <Panel
@@ -63,15 +71,45 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
         loading={demo === 'loading' || (loading && !alerts)}
         height={420}
         testId="fraud-panel"
-        action={alerts && <span className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700" data-testid="fraud-open-count">{open.length} open (all time)</span>}
+        bare={bare}
+        action={!bare && head}
       >
         {!alerts ? (error && <ErrorState title="Fraud alerts didn't load" description="We couldn't fetch alerts just now." onRetry={reload} testId="fraud-error" />) : (
           <div className="space-y-4">
-            <p className="text-xs text-ink-muted" data-testid="fraud-helper">Risk flags are signals, not proof of fraud.</p>
+            <div className="flex min-h-8 items-center justify-between gap-2"><p className="text-xs text-ink-muted" data-testid="fraud-helper">Unreviewed flags across all dates. Signals, not proof of fraud.</p>{bare && head}</div>
             {error && (
               <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" data-testid="fraud-stale-error">
                 <span className="flex-1">Couldn't refresh fraud alerts. Showing the last loaded list.</span>
                 <Button size="sm" variant="outline" onClick={reload} data-testid="fraud-retry">Try again</Button>
+              </div>
+            )}
+            {open.length === 0 ? (
+              <div className="flex min-h-[168px] items-center justify-center"><EmptyState compact title="No open fraud alerts. All clear." icon={<ShieldCheck className="h-5 w-5" aria-hidden />} testId={all ? 'fraud-top-empty' : 'fraud-empty'} /></div>
+            ) : !all && (
+              <ul className="divide-y divide-border/70" data-testid="fraud-top-open">
+                {open.slice(0, 3).map((a) => <FraudCompactRow key={a.id} a={a} menu={
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }), 'max-sm:h-11 max-sm:w-11')} disabled={busy === a.id} aria-label={`Actions for ${a.customer}`} data-testid={`fraud-menu-${a.id}`}><MoreHorizontal aria-hidden /></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">{ACTIONS.map(([action, label, id]) => <DropdownMenuItem key={action} onSelect={() => act(a, action)} data-testid={`fraud-action-${id}-${a.id}`}>{label}</DropdownMenuItem>)}</DropdownMenuContent>
+                  </DropdownMenu>
+                } />)}
+              </ul>
+            )}
+            {reviewed.length > 0 && open.length <= 3 && <Button size="sm" variant="ghost" onClick={() => { setTab('reviewed'); setAll(true) }} data-testid="fraud-view-reviewed">Reviewed ({reviewed.length})</Button>}
+          </div>
+        )}
+      </Panel>
+      <Sheet open={all} onOpenChange={setAll}>
+        <SheetContent className="sm:max-w-[560px]" data-testid="fraud-sheet">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <div><SheetTitle className="text-[15px] font-semibold text-ink">Fraud alerts</SheetTitle><SheetDescription className="text-sm text-ink-muted">Risk flags are signals, not proof of fraud.</SheetDescription></div>
+            <SheetCloseButton label="Close fraud alerts" data-testid="fraud-sheet-close" />
+          </div>
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+            {lastDone && (
+              <div role="status" className="flex items-center gap-3 rounded-xl bg-surface-sunken px-3 py-2 text-sm text-ink" data-testid="fraud-sheet-last">
+                <span className="flex-1">{lastDone.label}: {lastDone.a.customer}</span>
+                <Button size="sm" variant="outline" onClick={() => { void undo(lastDone.a); setLastDone(null) }} data-testid="fraud-sheet-undo">Undo</Button>
               </div>
             )}
             <div role="tablist" aria-label="Alert status" className="inline-flex rounded-full bg-surface-muted p-1">
@@ -95,8 +133,8 @@ export function FraudPanel({ onReviewed }: { onReviewed: () => void }) {
               </div>
             )}
           </div>
-        )}
-      </Panel>
+        </SheetContent>
+      </Sheet>
       <AlertDialog open={!!pending} onOpenChange={(o) => !o && setPending(null)}>
         <AlertDialogContent data-testid="fraud-note-dialog">
           <AlertDialogTitle>{pending ? `${TOAST[pending.action]}: ${pending.a.customer}` : ''}</AlertDialogTitle>

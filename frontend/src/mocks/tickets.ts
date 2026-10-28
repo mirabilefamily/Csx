@@ -21,6 +21,18 @@ type TicketSeed = [
 
 const D = 24
 const SET_ASIDE: Record<number, 'spam' | 'trash'> = { 1083: 'spam', 1082: 'spam', 1081: 'trash' }
+const TEAM: Record<number, 'support' | 'returns' | 'wholesale'> = { 1076: 'returns', 1074: 'wholesale', 1071: 'returns', 1064: 'support' }
+// One-line handover reasons for "Needs you" cards (Phase 11), grounded in each ticket's seed.
+export const HANDOVER_REASONS: Record<string, string> = {
+  'GB-1076': 'Damaged fedora needs an overnight replacement before a wedding',
+  'GB-1074': 'Custom order for 120 embroidered caps needs a quote',
+  'GB-1071': 'Customer asked for a person about a missing refund',
+  'GB-1068': 'Refund of $451 is over the $75 auto-refund limit',
+  'GB-1065': 'Wholesale reorder asks for net-30 terms',
+  'GB-1061': 'Third follow-up about the same late order',
+  'GB-1058': 'Vintage restoration question outside published guidance',
+}
+export const TAG_COLORS: Record<string, string> = { damaged: '#C2410C', replacement: '#B08D57', returns: '#7C3AED', refund: '#BE123C', sizing: '#0F766E', exchange: '#2563EB', 'custom-order': '#A16207', wholesale: '#A16207', vip: '#B45309', shipping: '#475569' }
 
 export const ticketSeeds: TicketSeed[] = [
   [1083, 'Re: Your hat order, act now for 90% off', 'c19', 'email', 'closed', 'low', ['promo'], null, null, 9 * D, 9 * D,
@@ -130,6 +142,8 @@ export const tickets: Ticket[] = ticketSeeds.map(
       escalationReason: reason ?? null,
       orderNumber: orderNumber ?? null,
       setAside: SET_ASIDE[num] ?? null,
+      team: TEAM[num] ?? null,
+      snoozedUntil: null,
     }
   },
 )

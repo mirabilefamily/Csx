@@ -2,6 +2,8 @@ import type { AIDraft, BulkPatch, Message, NewMessage, NewTicketInput, SessionUs
 import { STATUS_LABELS } from '@/lib/labels'
 import { isValidEmail } from '@/lib/format'
 import { ApiError, request } from './client'
+export const TEAMS = { support: 'Support', returns: 'Returns', wholesale: 'Wholesale' } as const
+import { HANDOVER_REASONS } from '@/mocks/tickets'
 import { db } from './db'
 
 const PRIORITY_LABELS = { low: 'Low', normal: 'Normal', high: 'High', urgent: 'Urgent' } as const
@@ -47,6 +49,15 @@ function applyPatch(t: Ticket, patch: TicketPatch | BulkPatch, actor: SessionUse
     t.assignee = patch.assignee
     system(t.id, patch.assignee ? `${actor.name} assigned the ticket to ${userName(patch.assignee)}` : `${actor.name} unassigned the ticket`)
   }
+  if ('team' in patch && patch.team !== undefined && patch.team !== t.team) {
+    t.team = patch.team
+    system(t.id, patch.team ? `${actor.name} set the team to ${TEAMS[patch.team]}` : `${actor.name} removed the team`)
+  }
+  if ('snoozedUntil' in patch && patch.snoozedUntil !== undefined) {
+    t.snoozedUntil = patch.snoozedUntil
+    system(t.id, patch.snoozedUntil ? `${actor.name} snoozed the ticket until ${new Date(patch.snoozedUntil).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}` : `${actor.name} unsnoozed the ticket`)
+  }
+  if ('tags' in patch && patch.tags) t.tags = [...patch.tags]
   if ('addTag' in patch && patch.addTag && !t.tags.includes(patch.addTag)) {
     t.tags = [...t.tags, patch.addTag]
     system(t.id, `${actor.name} added tag ${patch.addTag}`)
@@ -98,11 +109,59 @@ export function approveDraft(id: string, draftId: string, actor: SessionUser): P
   return request(() => {
     const draft = db.aiDrafts.find((d) => d.id === draftId && d.ticketId === id)
     if (!draft) throw new Error('Draft not found')
-    addMessage(id, { authorType: draft.tier, authorName: draft.tier === 'claude' ? 'Claude' : 'Grokbot', body: draft.body, isInternal: false, approvedBy: actor.name })
+    addMessage(id, { authorType: draft.tier, authorName: draft.tier === 'claude' ? 'AI' : 'Grokbot', body: draft.body, isInternal: false, approvedBy: actor.name })
     db.aiDrafts = db.aiDrafts.filter((d) => d.id !== draftId)
     mustDetail(id).ticket.updatedAt = now()
     return mustDetail(id)
   })
+}
+
+export const HANDLED_BY_AI_TODAY = 128
+const AI_NAME = (t: Ticket) => (t.status === 'grok_handling' ? 'Grokbot' : 'AI')
+
+// POST /api/tickets/:id/take-over
+export function takeOver(id: string, actor: SessionUser): Promise<TicketDetail> {
+  return request(() => {
+    const t = mustDetail(id).ticket
+    const ai = t.resolvedBy === 'grokbot' ? 'Grokbot' : AI_NAME(t)
+    t.status = 'needs_human'
+    t.assignee = actor.id
+    t.handoverReason = t.handoverReason ?? `${actor.name} took over from ${ai}`
+    t.updatedAt = now()
+    system(id, `${actor.name} took over from ${ai}`)
+    return mustDetail(id)
+  })
+}
+
+// POST /api/tickets/:id/hand-back  { html? }  sends the reply (if any) then returns the ticket to the AI
+export function handBack(id: string, actor: SessionUser, reply?: { html: string; draftId?: string }): Promise<TicketDetail> {
+  return request(() => {
+    const t = mustDetail(id).ticket
+    if (reply) addMessage(id, { authorType: 'agent', authorName: actor.name, body: reply.html, format: 'html', isInternal: false })
+    if (reply?.draftId) db.aiDrafts = db.aiDrafts.filter((d) => d.id !== reply.draftId)
+    t.status = 'ai_handling'
+    t.updatedAt = now()
+    system(id, `Handed back to AI by ${actor.name}`)
+    return mustDetail(id)
+  })
+}
+
+// POST /api/tickets/:id/drafts/generate (MOCKED: built from the ticket's own data)
+export function generateDraft(id: string): Promise<TicketDetail> {
+  return request(() => {
+    const d = mustDetail(id)
+    const name = d.ticket.customer.name.split(' ')[0]
+    const order = d.customer?.orders[0]
+    const body = `Hi ${name},\n\nThanks for your patience, and I'm sorry for the wait. I've read through your messages${order ? ` and pulled up order ${order.number}` : ''}. A member of our team is reviewing this now, and I'll follow up today with a clear answer.\n\nWarmly,\nGoorin Bros.`
+    db.aiDrafts.push({ id: `dr-${Date.now()}`, ticketId: id, tier: 'claude', body, confidence: 0.71, guidanceIds: [], createdAt: now() })
+    return mustDetail(id)
+  })
+}
+
+// Phase 11 list enrichment: draft flag, handover reason, AI confidence.
+export function enrich(t: Ticket): Ticket {
+  const att = db.aiAttempts.filter((a) => a.ticketId === t.id)
+  return { ...t, draftReady: db.aiDrafts.some((d) => d.ticketId === t.id), handoverReason: t.handoverReason ?? HANDOVER_REASONS[t.id] ?? null, aiConfidence: att.length ? att[att.length - 1].confidence : null }
 }
 
 // DELETE /api/tickets/:id/drafts/:draftId

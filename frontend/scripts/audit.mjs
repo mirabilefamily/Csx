@@ -15,6 +15,8 @@ const ROUTES = [
   ['/ai/voice', true],
   ['/ai/testing', true],
   ['/ai/workflows', true],
+  ['/ai/workflows/wf-order-tracking', true],
+  ['/ai/routing', true],
   ['/channels/chat', true],
   ['/channels/chat?kind=form', true],
   ['/channels/email', true],
@@ -50,6 +52,7 @@ const FOCUS_CHECK = () => {
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] })
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
 const page = await ctx.newPage()
+page.on('crash', () => console.log('PAGE CRASHED at', page.url()))
 const consoleErrors = []
 page.on('console', (m) => m.type() === 'error' && consoleErrors.push(`${page.url()} :: ${m.text()}`))
 page.on('pageerror', (e) => consoleErrors.push(`${page.url()} :: ${e.message}`))
@@ -61,7 +64,8 @@ await page.getByRole('button', { name: 'Sign in' }).click()
 await page.waitForURL('**/dashboard')
 
 const results = []
-for (const [route, signedIn, action] of ROUTES) {
+for (const [route, signedIn, action] of ROUTES.filter(([r]) => !process.env.AUDIT_ONLY || r.startsWith(process.env.AUDIT_ONLY))) {
+  if (process.env.AUDIT_VERBOSE) console.log('route', route)
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`${BASE}${route}`)
   await page.waitForLoadState('networkidle')

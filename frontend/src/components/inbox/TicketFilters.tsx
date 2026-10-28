@@ -4,7 +4,7 @@ import { DialogTrigger } from '@radix-ui/react-dialog'
 import { Dialog, DialogContent, DialogTitle, SheetGrabber } from '@/components/ui/dialog'
 import { useIsPhone } from '@/hooks/useIsPhone'
 import type { Channel, Resolver, Ticket, TicketStatus, User } from '@/types'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/overlay'
+import { Popover, PopoverContent, PopoverTrigger, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/overlay'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/input'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -92,7 +92,15 @@ export function TicketFilters({ filters, onChange, tags, users }: Props) {
     )
   return (
     <Popover>
-      <PopoverTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), count && 'border-tobacco-500 bg-tobacco-50')} data-testid="filters-button">{trigger}</PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }), 'relative', count && 'bg-tobacco-50 text-tobacco-700')} aria-label={count ? `Filter tickets, ${count} active` : 'Filter tickets'} data-testid="filters-button">
+            <SlidersHorizontal aria-hidden />
+            {count > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-tobacco-600 px-1 text-[10px] font-semibold leading-4 text-white" data-testid="active-filter-count">{count}</span>}
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Filter</TooltipContent>
+      </Tooltip>
       <PopoverContent align="start" className="w-72 space-y-3 p-4" data-testid="filters-panel">
         {fields}
         <Button variant="ghost" size="sm" className="w-full" disabled={!count} onClick={() => onChange({})} data-testid="filters-clear">Clear filters</Button>

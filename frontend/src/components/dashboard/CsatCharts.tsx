@@ -2,115 +2,31 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { Flag, MessageSquareQuote } from 'lucide-react'
-import type { CsatResponse, CsatSummary, ScoreSplit } from '@/types'
+import type { CsatResponse, CsatSummary, KpiMetric } from '@/types'
 import { ScoreChip } from '@/components/ScoreChip'
 import { EmptyState } from '@/components/States'
-import { Skeleton } from '@/components/ui/skeleton'
 import { chartColors } from '@/theme/tokens'
 import { CHANNEL_LABELS, RESOLVER_LABELS } from '@/lib/labels'
 import { timeAgo } from '@/lib/format'
-import { cn } from '@/lib/utils'
+import { useAuth } from '@/components/auth/AuthContext'
 import { Num } from '@/components/Num'
 import { ChartFigure, Responsive, axisProps, tooltipProps } from './chartTheme'
-import { Panel } from './Panel'
+import { Panel, PillTabs, ViewAll } from './Panel'
+import { Sheet, SheetCloseButton, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 
-type Props = { csat?: CsatSummary; loading: boolean }
+type Props = { csat?: CsatSummary; rate?: KpiMetric; loading: boolean; error?: boolean; onRetry?: () => void }
 const mutedAxis = { ...axisProps, axisLine: false, tick: { ...axisProps.tick, fontSize: 11 } } as const
-
-export function CsatTrend({ csat, loading }: Props) {
-  const rows = csat?.trend ?? []
-  return (
-    <Panel title="Average score" description={`${csat?.totalResponses?.toLocaleString() ?? 0} responses`} loading={loading} empty={!csat?.totalResponses} testId="chart-csat-trend" className="lg:col-span-2" height={200}>
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end">
-        <p className="shrink-0 text-[44px] leading-none text-ink" data-testid="csat-average">
-          <Num value={`${csat?.average?.toFixed(2) ?? '—'} / 5`} />
-        </p>
-        <div className="min-w-0 flex-1">
-          <ChartFigure summary={`CSAT average ${csat?.average?.toFixed(2) ?? 'n/a'}`} height={180}>
-            <Responsive>
-              <LineChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <XAxis dataKey="label" {...mutedAxis} minTickGap={32} />
-                <YAxis domain={[1, 5]} ticks={[1, 3, 5]} {...mutedAxis} width={24} />
-                <Tooltip {...tooltipProps} cursor={{ stroke: chartColors.grid }} />
-                <Line type="monotone" dataKey="average" name="Average" stroke={chartColors.trend} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: chartColors.chat, strokeWidth: 0 }} connectNulls />
-              </LineChart>
-            </Responsive>
-          </ChartFigure>
-        </div>
-      </div>
-    </Panel>
-  )
-}
-
-export function CsatDistribution({ csat, loading }: Props) {
-  const rows = [...(csat?.distribution ?? [])].sort((a, b) => b.score - a.score)
-  const total = rows.reduce((s, r) => s + r.count, 0)
-  return (
-    <Panel title="Score distribution" description="Responses by score" loading={loading} empty={!csat?.totalResponses} testId="chart-csat-distribution" height={200}>
-      <ul className="space-y-3" aria-label={rows.map((r) => `${r.score} stars: ${r.count}`).join(', ')}>
-        {rows.map((r) => (
-          <li key={r.score} className="flex items-center gap-3 text-sm" data-testid={`csat-dist-${r.score}`}>
-            <span className="w-7 tabular-nums text-ink-muted">{r.score}★</span>
-            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-muted" aria-hidden>
-              <span className="block h-full rounded-full" style={{ width: `${total ? (r.count / total) * 100 : 0}%`, background: chartColors.scores[r.score - 1] }} />
-            </span>
-            <span className="w-10 text-right tabular-nums font-medium text-ink">{r.count}</span>
-          </li>
-        ))}
-      </ul>
-    </Panel>
-  )
-}
-
-function SplitRows<K extends string>({ title, rows, testId }: { title: string; rows: ScoreSplit<K>[]; testId: string }) {
-  return (
-    <div data-testid={testId}>
-      <p className="mb-2 text-xs font-medium uppercase tracking-[0.1em] text-ink-subtle">{title}</p>
-      <ul className="divide-y divide-border/70">
-        {rows.map((r) => (
-          <li key={r.key} className="flex items-baseline justify-between gap-3 py-2 text-sm" data-testid={`csat-split-${r.key}`}>
-            <span className="text-ink">{r.label}</span>
-            <span className="tabular-nums text-ink-muted">
-              <span className="font-semibold text-ink">{r.average?.toFixed(2) ?? '—'}</span> · {r.responses}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-export function CsatSplits({ csat, loading }: Props) {
-  return (
-    <Panel title="Splits" description="Average score · responses" loading={loading} empty={!csat?.totalResponses} testId="csat-splits" height={200}>
-      <div className="space-y-5">
-        <SplitRows title="By channel" rows={csat?.byChannel ?? []} testId="chart-csat-by-channel" />
-        <SplitRows title="By resolver" rows={csat?.byResolver ?? []} testId="chart-csat-by-resolver" />
-      </div>
-    </Panel>
-  )
-}
 
 function ResponseRow({ r, flag }: { r: CsatResponse; flag?: boolean }) {
   return (
     <li>
-      <Link to={`/inbox/${r.ticketId}`} data-testid={`${flag ? 'low-score' : 'csat-comment'}-${r.id}`} className="flex gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <Link to={`/inbox/${r.ticketId}`} data-testid={`${flag ? 'low-score' : 'csat-comment'}-${r.id}`} className="flex gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <ScoreChip score={r.score} className="self-start" />
         <span className="min-w-0 flex-1">
-          {r.comment && <span className="block text-sm text-ink">“{r.comment}”</span>}
-          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-muted">
-            <span className="font-medium text-ink">{r.customerName}</span>
-            <span aria-hidden>·</span>
-            <span>{r.ticketId}</span>
-            <span aria-hidden>·</span>
-            <span>{CHANNEL_LABELS[r.channel]}, {RESOLVER_LABELS[r.resolvedBy]}</span>
-            <span aria-hidden>·</span>
-            <span>{timeAgo(r.createdAt)}</span>
-            {flag && r.needsFollowUp && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-700" data-testid="needs-follow-up-flag">
-                <Flag className="h-3 w-3" aria-hidden /> Needs follow-up
-              </span>
-            )}
+          {r.comment && <span className="block truncate text-sm text-ink">“{r.comment}”</span>}
+          <span className="mt-0.5 block truncate text-xs text-ink-muted">
+            <span className="font-medium text-ink">{r.customerName}</span> · {r.ticketId} · {CHANNEL_LABELS[r.channel]}, {RESOLVER_LABELS[r.resolvedBy]} · {timeAgo(r.createdAt)}
+            {flag && r.needsFollowUp && <span className="ml-2 font-medium text-amber-700" data-testid="needs-follow-up-flag">Needs follow-up</span>}
           </span>
         </span>
       </Link>
@@ -118,43 +34,84 @@ function ResponseRow({ r, flag }: { r: CsatResponse; flag?: boolean }) {
   )
 }
 
-export function CsatFeedback({ csat, loading }: Props) {
+// One "Customer satisfaction" card (REQ-704..706).
+export function CsatCard({ csat, rate, loading, error, onRetry }: Props) {
+  const { user } = useAuth()
   const [tab, setTab] = useState<'comments' | 'followup'>('comments')
-  const comments = csat?.latestComments ?? []
-  const low = csat?.lowScores ?? []
-  const tabs = [
-    { id: 'comments' as const, label: 'Latest comments' },
-    { id: 'followup' as const, label: `Needs follow-up (${low.length})` },
-  ]
+  const dist = [...(csat?.distribution ?? [])].sort((a, b) => b.score - a.score)
+  const total = dist.reduce((s, r) => s + r.count, 0)
+  const allComments = csat?.latestComments ?? []
+  const allLow = csat?.lowScores ?? []
+  const comments = allComments.slice(0, 3)
+  const low = allLow.slice(0, 3)
+  const [sheet, setSheet] = useState(false)
+  const splits = [...(csat?.byChannel ?? []), ...(csat?.byResolver ?? [])]
   return (
-    <section className="flex min-w-0 flex-col rounded-2xl bg-surface p-6 shadow-[0_1px_2px_rgba(31,29,26,0.04)]" data-testid="csat-feedback">
-      <div role="tablist" aria-label="Customer feedback" className="mb-4 inline-flex w-fit gap-0.5 rounded-full bg-surface-muted p-1">
-        {tabs.map((t) => (
-          <button key={t.id} type="button" role="tab" id={`csat-tab-${t.id}`} aria-selected={tab === t.id} aria-controls={`csat-panel-${t.id}`} onClick={() => setTab(t.id)} className={cn('h-8 rounded-full px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', tab === t.id ? 'bg-surface text-ink shadow-[0_1px_2px_rgba(31,29,26,0.12)]' : 'text-ink-muted hover:text-ink')} data-testid={`csat-tab-${t.id}`}>
-            {t.label}
-          </button>
-        ))}
+    <Panel
+      title="Customer satisfaction"
+      description={csat?.totalResponses ? `${csat.totalResponses.toLocaleString()} responses` : undefined}
+      loading={loading}
+      error={error}
+      onRetry={onRetry}
+      empty={!csat?.totalResponses}
+      height={320}
+      testId="csat-section"
+      action={user?.role === 'admin' && <Link to="/settings/csat" className="inline-flex shrink-0 items-center rounded text-[13px] font-medium text-tobacco-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:min-h-11" data-testid="csat-settings-button">CSAT settings</Link>}
+    >
+      <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="min-w-0">
+          <div className="flex items-end gap-6">
+            <div><p className="text-xs font-medium text-ink-muted">Average</p><p className="text-[28px] leading-8 text-ink" data-testid="csat-average"><Num value={`${csat?.average?.toFixed(2) ?? '—'} / 5`} /></p></div>
+            <div><p className="text-xs font-medium text-ink-muted">Response rate</p><p className="text-[28px] leading-8 text-ink" data-testid="csat-response-rate"><Num value={rate?.value != null ? `${rate.value.toFixed(1)}%` : '—'} /></p></div>
+          </div>
+          <div data-testid="chart-csat-trend" className="mt-3">
+            <ChartFigure summary={`CSAT average ${csat?.average?.toFixed(2) ?? 'n/a'}`} height={80}>
+              <Responsive>
+                <LineChart data={csat?.trend ?? []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <XAxis dataKey="label" {...mutedAxis} minTickGap={40} />
+                  <YAxis domain={[1, 5]} ticks={[1, 5]} {...mutedAxis} width={20} />
+                  <Tooltip {...tooltipProps} cursor={{ stroke: chartColors.grid }} />
+                  <Line type="monotone" dataKey="average" name="Average" stroke={chartColors.trend} strokeWidth={2} dot={false} connectNulls />
+                </LineChart>
+              </Responsive>
+            </ChartFigure>
+          </div>
+        </div>
+        <ul className="space-y-2" aria-label={dist.map((r) => `${r.score} stars: ${r.count}`).join(', ')} data-testid="chart-csat-distribution">
+          {dist.map((r) => (
+            <li key={r.score} className="flex items-center gap-3 text-sm" data-testid={`csat-dist-${r.score}`}>
+              <span className="w-7 tabular-nums text-ink-muted">{r.score}★</span>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-muted" aria-hidden><span className="block h-full rounded-full" style={{ width: `${total ? (r.count / total) * 100 : 0}%`, background: chartColors.scores[r.score - 1] }} /></span>
+              <span className="w-10 text-right tabular-nums font-medium text-ink">{r.count}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-      {loading ? (
-        <Skeleton className="h-[240px] w-full rounded-xl" />
-      ) : tab === 'comments' ? (
-        <div role="tabpanel" id="csat-panel-comments" aria-labelledby="csat-tab-comments" data-testid="csat-latest-comments">
-          {comments.length === 0 ? (
-            <EmptyState compact title="No data for this period" description="No comments in this range yet." icon={<MessageSquareQuote className="h-5 w-5" aria-hidden />} testId="csat-latest-comments-empty" />
-          ) : (
-            <ul className="-mx-3 grid md:grid-cols-2 md:gap-x-4">{comments.map((r) => <ResponseRow key={r.id} r={r} />)}</ul>
-          )}
+      <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-y border-border/70 py-3 text-[13px]" data-testid="csat-splits">
+        {splits.map((r) => <li key={r.key} className="whitespace-nowrap text-ink-muted" data-testid={`csat-split-${r.key}`}>{r.label} <span className="font-semibold tabular-nums text-ink">{r.average?.toFixed(2) ?? '—'}</span></li>)}
+      </ul>
+      <div className="mt-4 flex flex-1 flex-col" data-testid="csat-feedback">
+        <div className="flex items-center justify-between gap-2"><PillTabs tabs={[{ id: 'comments', label: 'Latest comments' }, { id: 'followup', label: `Needs follow-up (${csat?.lowScores.length ?? 0})` }]} value={tab} onChange={setTab} label="Customer feedback" testId="csat-tab" /><ViewAll count={tab === 'comments' ? allComments.length : allLow.length} onClick={() => setSheet(true)} testId="csat-view-all" /></div>
+        <div role="tabpanel" aria-labelledby={`csat-tab-${tab}`} className="mt-3" data-testid={tab === 'comments' ? 'csat-latest-comments' : 'csat-low-scores'}>
+          {tab === 'comments' ? (
+            comments.length === 0 ? <EmptyState compact title="No comments in this period" icon={<MessageSquareQuote className="h-5 w-5" aria-hidden />} testId="csat-latest-comments-empty" /> : <ul className="-mx-3">{comments.map((r) => <ResponseRow key={r.id} r={r} />)}</ul>
+          ) : low.length === 0 ? (
+            <EmptyState compact title="No low scores in this period." icon={<Flag className="h-5 w-5" aria-hidden />} testId="csat-low-scores-empty" />
+          ) : <ul className="-mx-3">{low.map((r) => <ResponseRow key={r.id} r={r} flag />)}</ul>}
         </div>
-      ) : (
-        <div role="tabpanel" id="csat-panel-followup" aria-labelledby="csat-tab-followup" data-testid="csat-low-scores">
-          <p className="mb-2 text-sm text-ink-muted">Scores of 2 or lower, newest first</p>
-          {low.length === 0 ? (
-            <EmptyState compact title="No data for this period" description="No low scores in this range." icon={<Flag className="h-5 w-5" aria-hidden />} testId="csat-low-scores-empty" />
-          ) : (
-            <ul className="-mx-3 grid md:grid-cols-2 md:gap-x-4">{low.map((r) => <ResponseRow key={r.id} r={r} flag />)}</ul>
-          )}
-        </div>
-      )}
-    </section>
+      </div>
+      <Sheet open={sheet} onOpenChange={setSheet}>
+        <SheetContent className="sm:max-w-[520px]" data-testid="csat-sheet">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4">
+            <div><SheetTitle className="text-[15px] font-semibold text-ink">Customer feedback</SheetTitle><SheetDescription className="text-sm text-ink-muted">{allComments.length} comments · {allLow.length} need follow-up</SheetDescription></div>
+            <SheetCloseButton label="Close customer feedback" data-testid="csat-sheet-close" />
+          </div>
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-6 py-4">
+            <section><h4 className="mb-2 text-[13px] font-semibold text-ink">Needs follow-up</h4>{allLow.length ? <ul className="-mx-3" data-testid="csat-sheet-low">{allLow.map((r) => <ResponseRow key={r.id} r={r} flag />)}</ul> : <p className="text-sm text-ink-muted">No low scores in this period.</p>}</section>
+            <section><h4 className="mb-2 text-[13px] font-semibold text-ink">Latest comments</h4><ul className="-mx-3" data-testid="csat-sheet-comments">{allComments.map((r) => <ResponseRow key={r.id} r={r} />)}</ul></section>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </Panel>
   )
 }

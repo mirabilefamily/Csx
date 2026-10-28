@@ -13,10 +13,11 @@ interface Props {
   onClear: () => void
 }
 
-export function BulkBar({ count, users, tags, onAssign, onTag, onClose, onClear }: Props) {
+export function BulkBar({ count, users, tags, onAssign, onTag, onClose, onClear, lead }: Props & { lead?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-brass-300 bg-brass-50 px-3 py-2 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[calc(3.5rem+env(safe-area-inset-bottom))] max-sm:z-40 max-sm:border-t max-sm:border-b-0 max-sm:shadow-popover" role="region" aria-label="Bulk actions" data-testid="bulk-bar">
-      <span className="mr-auto text-sm font-semibold text-ink" data-testid="bulk-count">{count} selected</span>
+    <div className="flex min-h-12 flex-wrap items-center gap-2 border-b border-border bg-tobacco-50 px-4 py-2 max-sm:fixed max-sm:inset-x-0 max-sm:bottom-[calc(3.5rem+env(safe-area-inset-bottom))] max-sm:z-40 max-sm:border-t max-sm:border-b-0 max-sm:shadow-popover" role="region" aria-label="Bulk actions" data-testid="bulk-bar">
+      {lead}
+      <span className="mr-auto text-[13px] font-semibold text-ink" data-testid="bulk-count">{count} selected</span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline" data-testid="bulk-assign"><UserPlus aria-hidden /> Assign</Button>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { widgetApi } from '@/api'
-import type { CsatQuestion, StorePageType, WidgetCustomer, WidgetSettings, WidgetState } from '@/types'
+import { widgetApi, workflowsApi } from '@/api'
+import { replyRun, startRun } from '@/lib/workflowRuntime'
+import type { CsatQuestion, StorePageType, TestRun, WidgetCustomer, WidgetSettings, WidgetState, Workflow } from '@/types'
 import { ShadowRoot } from './ShadowRoot'
 import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { GreetingBubble, Launcher, launcherSize } from './Launcher'
@@ -109,6 +110,8 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   const [bubble, setBubble] = useState<Bubble>(init.bubble)
   const [messages, setMessages] = useState<ChatMsg[]>(init.messages)
   const [handoff, setHandoff] = useState(init.handoff)
+  const [wfRun, setWfRun] = useState<TestRun | null>(null)
+  const wfRef = useRef<Workflow | null>(null)
   const [transcriptTo, setTranscriptTo] = useState(init.transcriptTo)
   const [unread, setUnread] = useState(forcedState && init.open ? 0 : 1)
   const [typing, setTyping] = useState(startTyping)
@@ -204,6 +207,20 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
   const send = async (text: string, retry?: ChatMsg) => {
     const msg = retry ?? { id: uid(), author: 'customer' as const, text, at: Date.now() }
     setMessages((ms) => (retry ? ms.map((m) => (m.id === msg.id ? { ...m, failed: false } : m)) : [...ms, msg]))
+    // Active "Order tracking" workflow runs order-status questions (REQ-757). MOCKED.
+    const deps = { findOrders: workflowsApi.findOrdersByEmail, handoverText: s.messaging.handoffMessage }
+    let next: TestRun | null = null
+    let seen = 0
+    if (wfRun && !wfRun.ended && wfRef.current) { next = replyRun(wfRef.current, wfRun, msg.text, deps); seen = wfRun.chat.length + 1 }
+    else if (!retry) { const wf = workflowsApi.activeWorkflowFor(msg.text); if (wf) { wfRef.current = wf; next = startRun(wf, 'chat', deps, undefined, msg.text); seen = 1 } }
+    if (next) {
+      const add: ChatMsg[] = next.chat.slice(seen).filter((m) => m.from === 'bot').map((m) => ({ id: uid(), author: 'ai' as const, at: Date.now(), text: [m.text, m.buttons ? `Reply: ${m.buttons.join(' / ')}` : ''].filter(Boolean).join('\n'), runOrders: m.orders, link: m.link }))
+      setWfRun(next)
+      setMessages((ms) => [...ms, ...add])
+      setAnnouncement(add.map((a) => a.text).join(' '))
+      if (next.ended?.startsWith('handed')) setHandoff(true)
+      return
+    }
     setTyping(true)
     try {
       const r = await widgetApi.sendChatMessage(msg.text, { email: knownEmail, orderNumber: identity.orderNumber, pageType })
@@ -325,6 +342,7 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
                 email={transcriptTo ?? knownEmail ?? 'you@example.com'}
                 onNewChat={() => {
                   setMessages([])
+                  setWfRun(null)
                   setHandoff(false)
                   setView('chat')
                 }}
@@ -333,6 +351,12 @@ function WidgetApp({ settings: s, mode = 'live', forcedState, pageType = 'other'
           </div>
           {view === 'chat' && (
             <>
+              {wfRun && wfRun.inbox.length > 0 && (
+                <details className="gw-mock-inbox" style={{ margin: '0 12px 6px', padding: '6px 10px', borderRadius: 10, background: '#F7F4EF', fontSize: 12, color: '#3A332C' }} data-testid="widget-mock-inbox">
+                  <summary style={{ cursor: 'pointer', fontWeight: 600, minHeight: 24 }}>Mock inbox ({wfRun.inbox.length}) · {wfRun.inbox[0].to}</summary>
+                  <p style={{ marginTop: 4 }} data-testid="widget-mock-inbox-body"><strong>{wfRun.inbox[0].subject}</strong><br />From {wfRun.inbox[0].from}<br />{wfRun.inbox[0].body}</p>
+                </details>
+              )}
               <div className="gw-footer-row">
                 <span>{handoff ? 'A hatter will join shortly' : 'Our team can step in anytime'}</span>
                 <button type="button" className="gw-text-btn" onClick={() => setView('csat')} data-testid="widget-end-chat">End chat</button>

@@ -54,6 +54,21 @@ A fully clickable, front-end-only prototype of an AI-first customer service desk
 | F-39 | Shopify Theme Editor mock (/widget-demo/theme-editor) styled like Shopify admin | Admin | 5 |
 | F-40 | README: every component listed + mock-to-API contract; Shadow DOM approach documented; styleguide completed (AI draft card, widget components); final accessibility + tablet audit | Dev | 6 |
 | F-41 | Phone-optimized agent app (<640px): bottom tab bar, phone top bar, bottom sheets, phone layouts for Dashboard, Inbox, Guidance, Settings (user request, extends 'usable down to tablet') | Admin, Agent | 7 |
+| F-42 | Modern Inbox layout: Inbox views panel (Default / Shared / Private views), main sidebar shrinks to icons on Inbox, ticket card list, breadcrumb header with team, snooze and prev/next | Admin, Agent | 10 |
+| F-43 | Saved views: save the current filters as a Private or Shared view; rename, share, duplicate, delete | Admin, Agent | 10 |
+| F-44 | Conversation AI context: message cards with copy, "Show reasoning", Handover summary + Handover reason with source icons, event lines | Admin, Agent | 10 |
+| F-45 | Power composer: channel/To row, macro search, suggested macros, toolbar with Translate, Send / Send & Resolve, keyboard tips | Admin, Agent | 10 |
+| F-46 | Stacked right panel with icon rail: Ticket details + fields, customer card + note, past tickets, Shopify (store selector, metafields, purchase summary, order cards), Loop | Admin, Agent | 10 |
+| F-47 | Mock Shopify order dialogs: Edit, Duplicate, Refund, Create order, each with a confirmation | Admin, Agent | 10 |
+| F-48 | "Ask Goorin AI" assistant (⌘G): ticket-aware mock answers with sources and "Insert into reply" | Admin, Agent | 10 |
+| F-49 | AI-first Inbox: opens on "Needs you" (only AI handovers), separate "AI handling" monitor view with "<n> handled by AI today" + Take over, hand back to AI | Admin, Agent | 11 |
+| F-50 | AI-draft-first reply: Approve & send / Edit / Write my own, "Why you're here" brief, compact thread | Admin, Agent | 11 |
+| F-51 | Compact summary panel (customer, latest order, returns, risk) expanding to full details; enterprise-neutral Inbox styling | Admin, Agent | 11 |
+| F-52 | Simpler Dashboard: 5 KPIs with text deltas, volume + Resolved by pair, slim chat timing, tabbed "Why tickets reach a person", Refunds/Fraud top 3 + View all sheet, one tabbed CSAT card | Admin, Agent | 12 |
+| F-53 | Workflows as process automations: list with stats, create many (blank or template), on/off, duplicate, delete, validation | Admin | 13 |
+| F-54 | Workflow editor with List and drag-and-drop Canvas views (same data), triggers by AI intent on chat / contact form / email, step library (messages, questions, email code, Shopify, Loop, conditions, hand over) | Admin | 13 |
+| F-55 | Order tracking workflow (email → 6-digit code → orders + tracking) + templates: Start a return (Loop), Change shipping address, Wholesale inquiry, Hat size finder; Test workflow with chat preview + mock inbox; runs in /widget-demo | Admin, Customer | 13 |
+| F-56 | Routing tab (escalation rules, business hours, assignment) and refined AI & Workflows page design | Admin | 13 |
 
 ## Phases
 - **Phase 1: Foundation + Dashboard.** Gets the Vite/TS project, tokens, shell, login, mock data + API layer, Dashboard and CSAT drawer, and styleguide foundations working. Delivers F-1 to F-18. [requirement](phase1/requirement.md) · [journeys](phase1/journeys.md)
@@ -63,6 +78,12 @@ A fully clickable, front-end-only prototype of an AI-first customer service desk
 - **Phase 5: Chat Widget settings + Theme Editor mock.** Delivers F-36 to F-39.
 - **Phase 6: Handoff.** Finished styleguide, README contract, accessibility/tablet audit. Delivers F-40.
 - **Phase 7: Phones.** The whole agent app optimized for 360–430px phones. Delivers F-41. [requirement](phase7/requirement.md) · [journeys](phase7/journeys.md)
+- **Phase 8: Refunds, fraud, integrations tiles, customer panel.** [requirement](phase8/requirement.md) · [journeys](phase8/journeys.md)
+- **Phase 9: Production-parity restructure** (AI & Workflows, Channels, Settings tabs, Inbox update). [requirement](phase9/requirement.md) · [journeys](phase9/journeys.md)
+- **Phase 10: Modern Inbox** from the user's Gorgias-style screenshots. Delivers F-42 to F-48. [requirement](phase10/requirement.md) · [journeys](phase10/journeys.md)
+- **Phase 11: AI-first Inbox, simplified.** Needs-you-first, AI draft first, summary panel, enterprise-neutral look; fixes Phase 10 test failures. Delivers F-49 to F-51. [requirement](phase11/requirement.md) · [journeys](phase11/journeys.md)
+- **Phase 12: Simpler Dashboard.** 5 KPIs, paired blocks, tabbed cards, top-3 + View all. Delivers F-52. [requirement](phase12/requirement.md) · [journeys](phase12/journeys.md)
+- **Phase 13: AI & Workflows refresh + Workflows automation.** Multiple workflows, List + Canvas editor, Order tracking with email-code verification, 4 templates, Routing tab, Test workflow with mock inbox, widget runtime. Delivers F-53 to F-56. [requirement](phase13/requirement.md) · [journeys](phase13/journeys.md)
 
 ## UI/UX Rules
 - Light mode only. Heritage-craft warmth with modern SaaS usability, not corporate blue.

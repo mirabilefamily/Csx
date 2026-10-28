@@ -21,7 +21,7 @@ export const csatSurvey: CsatSurvey = {
 
 // Hand-written responses with comments, tied to real resolved/closed tickets.
 const commented: [ticketId: string, score: number, hoursAgo: number, comment: string][] = [
-  ['GB-1066', 5, 40, 'Claude nailed my size on the first try. The Hampton fits like it was made for me.'],
+  ['GB-1066', 5, 40, 'The chat assistant nailed my size on the first try. The Hampton fits like it was made for me.'],
   ['GB-1062', 4, 66, "Quick swap for the right color. Would've loved the prepaid label a little sooner."],
   ['GB-1057', 5, 92, 'Fast, friendly and knew exactly how your fedoras run.'],
   ['GB-1056', 1, 140, 'Two weeks and three emails to get a replacement brim. Not the Goorin I know.'],

@@ -3,7 +3,7 @@ import { Minus, Plus, Star, Truck, X } from 'lucide-react'
 import type { StoreProduct } from '@/types'
 import { cn } from '@/lib/utils'
 
-const money = (n: number) => `$${n.toFixed(2)}`
+import { usd as money } from '@/lib/format'
 
 function ProductTile({ p }: { p: StoreProduct }) {
   return (

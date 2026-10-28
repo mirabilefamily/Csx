@@ -50,6 +50,7 @@ export default function App() {
                 <Route path="/guidance" element={<GuidanceRoute />} />
                 <Route path="/ai" element={<Navigate to="/ai/voice" replace />} />
                 <Route path="/ai/:tab" element={<AiPage />} />
+                <Route path="/ai/workflows/:workflowId" element={<AiPage />} />
                 <Route path="/channels" element={<Navigate to="/channels/chat" replace />} />
                 <Route path="/channels/:tab" element={<ChannelsPage />} />
                 <Route path="/settings" element={<Navigate to="/settings/integrations" replace />} />

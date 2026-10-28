@@ -70,7 +70,7 @@ export function SandboxTab() {
         {demo !== 'live' && <p className="text-xs text-ink-muted">Demo state: {demo}. Run a test to see that state.</p>}
       </Card>
       <div className="space-y-4" data-testid="sandbox-results" aria-live="polite">
-        {state.status === 'idle' && <Card><EmptyState compact title="Run a test to see what Claude would do" description="Pick an example or write your own question." /></Card>}
+        {state.status === 'idle' && <Card><EmptyState compact title="Run a test to see what the AI would do" description="Pick an example or write your own question." /></Card>}
         {state.status === 'loading' && <Card className="space-y-3 p-5" data-testid="sandbox-loading"><Skeleton className="h-6 w-40" /><Skeleton className="h-16 w-full" /><Skeleton className="h-24 w-full" /></Card>}
         {state.status === 'error' && <Card><ErrorState compact title="The sandbox didn't respond" onRetry={run} testId="sandbox-error" /></Card>}
         {state.status === 'done' && r && (
@@ -79,7 +79,7 @@ export function SandboxTab() {
               <Gauge value={r.confidence} threshold={r.threshold} />
               <p className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold', r.wouldEscalate ? 'bg-amber-50 text-amber-900' : 'bg-green-50 text-green-700')} data-testid="sandbox-verdict">
                 {r.wouldEscalate ? <AlertTriangle className="h-4 w-4" aria-hidden /> : <CheckCircle2 className="h-4 w-4" aria-hidden />}
-                {r.wouldEscalate ? 'Would escalate to Grokbot' : 'Claude would handle this'}
+                {r.wouldEscalate ? 'Would escalate to Grokbot' : 'AI would handle this'}
               </p>
               {r.order && <p className="flex items-center gap-2 text-sm text-ink" data-testid="sandbox-order-context"><Package className="h-4 w-4 text-tobacco-500" aria-hidden /> Order {r.order.number} · {r.order.status.replace('_', ' ')} · {r.order.lineItems.map((l) => `${l.title} (${l.variant})`).join(', ')}</p>}
               {r.orderNotFound && <p className="text-sm text-amber-900" data-testid="sandbox-order-not-found">Order {r.orderNotFound} not found. Testing without order context.</p>}
@@ -101,7 +101,7 @@ export function SandboxTab() {
               )}
             </Card>
             <Card className="space-y-2 p-5">
-              <AuthorBadge type="claude" label="Claude draft" />
+              <AuthorBadge type="claude" label="AI draft" />
               <p className="whitespace-pre-wrap text-sm text-ink" data-testid="sandbox-draft">{r.draft}</p>
             </Card>
           </>

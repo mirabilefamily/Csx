@@ -1,0 +1,133 @@
+// Phase 13 AI & Workflows journeys (JRN-156..166) + screenshots: node scripts/phase13-check.mjs [baseUrl]
+import { chromium } from 'playwright-core'
+import { mkdirSync } from 'node:fs'
+import { fixChecks } from './phase13-fixes.inc.mjs'
+
+const BASE = process.argv[2] ?? 'http://localhost:4173'
+const OUT = '/app/memory/shots/phase13'
+mkdirSync(OUT, { recursive: true })
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome', args: ['--no-sandbox'] })
+const errors = []
+const log = (...a) => console.log(...a)
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+const p = await ctx.newPage()
+p.on('pageerror', (e) => errors.push(e.message))
+const txt = (s) => p.locator(s).first().innerText({ timeout: 4000 }).then((t) => t.replace(/\s+/g, ' ').trim()).catch(() => 'MISSING')
+const step = async (name, fn) => { try { await fn() } catch (e) { log(`FAIL ${name}: ${e.message.split('\n')[0]}`) } }
+const shot = (n) => p.screenshot({ path: `${OUT}/${n}` })
+const settle = () => p.waitForTimeout(800)
+await p.goto(`${BASE}/login`)
+await p.fill('input[type=email]', 'ava@goorin.com')
+await p.fill('input[type=password]', 'goorin123')
+await p.getByRole('button', { name: 'Sign in' }).click()
+await p.waitForURL('**/dashboard')
+const spaGo = async (path) => { await p.evaluate((u) => { history.pushState({}, '', u); dispatchEvent(new PopStateEvent('popstate')) }, path); await settle() }
+
+await step('JRN-156 list', async () => {
+  await spaGo('/ai/workflows'); await p.waitForSelector('[data-testid="workflows-rows"]')
+  log('JRN-156 tabs:', (await p.locator('[data-testid^="ai-tab-"]').allInnerTexts()).join(' · '))
+  log('  stats:', await txt('[data-testid="workflows-stats"]'))
+  log('  rows:', await p.locator('[data-testid^="workflow-row-"]').count(), '|', await txt('[data-testid="workflow-row-wf-order-tracking"]'))
+  log('  templates:', (await p.locator('[data-testid^="template-tpl-"] h3').allInnerTexts()).join(', '))
+  await shot('workflows-list-1440.png')
+})
+await step('JRN-157 editor list', async () => {
+  await p.click('[data-testid="workflow-open-wf-order-tracking"]'); await p.waitForSelector('[data-testid="step-list"]')
+  if (await p.locator('[data-testid="editor-view-list"]').getAttribute('aria-selected') !== 'true') await p.click('[data-testid="editor-view-list"]')
+  log('JRN-157 cards:', await p.locator('[data-testid^="step-card-"]').count(), '| branches:', await p.locator('[data-testid^="branches-"]').count(), '| issues:', await p.locator('[data-testid="editor-issues"]').count())
+  log('  copy:', (await p.locator('[data-testid^="step-summary-"]').allInnerTexts()).slice(0, 4).join(' | '))
+  await shot('editor-list-1440.png')
+})
+await step('JRN-158 sync x5', async () => {
+  for (let i = 1; i <= 5; i++) {
+    const before = await p.locator('[data-testid="step-list"] [data-testid^="step-card-"]').count()
+    await p.click('[data-testid="editor-view-canvas"]'); await p.waitForSelector('[data-testid="step-canvas"] .react-flow__node'); await settle()
+    const nodes = await p.locator('.react-flow__node').count(); const edges = await p.locator('.react-flow__edge').count()
+    await p.click('[data-testid="editor-view-list"]'); await p.waitForSelector('[data-testid="step-list"]')
+    const after = await p.locator('[data-testid="step-list"] [data-testid^="step-card-"]').count()
+    log(`  toggle ${i}: list ${before} → canvas nodes ${nodes} edges ${edges} → list ${after}`)
+  }
+  await p.click('[data-testid="insert-ot-1-next"]'); await p.click('[data-testid="add-step-add_tag"]'); await settle()
+  log('  inserted tag step; settings open:', await p.locator('[data-testid="settings-panel"]').count())
+  await p.fill('[data-testid="step-tag"]', 'order-tracking')
+  await p.click('[data-testid="editor-view-canvas"]'); await p.waitForSelector('.react-flow__node'); await settle()
+  log('  canvas shows new node:', await p.locator('.react-flow__node:has-text("Add tag")').count(), '| nodes', await p.locator('.react-flow__node').count())
+  await p.click('[data-testid="canvas-tidy"]'); await settle()
+  log('  minimap:', await p.locator('.react-flow__minimap').count(), '| controls:', await p.locator('.react-flow__controls').count())
+  await shot('editor-canvas-1440.png')
+  await p.click('[data-testid="editor-view-list"]')
+  log('  list after canvas edit has tag:', await p.locator('[data-testid^="step-summary-"]:has-text("order-tracking")').count(), '| savebar:', await p.locator('[data-testid="editor-save"]').count())
+  await p.click('[data-testid="editor-discard"]'); await settle()
+})
+const codeFromInbox = async () => (await txt('[data-testid="mock-inbox-body"]')).match(/\d{6}/)?.[0]
+const reply = async (t) => { await p.fill('[data-testid="test-chat-input"]', t); await p.click('[data-testid="test-chat-send"]'); await p.waitForTimeout(250) }
+await step('JRN-160 code flow', async () => {
+  await p.click('[data-testid="editor-test"]'); await p.waitForSelector('[data-testid="test-panel"]')
+  await reply('where is my order'); await reply('not-an-email'); log('JRN-160 validation:', (await p.locator('[data-testid="run-msg-bot"]').allInnerTexts()).slice(-1)[0])
+  await reply('margaret.okonkwo@example.com')
+  log('  orders visible before code:', await p.locator('[data-testid="run-orders"]').count(), '| email subject:', await txt('[data-testid="mock-inbox-subject"]'), '| from:', await txt('[data-testid="mock-inbox-email"] p:nth-child(2)'))
+  const first = await codeFromInbox()
+  await reply('Resend code'); const second = await codeFromInbox()
+  log('  resend new code:', first !== second)
+  await reply(first); log('  old code rejected:', (await p.locator('[data-testid="run-msg-bot"]').allInnerTexts()).slice(-1)[0])
+  log('  current step highlighted:', await p.locator('[data-current="true"]').count())
+  await reply(second); await settle()
+  log('  orders after verify:', (await p.locator('[data-testid^="run-order-"]').allInnerTexts()).map((t) => t.split('\n')[0]).join(' | '))
+  await shot('test-panel-1440.png')
+  await p.click('[data-testid="test-reset"]'); await reply('where is my order'); await reply('margaret.okonkwo@example.com')
+  for (let i = 0; i < 3; i++) await reply('000000')
+  log('  3 wrong codes:', await txt('[data-testid="run-ended"]'))
+  await p.click('[data-testid="test-reset"]'); await reply('where is my order'); await reply('new.customer@example.com'); await reply(await codeFromInbox())
+  log('  no-orders branch:', (await p.locator('[data-testid="run-msg-bot"]').allInnerTexts()).slice(-1)[0])
+  await p.click('[data-testid="test-channel-email"]'); await settle()
+  log('  email channel skips code:', (await p.locator('[data-testid="run-msg-bot"]').allInnerTexts()).join(' | '), '| inbox:', await txt('[data-testid="mock-inbox-subject"]'))
+  await p.click('[data-testid="test-channel-form"]'); await settle()
+  log('  form channel:', await txt('[data-testid="run-ended"]'))
+  await p.click('[data-testid="test-close"]')
+})
+await step('JRN-161 validation', async () => {
+  await spaGo('/ai/workflows'); await p.click('[data-testid="workflow-new"]'); await p.click('[data-testid="workflow-new-blank"]'); await p.waitForSelector('[data-testid="workflow-editor"]')
+  log('JRN-161 new blank issues:', await txt('[data-testid="editor-issues"] summary'))
+  await p.click('[data-testid="editor-status-toggle"]'); await p.waitForTimeout(400); log('  turn on blocked toast:', await txt('[data-sonner-toast]'))
+  await spaGo('/ai/workflows'); await p.click('[data-testid="template-use-tpl-size"]'); await p.waitForSelector('[data-testid="workflow-editor"]')
+  log('  template draft issues:', await p.locator('[data-testid="editor-issues"]').count())
+  await p.click('[data-testid="editor-status-toggle"]'); await settle(); log('  template turned on:', await txt('[data-sonner-toast]'))
+  await spaGo('/ai/workflows'); await p.click('[data-testid="workflow-menu-wf-order-tracking"]'); await p.click('[data-testid="workflow-duplicate-wf-order-tracking"]'); await settle()
+  const dup = (await p.locator('[data-testid^="workflow-row-"]').evaluateAll((els) => els.map((e) => e.dataset.testid)))[1].replace('workflow-row-', '')
+  await p.click(`[data-testid="workflow-toggle-${dup}"]`); await settle()
+  log('  duplicate trigger warning:', await txt('[data-testid="workflows-duplicate-warning"]'))
+  await p.click(`[data-testid="workflow-toggle-${dup}"]`); await settle()
+})
+await step('JRN-163 routing', async () => {
+  await spaGo('/ai/routing'); await p.waitForSelector('[data-testid="routing-tab"]')
+  const tr = p.locator('[aria-label="Rule 1 condition"]')
+  log('JRN-163 routing sections:', (await p.locator('[data-testid^="ai-section-"]').evaluateAll((els) => els.map((e) => e.dataset.testid))).join(','), '| select one line:', await tr.evaluate((e) => e.scrollHeight <= 40).catch(() => 'no rule'))
+  await shot('routing-1440.png')
+})
+await step('JRN-164 widget runtime', async () => {
+  await spaGo('/widget-demo'); await p.waitForTimeout(1500)
+  await p.getByRole('button', { name: 'Active chat', exact: true }).click(); await p.waitForTimeout(1000)
+  const input = p.locator('[data-testid="widget-composer-input"]')
+  if (!(await input.count())) { const start = p.locator('[data-testid="widget-start-chat"], button:has-text("Start chat")'); if (await start.count()) await start.first().click(); await p.waitForTimeout(500) }
+  await input.fill('Where is my order?'); await input.press('Enter'); await p.waitForTimeout(600)
+  await input.fill('margaret.okonkwo@example.com'); await input.press('Enter'); await p.waitForTimeout(600)
+  const box = await txt('[data-testid="widget-mock-inbox"]')
+  log('JRN-164 widget mock inbox:', box.slice(0, 80))
+  await p.locator('[data-testid="widget-mock-inbox"] summary').click(); await p.waitForTimeout(300)
+  const code = (await txt('[data-testid="widget-mock-inbox-body"]')).match(/\d{6}/)?.[0]
+  await input.fill(code ?? '000000'); await input.press('Enter'); await p.waitForTimeout(800)
+  log('  orders shown:', (await p.locator('text=/#GB20/').count()) > 0)
+  await shot('widget-runtime-1440.png')
+})
+await fixChecks({ p, log, step, txt, settle, spaGo, shot })
+await step('JRN-166 phone', async () => {
+  await p.setViewportSize({ width: 390, height: 844 }); await spaGo('/ai/workflows'); await settle()
+  log('JRN-166 overflow:', await p.evaluate(() => document.documentElement.scrollWidth > innerWidth))
+  await shot('workflows-390.png')
+  await spaGo('/ai/workflows/wf-order-tracking'); await settle()
+  log('  phone editor list only:', await p.locator('[data-testid="editor-view"]').count() === 0, await p.locator('[data-testid="step-list"]').count())
+  log('FIX 7 note:', await txt('[data-testid="editor-canvas-note"]'))
+  await p.click('[data-testid="step-open-ot-2"]'); await settle(); log('  bottom sheet:', await p.locator('[data-testid="settings-sheet"]').count())
+})
+log('page errors:', errors.length, errors.slice(0, 3))
+await browser.close()

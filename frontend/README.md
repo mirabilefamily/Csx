@@ -168,13 +168,13 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | file | exports | purpose |
 |---|---|---|
 | `components/dashboard/DateRangePicker.tsx` | `DateRangePicker` | Today / 7d / 30d / 90d segmented control + custom calendar range |
-| `components/dashboard/KpiStrip.tsx` | `KpiStrip` | 7-item KPI stat strip with delta chips and sparklines |
-| `components/dashboard/OverviewCharts.tsx` | `VolumeChart`, `ResolvedByChart`, `EscalationChart`, `TopTagsChart` | Volume area chart, stacked "Resolved by" bar, ranked reason and tag lists |
-| `components/dashboard/Panel.tsx` | `Panel`, `RankedList` | Borderless dashboard surface with loading/empty, and a ranked inline-bar list |
-| `components/dashboard/CsatSection.tsx` | `CsatSection` | Condensed CSAT block (headline, distribution, splits, feedback) |
-| `components/dashboard/CsatCharts.tsx` | `CsatTrend`, `CsatDistribution`, `CsatSplits`, `CsatFeedback` | CSAT trend, 1–5 distribution, channel/resolver splits, Latest comments / Needs follow-up tabs |
-| `components/dashboard/RefundsPanel.tsx` | `RefundsPanel` | Phase 8 "Refunds" panel: total refunded + delta, count, % auto-refunded, pending approval, trend, pipeline, Awaiting approval list, auto-refund limit chip; skeleton / "No refunds in this period" / error |
-| `components/dashboard/FraudPanel.tsx` | `FraudPanel` | Phase 8 "Fraud alerts" panel (`#fraud` anchor): open count, Open / Reviewed tabs, Mark safe / Hold refund / Escalate with toast + Undo; keeps the last list on a failed refresh so failing actions show "Couldn't update the alert. Try again." |
+| `components/dashboard/KpiStrip.tsx` | `KpiStrip`, `DeltaText`, `KPI_KEYS` | Phase 12: 5 KPIs (Open tickets "Current snapshot" with no delta or sparkline; AI resolution rate, First response time, Resolution time, CSAT average). Deltas are plain coloured text + arrow + muted "vs prior <period>" (no pills); time KPIs are good when down. Phone: 2 columns, the 5th spans both |
+| `components/dashboard/OverviewCharts.tsx` | `VolumeChart`, `AiPerformanceCard` | Ticket volume (240px chart, "Tickets created <n>" + delta in header, Email/Chat legend), "Resolved by" ("<x>% resolved by AI" + Claude/Grokbot/Human counts and %), "Why tickets reach a person" (tabs Escalation reasons / Top topics, empty "No data for this period") |
+| `components/dashboard/Panel.tsx` | `Panel`, `PillTabs`, `ViewAll`, `RankedList` | Dashboard surface with loading/empty/error (Try again); pill tabs; "View all (n)" button hidden at ≤3 items; ranked bar list |
+| `components/dashboard/CsatCharts.tsx` | `CsatCard` | Phase 12 single "Customer satisfaction" card: average, response rate, trend, 1–5 distribution, one inline row of channel + resolver averages, "CSAT settings" link (admin), tabs Latest comments / Needs follow-up (≤2), 5 items each, empty "No low scores in this period." |
+| `components/dashboard/RefundsFraudCard.tsx` | `RefundsFraudCard` | Revision 2 "Refunds & fraud" card: tabs Refunds / Fraud alerts (n open), both kept mounted; fraud rows are compact with a ⋯ menu (note dialog + undo kept) |
+| `components/dashboard/RefundsPanel.tsx` | `RefundsPanel` | "Refunds": headline numbers, "Auto-refund limit: $<n>" link (→ /ai/replies), trend, pipeline, top 3 Awaiting approval + "View all" side sheet (`refunds-view-all`, `refunds-sheet`) |
+| `components/dashboard/FraudPanel.tsx` | `FraudPanel` | "Fraud alerts" (`#fraud`): top 3 open alerts by score (`fraud-top-open`) with actions; "View all" (`fraud-view-all`) opens `fraud-sheet` with Open / Reviewed tabs (`fraud-tab-*`, `fraud-list-*`), actions, notes and an inline Undo (`fraud-sheet-undo`, toasts can't be clicked under a modal sheet) |
 | `components/dashboard/FraudBits.tsx` | `RiskBadge`, `FraudShield`, `SignalChips`, `RefundPipeline`, `FraudAlertRow`, `RISK_LABEL` | Risk badge (score + High/Medium/Low text), inbox shield icon, signal chips, Requested → Approved → Refunded pipeline bar, fraud alert row |
 | `components/dashboard/chartTheme.tsx` | `Responsive`, `ChartFigure`, `axisProps`, `gridProps`, `tooltipProps` | Shared Recharts wrappers and styling |
 
@@ -193,12 +193,15 @@ Each row lists a file in `src/components` (and `src/pages`), its exports and a o
 | `components/inbox/FraudBanner.tsx` | `FraudBanner` | Red conversation banner "Fraud risk <score> · <level>" + signal chips + "View alert" → `/dashboard#fraud` (only while the ticket has an open alert) |
 | `components/inbox/ViewsNav.tsx` | `ViewsNav`, `ViewsDropdown`, `ViewsChips` | Inbox views with counts (sidebar list, dropdown on tablet, chip row on phones) |
 | `components/inbox/TicketFilters.tsx` | `TicketFilters`, `Filters`, `matchFilters`, `activeFilterCount` | Channel / priority / assignee / tag filters |
-| `components/inbox/TicketList.tsx` | `TicketList` | Ticket list with selection, keyboard nav, loading/empty/error |
-| `components/inbox/TicketRow.tsx` | `TicketRow` | One ticket row (customer, subject, status, time) |
-| `components/inbox/BulkBar.tsx` | `BulkBar` | Bulk status / assign / tag bar for selected tickets |
-| `components/inbox/ConversationPane.tsx` | `ConversationPane`, `ConversationHandle` | Ticket header controls, message thread, drafts, composer |
-| `components/inbox/MessageItem.tsx` | `MessageItem`, `richText` | One message: customer/AI/agent bubble, internal note, system line |
-| `components/inbox/DraftCard.tsx` | `DraftCard` | AI draft awaiting approval (tier, confidence, guidance used, Approve/Edit/Discard) |
+| `components/inbox/TicketList.tsx` | `TicketList` | Ticket list: row 2 is the AI status line + icon-only Sort/Filter (`list-subheader`); when anything is selected the bulk bar (with Select all) replaces it. Loading/empty/error |
+| `components/inbox/TicketRow.tsx` | `TicketRow` | One ticket card. The channel icon swaps to the checkbox on hover/focus or while a selection exists (REQ-713) |
+| `components/inbox/BulkBar.tsx` | `BulkBar` | Bulk bar (Select all, count, Assign / Tag / Close, clear) |
+| `components/inbox/ConversationPane.tsx` | `ConversationPane`, `ConversationHandle` | Two-row 56px header (subject + Resolve/⋯/‹ ›; then customer · channel · #id · status · assignee/Assign me · SLA chip), thread opening at the Why brief, draft, composer, Summary/Details panel with collapse rail (`]`) |
+| `components/inbox/TicketBanners.tsx` | `AiRepliedBanner`, `SlaChip` | "AI replied" banner (hidden when a person is needed); SLA chip whose popover holds the email/chat timing (`email-timing-toggle`, `email-timing`) |
+| `components/inbox/SummaryPanel.tsx` | `SummaryPanel`, `SummaryRail` | 56px header; four rows (Customer incl. "<n> past ticket(s)", Latest order, Returns, Risk) and "View full details", which replaces the rows with the full sections ("Show summary" in the header goes back); 44px rail with indicators when collapsed |
+| `components/inbox/WhyBrief.tsx` | `WhyBrief`, `SOURCE_ICON` | "Why you're here" brief: white card, 3px amber left accent, reason, What the AI did, Suggested next step, How the AI got here |
+| `components/inbox/MessageItem.tsx` | `MessageItem`, `richText`, `stamp` | One message card (≤85%/760px, customer left, AI/agent right, delivery tick + copy in header, AI footer), internal note (light amber), centered event line |
+| `components/inbox/DraftCard.tsx` | `DraftCard` | AI draft: "Draft by Claude · <n>% confidence · <article>", 4-line preview with fade + "Show full draft", one action row (Approve & send split, Edit, Discard, Write my own) |
 | `components/inbox/EscalationChip.tsx` | `EscalationChip`, `escalationPath` | Claude → Grokbot → Human timeline chip with reasons |
 | `components/inbox/Composer.tsx` | `Composer`, `ComposerHandle`, `ComposerMode` | Tiptap reply / internal-note composer with formatting and macros |
 | `components/inbox/MacroPicker.tsx` | `MacroPicker`, `macroToHtml` | Searchable macro insert popover |
@@ -341,12 +344,35 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 | `inboxApi.setAside(id, where, actor)` | `POST /api/tickets/:id/set-aside` | `{ where: 'spam' \| 'trash' \| null }` (null = Restore) | `Ticket` with `setAside`; set-aside tickets leave every VIEW and appear only in Spam / Trash | 404 |
 | `inboxApi.deleteForever(id)` | `DELETE /api/tickets/:id` | — | `{ id }` (ticket + messages removed) | 409 "Move the ticket to Trash first." |
 | `inboxApi.createTicket(input, actor)` | `POST /api/tickets` | `NewTicketInput` `{ email, name?, subject, channel, body, isInternal }` | `Ticket` (next id, e.g. `GB-1084`, status open, assigned to the actor) | 422 "Enter a valid email address.", "Add a subject." |
-| `inboxApi.updateTicket(id, patch, actor)` | `PATCH /api/tickets/:id` | `TicketPatch { status?, priority?, assignee? }` | `TicketDetail` (adds System messages) | 404 |
+| `inboxApi.updateTicket(id, patch, actor)` | `PATCH /api/tickets/:id` | `TicketPatch { status?, priority?, assignee?, team?, snoozedUntil?, tags? }` | `TicketDetail` (adds System messages) | 404 |
+| `inboxApi.TEAMS` | constant | — | `Record<TeamId, string>` Support / Returns / Wholesale (Phase 10) | — |
 | `inboxApi.bulkUpdate(ids, patch, actor)` | `POST /api/tickets/bulk` | `{ ids: string[], patch: BulkPatch }` | `Ticket[]` | — |
 | `inboxApi.sendMessage(id, msg, actor)` | `POST /api/tickets/:id/messages` | `NewMessage { html, isInternal, draftId? }` | `TicketDetail` (removes the draft when `draftId` is sent) | 404 |
 | `inboxApi.approveDraft(id, draftId, actor)` | `POST /api/tickets/:id/drafts/:draftId/approve` | — | `TicketDetail` (AI message with `approvedBy`) | 404 |
 | `inboxApi.discardDraft(id, draftId)` | `DELETE /api/tickets/:id/drafts/:draftId` | — | `TicketDetail` | 404 |
 | `inboxApi.restoreDraft(draft)` | `POST /api/tickets/:id/drafts` | `AIDraft` | `TicketDetail` (Undo after discard) | 404 |
+
+### Saved views + Shopify order actions (`viewsApi`, `api/views.ts`), Phase 10, MOCKED
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `viewsApi.listSavedViews(user)` | `GET /api/views` | — | `SavedView[]` (all shared + the caller's private) | — |
+| `viewsApi.saveView(input, user)` | `POST /api/views` (or `PATCH /api/views/:id` with `id`) | `{ id?, name, scope: 'shared' \| 'private', filters: SavedViewFilters }` | `SavedView` | 422 empty / >40 chars, 409 duplicate name, 403 shared view not yours |
+| `viewsApi.deleteView(id, user)` | `DELETE /api/views/:id` | — | `{ id }` | 404, 403 "Only the creator or an admin can delete this view." |
+| `viewsApi.canManageView(view, user)` | helper | — | `boolean` (creator or admin) | — |
+| `viewsApi.matchSavedView(ticket, view)` | helper (server-side filter) | — | `boolean` | — |
+| `viewsApi.refundOrder(input, ticketId, actor)` | `POST /api/shopify/orders/:id/refund` | `OrderRefundInput { orderId, items: Record<sku, qty>, shipping, restock, reason, note, notify }` | `ShopifyOrder` with `refundedAmount`, `financialStatus` partially_refunded / refunded; adds a System message | 404, 422 "Enter an amount between $0 and $X." |
+| `viewsApi.refundAmount(order, { items, shipping })` / `viewsApi.refundable(order)` | helpers | — | `number` | — |
+| `viewsApi.autoRefundLimit()` | reads AI settings | — | `number` ($75 seed) | — |
+| `viewsApi.createDraftOrder(label)` | `POST /api/shopify/draft-orders` | `{ label: 'edit' \| 'duplicate' \| 'create' }` | `{ number: '#D####', label }` (Edit / Duplicate / Create order all end in a confirmation) | — |
+| `viewsApi.TICKET_FIELDS` / `viewsApi.TAG_COLORS` | constants | — | ticket field options, tag dot colours (one Shopify store, goorin-bros, so there is no store selector: REQ-685) | — |
+
+### Ask Goorin AI + handover (`assistantApi`, `api/assistant.ts`), Phase 10, MOCKED
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `assistantApi.ask(question, detail)` | `POST /api/assistant/ask` | `{ question, ticketId? }` | `{ text, draft? }`, built only from that ticket's seed data (summary, orders, refund eligibility vs the auto-refund limit and fraud alert, draft reply) or desk-wide counts | — |
+| `assistantApi.handoverFor(detail)` | part of `GET /api/tickets/:id/detail` | — | `Handover \| null` `{ summary (null when <3 messages), intent, conclusion, bullets[{ text, source: 'doc' \| 'shopify' }], at, stale }` | — |
+| `assistantApi.intentOf(tags)` | helper | — | "Damaged item / Replacement" etc. | — |
+| `assistantApi.PROMPTS_TICKET` / `assistantApi.PROMPTS_GLOBAL` | constants | — | suggested prompts | — |
 
 ### dashboard (`dashboardApi`, `api/dashboard.ts`)
 | function | method + path | request | response | errors |
@@ -361,6 +387,25 @@ Import from `@/api` (`src/api/index.ts`), which exports one namespace per domain
 | `aiApi.saveBrandVoice(v)` | `PUT /api/ai/brand-voice` | `BrandVoice` (limits in `BRAND_VOICE_LIMITS`: brand name 100, tone / how to respond / phrases 2,000, examples 4,000) | `BrandVoice` with new `updatedAt` | 422 "Keep this under N characters." |
 | `aiApi.testConversation(input)` | `POST /api/ai/test-conversation` | `ConversationTestInput` (`history: TestTurn[]`, `message`, `channel`, `orderNumber?`, `voice?` unsaved draft) | `TestTurn` (`role: 'ai'`, text, `result: SandboxResult`) | — |
 | `aiApi.styleWithVoice(draft, voice, channel)` | (client helper) | — | string: opener phrase, avoided phrases removed, chat ≤ 3 sentences, email signed | — |
+
+### Workflows / process automations (`workflowsApi`, `api/workflows.ts`), Phase 13, MOCKED (resets on reload)
+| function | method + path | request | response | errors |
+|---|---|---|---|---|
+| `workflowsApi.listWorkflows()` | `GET /api/workflows` | — | `Workflow[]` in run-priority order | — |
+| `workflowsApi.getWorkflow(id)` | `GET /api/workflows/:id` | — | `Workflow \| null` | — |
+| `workflowsApi.listTemplates()` | `GET /api/workflow-templates` | — | `{ id, name, description, steps }[]` | — |
+| `workflowsApi.createWorkflow(by, templateId?)` | `POST /api/workflows` | `{ templateId? }` | `Workflow` (status `draft`) | — |
+| `workflowsApi.saveWorkflow(wf, by)` | `PUT /api/workflows/:id` | `Workflow` | `Workflow` | 422 an active workflow with issues |
+| `workflowsApi.setStatus(id, status, by)` | `POST /api/workflows/:id/status` | `{ status }` | `Workflow` | 422 "Fix N issues before turning this on." |
+| `workflowsApi.duplicateWorkflow(id, by)` | `POST /api/workflows/:id/duplicate` | — | `Workflow` (Draft copy) | — |
+| `workflowsApi.renameWorkflow(id, name, by)` | `PATCH /api/workflows/:id` | `{ name }` | `Workflow` | — |
+| `workflowsApi.deleteWorkflow(id)` | `DELETE /api/workflows/:id` | — | `true` | — |
+| `workflowsApi.reorderWorkflows(ids)` | `PUT /api/workflows/order` | `string[]` | `Workflow[]` | — |
+| `workflowsApi.findOrdersByEmail(email)` | `GET /api/shopify/orders?email=` | — | `RunOrder[]` (same seed as the Inbox panel) | — |
+| `workflowsApi.activeOrderTracking()` | (runtime helper) | — | the Active chat "Order status" workflow or null | — |
+| `workflowsApi.ORDER_INTENT_RE` | (runtime helper) | — | RegExp for order-status questions in the widget | — |
+
+**Model** (`types/workflows.ts`): `Workflow { trigger: Trigger, steps: Step[], edges: Edge[] }`. List and Canvas are two views of this one graph. `Edge { source, sourceHandle, target }`; the trigger node id is `trigger`. **Step types**: message, ask (text / email / number / buttons, each button is a path), send_code, check_code (paths `ok` / `fail`), find_orders, show_orders, update_address, find_returns, start_return (Loop), condition (paths `yes` / `no`), add_tag, set_field, handover, end. **Variables**: ask sets its `variable`; send_code sets `code`; find_orders sets `orders`, `orders.count`, `orders.unfulfilled`, `order.number`, `order.tracking_url`; start_return sets `rma`; built in: `channel`, `customer.name`, `tries_left`. `lib/workflowGraph.ts` holds validation (`validate`), insert/remove/duplicate/swap and the dagre "Tidy up"; `lib/workflowRuntime.ts` (`startRun`, `replyRun` → `TestRun`) runs Test workflow and the widget. It never shows order details on chat before the code is verified.
 
 ### Channels (`channelsApi`, `api/channels.ts`), MOCKED
 | function | method + path | request | response | errors |
@@ -658,6 +703,18 @@ On `/widget-demo` the switcher moves so it doesn't cover the launcher.
 | Focus ring | the same audit tabs through each route and flags focused elements without an outline or ring | none flagged. The native time inputs' clock button has its ring on `::-webkit-calendar-picker-indicator`, which getComputedStyle can't read, so it was checked by screenshot instead |
 | Horizontal overflow at 768 / 1024 | the same audit, signed-in routes | 0 px everywhere |
 | Console errors | the same audit (preview build; the dev server's HMR websocket is excluded by running against `vite preview`) | 0 |
+| Phase journeys | `node scripts/phase11-check.mjs`, `phase12-check.mjs`, `phase13-check.mjs` (+ `phase11-final.mjs` evidence shots) | see the phase report |
+
+### Workflows (`components/workflows`), Phase 13
+| file | exports | purpose |
+|---|---|---|
+| `components/workflows/WorkflowsTab.tsx` | `WorkflowsTab` | List: stats strip, "+ New workflow" (blank / template), rows (trigger, channel icons, status + switch, runs, completed %, edited, ⋯), duplicate-trigger warning, templates, empty state |
+| `components/workflows/WorkflowEditor.tsx` | `WorkflowEditor` | Name, On/Off (blocked by issues), List / Canvas toggle (List only below 1024), issues list, settings panel (bottom sheet on phones), Test workflow, sticky save bar |
+| `components/workflows/StepList.tsx` | `StepList`, `AddStepMenu` | Numbered step cards with + inserts, branches as side-by-side columns, "Go to / Continue at step N" markers, drag or Move up/down |
+| `components/workflows/StepCanvas.tsx` | default `StepCanvas` | React Flow canvas: pan, zoom, fit, minimap, connect handles, delete arrows, drop from "Add step", Tidy up |
+| `components/workflows/StepSettings.tsx` | `StepSettings`, `TriggerSettings` | One-line inputs per step type and variable chips |
+| `components/workflows/TestPanel.tsx` | `TestPanel`, `ChatThread`, `MockInbox` | Chat / Contact form / Email switch, chat preview, "Customer inbox (mock)", run log, Reset; tests unsaved changes |
+| `components/workflows/stepMeta.tsx` | `STEP_ICON`, `stepSummary`, `VarText`, `UnknownIcon` | Step icons, one-line summaries, `{{var}}` chips |
 
 ## 11. Brand assets
 
@@ -682,6 +739,24 @@ On `/widget-demo` the switcher moves so it doesn't cover the launcher.
 
 ## 12. Seed facts
 
+- **Phase 11 (AI-first Inbox, supersedes the Phase 10 layout):**
+  - Views in order: Needs you (default, 7), Assigned to me, AI handling, Resolved, All; saved views; More › Closed, Spam, Trash. Docked column only at ≥1600; below that, the list-header switcher (phone: chips + Views sheet).
+  - Needs you (7): with AI draft GB-1076, GB-1074, GB-1068, GB-1065, GB-1061, GB-1058; without a draft GB-1071 (also the <3-message handover). SLA 24h: breached ≥24h, close ≥18h.
+  - AI handling: Replying = `ai_handling`, Waiting on customer = `grok_handling`, Resolved by AI today = resolved by Claude/Grokbot today. Status line: 128 handled by AI today (`inboxApi.HANDLED_BY_AI_TODAY`).
+  - GB-1065 (Marcus Bell) has 2 past tickets. #GB19790: $160 = Dulles Newsboy $78 (refunded) + Sage Bucket Hat $82 (refundable).
+  - New APIs: `inboxApi.takeOver`, `inboxApi.handBack`, `inboxApi.generateDraft`, `inboxApi.enrich` (adds `draftReady`, `handoverReason`, `aiConfidence`), `assistantApi.briefFor`, `assistantApi.SOURCE_LABEL`, `assistantApi.FALLBACK`, `viewsApi.editOrder`, `viewsApi.duplicateOrder`, `viewsApi.createOrder`, `viewsApi.searchProducts`, `viewsApi.orderTotal`, `viewsApi.actorId` (Agent role acts as Sam Okafor).
+  - Components: `components/inbox/WhyBrief.tsx`, `components/inbox/SummaryPanel.tsx`, `components/inbox/DraftCard.tsx` (draft-first composer), `components/styleguide/Phase11Samples.tsx`. `lib/inboxViews.ts` adds `aiState`, `waiting`, `sortNeeds`. Types: `Ticket.draftReady/handoverReason/aiConfidence`, `ShopifyOrder.isDraft/discount`, `InboxViewId` now `needs_you`… (old ids alias).
+  - StatusPill (app-wide): 22px, dot + tint, no border or icon.
+- **Phase 10 (Modern Inbox):**
+  - Saved views: Shared `VIP & wholesale` (2), `Damaged on arrival` (4), `Sizing help` (3), all created by Ava; Private `My follow-ups` (Ava).
+  - Default view counts (Ava): Assigned to me 2, Unassigned 17, All 40. Needs human 7.
+  - Teams: Support, Returns, Wholesale. GB-1076 and GB-1071 are Returns, GB-1074 Wholesale, GB-1064 Support.
+  - Handover with a full summary (≥3 messages): GB-1076 (4 messages, "Damaged item / Replacement"). Short handover (<3 messages, "Try again"): GB-1071 (2 messages).
+  - AI draft awaiting approval: GB-1076.
+  - Partially refunded orders: #GB19790 (Margaret, $160, $78 already refunded, $82 refundable) and #GB20360. Auto-refund limit $75.
+  - One Shopify store (goorin-bros), no store selector. Customer notes (the new Note row) and metafields start empty.
+- **Components (Phase 10):** `components/inbox/InboxViewsPanel.tsx` (views panel + `SaveViewDialog`), `components/inbox/AskGoorinAI.tsx` (⌘G / Ctrl+G sheet), `components/inbox/HandoverCard.tsx` (summary + reason), `components/inbox/OrderActions.tsx` (Edit / Duplicate / Refund / Create order dialogs), `components/inbox/PanelParts.tsx` (ticket tags + fields, customer rows, past tickets, store select). `components/styleguide/Phase9Samples.tsx` and `components/styleguide/Phase10Samples.tsx` hold the Phase 9 and Phase 10 styleguide samples.
+- **Types (Phase 10):** `TeamId`, `SavedView`, `SavedViewFilters`, `OrderRefundInput`; `Ticket.team`, `Ticket.snoozedUntil`, `ShopifyOrder.refundedAmount`, `ShopifyOrder.shippingCost`.
 - **Tickets:** 40, `GB-1041`…`GB-1080`.
   - 5 open, 5 ai_handling, 4 grok_handling, **7 needs_human**, 12 resolved, 7 closed.
   - Email and chat.

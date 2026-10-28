@@ -14,7 +14,7 @@ export function escalationPath(d: TicketDetail, assigneeName: string | null): St
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     .map((a) => ({
       key: a.tier,
-      label: a.tier === 'claude' ? 'Claude' : 'Grokbot',
+      label: a.tier === 'claude' ? 'AI' : 'Grokbot',
       reason: a.reason ?? (a.outcome === 'answered' ? 'Answered the customer' : 'Still working on it'),
     }))
   const t = d.ticket

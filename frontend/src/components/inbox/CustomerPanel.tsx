@@ -10,10 +10,10 @@ import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { ShopifyMark } from '@/components/brand/ShopifyMark'
 
-const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+import { usd } from '@/lib/format'
 const PILL = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium'
 const PAY: Record<FinancialStatus, [string, string]> = { paid: ['Paid', 'bg-green-50 text-green-700'], pending: ['Pending', 'bg-amber-50 text-amber-900'], partially_refunded: ['Partially refunded', 'bg-amber-50 text-amber-900'], refunded: ['Refunded', 'bg-slate-100 text-slate-700'] }
-const FUL: Record<FulfillmentStatus, [string, string]> = { unfulfilled: ['Unfulfilled', 'bg-amber-50 text-amber-900'], fulfilled: ['Fulfilled', 'bg-slate-100 text-slate-700'], in_transit: ['In transit', 'bg-brass-50 text-brass-700'], delivered: ['Delivered', 'bg-green-50 text-green-700'] }
+const FUL: Record<FulfillmentStatus, [string, string]> = { unfulfilled: ['Unfulfilled', 'bg-amber-50 text-amber-900'], fulfilled: ['Fulfilled', 'bg-green-50 text-green-700'], in_transit: ['In transit', 'bg-brass-50 text-brass-700'], delivered: ['Delivered', 'bg-green-50 text-green-700'] }
 const EXT = 'inline-flex items-center gap-1 rounded text-xs font-medium text-tobacco-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-sm:min-h-11'
 const NEW_TAB = <><ExternalLink className="h-3 w-3" aria-hidden /><span className="sr-only">(opens in a new tab)</span></>
 const SHOP = <ShopifyMark size={14} decorative />
@@ -86,16 +86,18 @@ export function CustomerStats({ orders }: { orders: ShopifyOrder[] }) {
   )
 }
 
-export function OrderCard({ o, defaultOpen = false }: { o: ShopifyOrder; defaultOpen?: boolean }) {
+export function OrderCard({ o, defaultOpen = false, actions }: { o: ShopifyOrder; defaultOpen?: boolean; actions?: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen)
   const a = o.shippingAddress
+  const count = o.lineItems.reduce((s, l) => s + l.quantity, 0)
   return (
     <Collapsible.Root open={open} onOpenChange={setOpen} className="rounded-xl border border-border bg-surface" data-testid={`order-card-${o.id}`}>
       <div data-testid={`order-${o.number}`}>
         <Collapsible.Trigger className={cn('flex w-full items-start gap-2 rounded-xl px-3 py-2.5 text-left', focusRing)} data-testid={`order-toggle-${o.id}`}>
           <span className="min-w-0 flex-1">
-            <span className="flex items-baseline justify-between gap-2"><span className="text-sm font-semibold text-ink">{o.number}</span><Num value={usd(o.total)} className="text-sm text-ink" testId={`order-total-${o.id}`} /></span>
-            <span className="block text-[11px] text-ink-muted">{new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <span className="flex items-baseline justify-between gap-2"><span className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink">{SHOP}{o.number}{o.isDraft && <span className="rounded-md border border-border px-1.5 text-[11px] font-medium text-ink-muted" data-testid={`order-draft-${o.id}`}>Draft</span>}</span><Num value={usd(o.total)} className="text-sm text-ink" testId={`order-total-${o.id}`} /></span>
+            <span className="block text-[11px] text-ink-muted" data-testid={`order-summary-${o.id}`}>{new Date(o.createdAt).toLocaleDateString('en-US')} • {count} item{count === 1 ? '' : 's'} • {usd(o.total)}</span>
+            <span className="mt-1.5 flex gap-1" aria-hidden>{o.lineItems.slice(0, 4).map((l) => <img key={l.sku} src={l.image} alt="" className="h-8 w-8 rounded-md object-cover ring-1 ring-border" loading="lazy" />)}</span>
             <span className="mt-1.5 flex flex-wrap gap-1">
               <span className={cn(PILL, PAY[o.financialStatus][1])} data-testid={`order-payment-${o.id}`}>{PAY[o.financialStatus][0]}</span>
               <span className={cn(PILL, FUL[o.fulfillmentStatus][1])} data-testid={`order-fulfillment-${o.id}`}>{FUL[o.fulfillmentStatus][0]}</span>
@@ -104,6 +106,7 @@ export function OrderCard({ o, defaultOpen = false }: { o: ShopifyOrder; default
           <ChevronDown className={cn('mt-1 h-4 w-4 shrink-0 text-ink-subtle transition-transform', open && 'rotate-180')} aria-hidden />
           <span className="sr-only">{open ? 'Hide order details' : 'Show order details'}</span>
         </Collapsible.Trigger>
+        {actions && <div className="px-3 pb-2.5">{actions}</div>}
         <Collapsible.Content className="space-y-3 border-t border-border px-3 py-3">
           <ul className="space-y-2" aria-label="Line items">
             {o.lineItems.map((li) => (

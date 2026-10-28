@@ -11,13 +11,13 @@ export const STATUS_LABELS: Record<TicketStatus, string> = {
 
 export const AUTHOR_LABELS: Record<AuthorType, string> = {
   customer: 'Customer',
-  claude: 'Claude',
+  claude: 'AI',
   grokbot: 'Grokbot',
   agent: 'Agent',
   system: 'System',
 }
 
-export const RESOLVER_LABELS: Record<Resolver, string> = { claude: 'Claude', grokbot: 'Grokbot', human: 'Human' }
+export const RESOLVER_LABELS: Record<Resolver, string> = { claude: 'AI', grokbot: 'Grokbot', human: 'Human' }
 
 export const CHANNEL_LABELS: Record<Channel, string> = { email: 'Email', chat: 'Chat' }
 

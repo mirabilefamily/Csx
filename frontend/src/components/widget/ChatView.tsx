@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, RotateCw } from 'lucide-react'
-import type { WidgetOrderCard, WidgetSettings } from '@/types'
+import type { RunOrder, WidgetOrderCard, WidgetSettings } from '@/types'
+import { usd } from '@/lib/format'
 
 export interface ChatMsg {
   id: string
@@ -8,6 +9,8 @@ export interface ChatMsg {
   text: string
   at: number
   order?: WidgetOrderCard
+  runOrders?: RunOrder[]
+  link?: { label: string; url: string }
   kind?: 'greeting' | 'handoff'
   failed?: boolean
 }
@@ -78,6 +81,15 @@ export function MessageList({ messages, settings, typing, onChip, onRetry }: Lis
               {m.author !== 'customer' && <Avatar author={m.author} settings={settings} />}
               <div className="gw-msg-col">
                 <p className="gw-bubble-text">{m.text}</p>
+                {m.link && <a href={m.link.url} target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 600, textDecoration: 'underline', minHeight: 24, display: 'inline-block' }} data-testid="widget-run-link">{m.link.label}</a>}
+                {m.runOrders?.map((o) => (
+                  <div key={o.number} style={{ marginTop: 6, padding: '8px 10px', border: '1px solid #E6E0D7', borderRadius: 10, background: '#fff', fontSize: 12, lineHeight: 1.4 }} data-testid={`widget-run-order-${o.number.replace('#', '')}`}>
+                    <div style={{ fontWeight: 600 }}>{o.number} · {o.date} · {usd(o.total)}</div>
+                    <div style={{ color: '#6B6158' }}>{o.items}</div>
+                    <div style={{ color: '#6B6158' }}>{o.status}</div>
+                    {o.trackingUrl && <a href={o.trackingUrl} target="_blank" rel="noreferrer" style={{ fontWeight: 600, textDecoration: 'underline', display: 'inline-block', minHeight: 24, paddingTop: 2 }}>Track package</a>}
+                  </div>
+                ))}
                 {m.order && <OrderCard order={m.order} />}
                 <span className="gw-meta">
                   {who} · {time(m.at)}

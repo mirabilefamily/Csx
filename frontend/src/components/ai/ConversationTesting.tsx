@@ -41,7 +41,7 @@ function TurnInsight({ turn, index }: { turn: TestTurn; index: number }) {
     <div className="mt-2 space-y-3 rounded-xl bg-surface-sunken p-3" data-testid={`test-turn-insight-${index}`}>
       <p className={cn('flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold', r.wouldEscalate ? 'bg-amber-50 text-amber-900' : 'bg-green-50 text-green-700')} data-testid="sandbox-verdict">
         {r.wouldEscalate ? <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> : <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />}
-        {r.wouldEscalate ? 'Would escalate to Grokbot' : 'Claude would handle this'}
+        {r.wouldEscalate ? 'Would escalate to Grokbot' : 'AI would handle this'}
       </p>
       <Gauge value={r.confidence} threshold={r.threshold} />
       {r.order && <p className="flex items-center gap-2 text-xs text-ink" data-testid="sandbox-order-context"><Package className="h-3.5 w-3.5 text-tobacco-500" aria-hidden /> Order {r.order.number} · {r.order.status.replace('_', ' ')}</p>}
@@ -123,7 +123,7 @@ export function ConversationTesting() {
       </Card>
       <Card className="flex min-h-[560px] flex-col overflow-hidden" data-testid="sandbox-results">
         <div className="flex-1 space-y-4 overflow-y-auto p-5" aria-live="polite" data-testid="test-thread">
-          {turns.length === 0 && status === 'idle' && <EmptyState compact title="Chat with Claude as a customer" description="Each reply shows the articles it used, how confident it was and whether it would escalate." testId="test-empty" />}
+          {turns.length === 0 && status === 'idle' && <EmptyState compact title="Chat with the AI as a customer" description="Each reply shows the articles it used, how confident it was and whether it would escalate." testId="test-empty" />}
           {turns.map((t, i) =>
             t.role === 'customer' ? (
               <div key={i} className="flex justify-start" data-testid={`test-turn-${i}`}>
@@ -133,7 +133,7 @@ export function ConversationTesting() {
               <div key={i} className="flex justify-end" data-testid={`test-turn-${i}`}>
                 <div className="w-full max-w-[min(560px,85%)]">
                   <div className="rounded-2xl rounded-tr-md bg-[#F6EFE6] px-4 py-3 ring-1 ring-tobacco-100">
-                    <AuthorBadge type="claude" label="Claude" />
+                    <AuthorBadge type="claude" label="AI" />
                     <p className="mt-1.5 whitespace-pre-wrap text-sm text-ink" data-testid="sandbox-draft">{t.text}</p>
                   </div>
                   <TurnInsight turn={t} index={i} />
@@ -142,7 +142,7 @@ export function ConversationTesting() {
             ),
           )}
           {status === 'loading' && <div className="ml-auto w-full max-w-[min(560px,85%)] space-y-2" data-testid="sandbox-loading"><Skeleton className="h-16 w-full rounded-2xl" /><Skeleton className="h-24 w-full rounded-xl" /></div>}
-          {status === 'error' && <ErrorState compact title="Claude didn't respond" onRetry={() => { const last = turns[turns.length - 1]; setTurns(turns.slice(0, -1)); send(last.text) }} testId="sandbox-error" />}
+          {status === 'error' && <ErrorState compact title="The AI didn't respond" onRetry={() => { const last = turns[turns.length - 1]; setTurns(turns.slice(0, -1)); send(last.text) }} testId="sandbox-error" />}
           <div ref={end} />
         </div>
         <form onSubmit={(e) => { e.preventDefault(); send() }} className="border-t border-border p-3">

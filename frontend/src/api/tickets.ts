@@ -1,12 +1,13 @@
 import type { AIAttempt, AIDraft, Customer, Message, Ticket, TicketStatus } from '@/types'
 import { request } from './client'
 import { db } from './db'
+import { enrich } from './inbox'
 
 const byNewest = (a: { updatedAt: string }, b: { updatedAt: string }) => b.updatedAt.localeCompare(a.updatedAt)
 
 // GET /api/tickets?status=
 export function listTickets(filter: { status?: TicketStatus } = {}): Promise<Ticket[]> {
-  return request(() => db.tickets.filter((t) => !filter.status || t.status === filter.status).sort(byNewest), { empty: () => [] })
+  return request(() => db.tickets.filter((t) => !filter.status || t.status === filter.status).sort(byNewest).map(enrich), { empty: () => [] })
 }
 
 // GET /api/tickets?status=needs_human  (bell + Inbox badge)

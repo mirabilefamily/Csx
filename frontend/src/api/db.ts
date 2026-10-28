@@ -1,4 +1,4 @@
-import type { AIAttempt, AIDraft, Customer, FraudAlert, GuidanceArticle, LoopReturn, Macro, Message, RefundRecord, Ticket, User } from '@/types'
+import type { AIAttempt, AIDraft, Customer, FraudAlert, GuidanceArticle, LoopReturn, Macro, Message, RefundRecord, Ticket, User, Workflow } from '@/types'
 import * as seed from '@/mocks'
 
 export const CSAT_QUESTIONS_KEY = 'goorin.csatQuestions'
@@ -41,6 +41,7 @@ export const db = {
   contactForm: structuredClone(seed.contactForm),
   emailChannel: structuredClone(seed.emailChannel),
   notificationPrefs: structuredClone(seed.notificationPrefs),
+  workflows: structuredClone(seed.workflows) as Workflow[],
 }
 
 // Keeps the ticket's fraud flag (Inbox shield + banner) in step with its open alert.

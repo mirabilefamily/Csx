@@ -111,15 +111,12 @@ function CollapseToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle:
 
 const Divider = ({ collapsed }: { collapsed: boolean }) => <div className={cn('my-3 h-px bg-border', collapsed ? 'mx-auto w-6' : 'mx-3')} aria-hidden />
 
+const SIDEBAR_KEY = 'goorin.sidebar.collapsed'
+
 export function Sidebar() {
   const { user } = useAuth()
-  const { pathname } = useLocation()
-  const onInbox = pathname.startsWith('/inbox')
-  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1024 || (onInbox && window.innerWidth < 1600))
-
-  useEffect(() => {
-    if (onInbox && window.innerWidth < 1600) setCollapsed(true)
-  }, [onInbox])
+  // The user's expanded/collapsed choice applies on every page, Inbox included.
+  const [collapsed, setCollapsed] = useState(() => window.innerWidth < 1024 || localStorage.getItem(SIDEBAR_KEY) === '1')
 
   useEffect(() => {
     const onResize = () => window.innerWidth < 1024 && setCollapsed(true)
@@ -133,7 +130,7 @@ export function Sidebar() {
       data-collapsed={collapsed}
       className={cn('sticky top-0 z-40 flex h-screen shrink-0 max-sm:hidden flex-col border-r border-border bg-white transition-[width] duration-200', collapsed ? 'w-[72px]' : 'w-60')}
     >
-      <div className="flex h-16 shrink-0 items-center justify-center border-b border-border">
+      <div className={cn('flex h-16 shrink-0 items-center border-b border-border', collapsed ? 'justify-center' : 'justify-start px-4')} data-testid="sidebar-header">
         <Wordmark compact={collapsed} />
       </div>
       <nav aria-label="Main" className="flex flex-1 flex-col px-3 py-4">
@@ -146,7 +143,7 @@ export function Sidebar() {
               <Item item={SETTINGS} collapsed={collapsed} />
             </div>
           )}
-          <CollapseToggle collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+          <CollapseToggle collapsed={collapsed} onToggle={() => setCollapsed((c) => { localStorage.setItem(SIDEBAR_KEY, c ? '0' : '1'); return !c })} />
         </div>
       </nav>
     </aside>

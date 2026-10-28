@@ -17,11 +17,11 @@ import { cn } from '@/lib/utils'
 
 type Key = keyof typeof BRAND_VOICE_LIMITS
 const STYLE: [Key, string, string][] = [
-  ['tone', 'Tone', 'How Claude should sound. A few adjectives and a picture of the person writing.'],
+  ['tone', 'Tone', 'How the AI should sound. A few adjectives and a picture of the person writing.'],
   ['howToRespond', 'How to respond', 'Structure, length and habits for every reply.'],
-  ['phrasesToUse', 'Phrases to use', 'One per line. Claude reaches for these naturally.'],
-  ['phrasesToAvoid', 'Phrases to avoid', 'One per line. Claude rewrites around these.'],
-  ['examples', 'Example replies', 'Paste one or two replies you love. Claude copies the style, not the facts.'],
+  ['phrasesToUse', 'Phrases to use', 'One per line. The AI reaches for these naturally.'],
+  ['phrasesToAvoid', 'Phrases to avoid', 'One per line. The AI rewrites around these.'],
+  ['examples', 'Example replies', 'Paste one or two replies you love. The AI copies the style, not the facts.'],
 ]
 
 function Counter({ id, value, max }: { id: string; value: string; max: number }) {
@@ -64,13 +64,13 @@ function Rail({ draft }: { draft: BrandVoice }) {
         <h3 className="text-sm font-semibold text-ink">Style, never policy</h3>
         <ul className="mt-3 list-disc space-y-1.5 pl-4 text-sm text-ink-muted">
           <li>Voice shapes wording only. Refund limits, returns and shipping come from Guidance.</li>
-          <li>Claude never invents a promise because a phrase sounds friendly.</li>
+          <li>The AI never invents a promise because a phrase sounds friendly.</li>
           <li>Safety and escalation rules always win over style.</li>
         </ul>
       </section>
       <section className="rounded-2xl bg-tobacco-50 p-5 ring-1 ring-tobacco-100">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-tobacco-800"><Sparkles className="h-4 w-4" aria-hidden /> Hear it</h3>
-        <p className="mt-1.5 text-sm text-tobacco-800/80">Chat with Claude as a customer using this draft, before you save it.</p>
+        <p className="mt-1.5 text-sm text-tobacco-800/80">Chat with the AI as a customer using this draft, before you save it.</p>
         <Button variant="outline" className="mt-3 w-full bg-white" onClick={() => navigate('/ai/testing', { state: { voice: draft } })} data-testid="bv-test-voice">Test this voice</Button>
       </section>
     </aside>
@@ -105,13 +105,13 @@ function Loaded({ initial }: { initial: BrandVoice }) {
             </label>
           </div>
           <div className="mt-5 max-w-[480px]">
-            <VoiceField id="brandName" label="Brand name" hint="How Claude refers to the shop." value={draft.brandName} max={BRAND_VOICE_LIMITS.brandName} onChange={(v) => set({ brandName: v })} />
+            <VoiceField id="brandName" label="Brand name" hint="How the AI refers to the shop." value={draft.brandName} max={BRAND_VOICE_LIMITS.brandName} onChange={(v) => set({ brandName: v })} />
           </div>
         </section>
         <section className={cn('space-y-6 rounded-2xl bg-surface p-6 shadow-card ring-1 ring-black/[0.04] transition-opacity max-sm:px-4', !draft.enabled && 'opacity-60')} data-testid="bv-card-style">
           <div>
             <h2 className="text-[15px] font-semibold text-ink">Response style</h2>
-            <p className="mt-0.5 text-sm text-ink-muted">{draft.enabled ? 'Write it the way you would brief a new teammate.' : 'Voice is off. Claude uses a neutral, helpful style.'}</p>
+            <p className="mt-0.5 text-sm text-ink-muted">{draft.enabled ? 'Write it the way you would brief a new teammate.' : 'Voice is off. The AI uses a neutral, helpful style.'}</p>
           </div>
           <div className="grid gap-6 2xl:grid-cols-2">
             {STYLE.map(([k, label, hint]) => (

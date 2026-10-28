@@ -38,7 +38,7 @@ function kpis(cur: DailyMetric[], prev: DailyMetric[], curR: CsatResponse[], pre
   return [
     { key: 'open', label: 'Open tickets', value: cur.at(-1)?.openAtEnd ?? null, previous: prev.at(-1)?.openAtEnd ?? null, format: 'count', betterWhen: 'lower', hint: 'Not yet resolved at end of period' },
     { key: 'created', label: 'Tickets created', value: created(cur), previous: created(prev), format: 'count', betterWhen: 'neutral', hint: 'Email and chat combined' },
-    { key: 'aiRate', label: 'AI resolution rate', value: aiRate(cur), previous: aiRate(prev), format: 'percent', betterWhen: 'higher', hint: 'Resolved by Claude or Grokbot' },
+    { key: 'aiRate', label: 'AI resolution rate', value: aiRate(cur), previous: aiRate(prev), format: 'percent', betterWhen: 'higher', hint: 'Resolved by AI or Grokbot' },
     { key: 'frt', label: 'First response time', value: frt(cur), previous: frt(prev), format: 'duration', betterWhen: 'lower', hint: 'Average, all channels' },
     { key: 'resolution', label: 'Resolution time', value: res(cur), previous: res(prev), format: 'duration', betterWhen: 'lower', hint: 'Average time to resolve' },
     { key: 'csatAvg', label: 'CSAT average', value: avg(curR), previous: avg(prevR), format: 'score', betterWhen: 'higher', hint: 'Out of 5' },
@@ -102,7 +102,7 @@ function compute(range: DateRange): DashboardSummary {
       chat: vals.reduce((s, m) => s + m.chat, 0),
     })) as DashboardSummary['volumeByChannel'],
     resolvedBy: [
-      { key: 'claude', label: 'Claude', count: sum(cur, (m) => m.resolvedClaude) },
+      { key: 'claude', label: 'AI', count: sum(cur, (m) => m.resolvedClaude) },
       { key: 'grokbot', label: 'Grokbot', count: sum(cur, (m) => m.resolvedGrokbot) },
       { key: 'human', label: 'Human', count: sum(cur, (m) => m.resolvedHuman) },
     ],

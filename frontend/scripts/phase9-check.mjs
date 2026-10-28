@@ -26,7 +26,7 @@ p.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
 await login(p)
 
 const SHOTS = [
-  ['dashboard', '/dashboard'], ['inbox', '/inbox/GB-1076'], ['ai-voice', '/ai/voice'], ['ai-replies', '/ai/replies'], ['ai-workflows', '/ai/workflows'], ['ai-testing', '/ai/testing'],
+  ['dashboard', '/dashboard'], ['inbox', '/inbox/GB-1076'], ['ai-voice', '/ai/voice'], ['ai-replies', '/ai/replies'], ['ai-routing', '/ai/routing'], ['ai-workflows', '/ai/workflows'], ['ai-testing', '/ai/testing'],
   ['guidance', '/guidance'], ['channels-chat', '/channels/chat'], ['channels-contact-form', '/channels/chat?kind=form'], ['channels-email', '/channels/email'], ['channels-install', '/channels/install'],
   ['settings-account', '/settings/account'], ['settings-users', '/settings/users'], ['settings-integrations', '/settings/integrations'], ['settings-csat', '/settings/csat'],
 ]
@@ -134,6 +134,8 @@ await step('inbox', async () => {
 
 await step('customer panel', async () => {
   await p.goto(`${BASE}/inbox/GB-1064`)
+  await p.waitForSelector('[data-testid=summary-panel]')
+  if (await p.locator('[data-testid=summary-rows]').count()) await p.click('[data-testid=summary-toggle-full]')
   await p.waitForSelector('[data-testid=order-tools]')
   await p.click('[data-testid=order-tool-inventory]')
   await p.click('[data-testid=order-tool-run]')
@@ -151,7 +153,7 @@ await step('customer panel', async () => {
 
 await step('fraud note', async () => {
   await p.goto(`${BASE}/dashboard`)
-  await p.waitForSelector('[data-testid=fraud-action-safe-fa-101]')
+  await p.click('[data-testid=rf-tab-fraud]'); await p.waitForSelector('[data-testid=fraud-view-all]'); await p.click('[data-testid=fraud-view-all]'); await p.waitForSelector('[data-testid=fraud-list-open] [data-testid=fraud-action-safe-fa-101]')
   await p.click('[data-testid=fraud-action-safe-fa-101]')
   await p.fill('[data-testid=fraud-note-input]', 'Called the customer, address confirmed.')
   await p.click('[data-testid=fraud-note-confirm]')
